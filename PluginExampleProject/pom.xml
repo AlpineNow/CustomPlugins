@@ -1,61 +1,68 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>alpine</groupId>
-	<artifactId>plugin-example</artifactId>
-	<version>0.5-SNAPSHOT</version>
+    <groupId>alpine</groupId>
+    <artifactId>plugin-example</artifactId>
+    <version>0.5-SNAPSHOT</version>
 
-	<dependencies>
+    <repositories>
+        <repository>
+            <id>Alpine</id>
+            <url>https://github.com/AlpineNow/MavenRepo/raw/master/releases</url>
+        </repository>
+    </repositories>
+    
+    <dependencies>
 
-		<dependency>
-			<groupId>com.alpine</groupId>
-			<artifactId>plugin-core</artifactId>
-			<version>0.5</version>
-		</dependency>		
-		
-		<dependency>
-			<groupId>com.alpine</groupId>
-			<artifactId>plugin-engine</artifactId>
-			<version>0.5</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.alpine</groupId>
-			<artifactId>plugin-spark</artifactId>
-			<version>0.5</version>
-		</dependency>
+        <dependency>
+            <groupId>com.alpine</groupId>
+            <artifactId>plugin-core</artifactId>
+            <version>0.5</version>
+        </dependency>
 
-	</dependencies>
+        <dependency>
+            <groupId>com.alpine</groupId>
+            <artifactId>plugin-engine</artifactId>
+            <version>0.5</version>
+        </dependency>
 
-	<build>
-		<plugins>
-			
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
+        <dependency>
+            <groupId>com.alpine</groupId>
+            <artifactId>plugin-spark</artifactId>
+            <version>0.5</version>
+        </dependency>
 
-			<plugin>
-				<groupId>org.scala-tools</groupId>
-				<artifactId>maven-scala-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compile</goal>
-							<goal>testCompile</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			
-		</plugins>
-	</build>
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>
 
