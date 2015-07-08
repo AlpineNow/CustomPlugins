@@ -23,12 +23,6 @@
 
         <dependency>
             <groupId>com.alpine</groupId>
-            <artifactId>plugin-engine</artifactId>
-            <version>0.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alpine</groupId>
             <artifactId>plugin-spark</artifactId>
             <version>0.5</version>
         </dependency>
