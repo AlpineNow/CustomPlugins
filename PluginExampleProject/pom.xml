@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-example</artifactId>
-    <version>0.9.2</version>
+    <version>0.9.3</version>
 
     <repositories>
         <repository>
@@ -20,13 +20,13 @@
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>0.5</version>
+            <version>0.9.3</version>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>0.5</version>
+            <version>0.9.3</version>
         </dependency>
 
         <!-- Spark dependency -->
