@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <alpine-plugins>
-    <plugin>
-        <signature-class>com.alpine.samples.HtmlsToRawTextsSignature</signature-class>
-    </plugin>
-    <plugin>
-        <signature-class>com.alpine.samples.RawTextDataToClassifierDataSignature</signature-class>
-    </plugin>
-    <plugin>
-        <signature-class>com.alpine.samples.SparkWordCountSignature</signature-class>
-    </plugin>
-    <plugin>
-        <signature-class>com.alpine.samples.WebCrawlerSignature</signature-class>
-    </plugin>
-    <plugin>
-        <signature-class>com.alpine.samples.HdfsBinaryFileSignature</signature-class>
-    </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HtmlsToRawTextsSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.RawTextDataToClassifierDataSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.SparkWordCountSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.WebCrawlerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HdfsBinaryFileSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.NumericFeatureTransformerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.ExampleClassificationModelSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.DBNumericFeatureTransformerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.RegressionEvaluatorSignature</signature-class>
+  </plugin>
 </alpine-plugins>

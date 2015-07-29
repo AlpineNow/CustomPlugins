@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export-types>
+    <export-type>com.alpine.plugin.samples.ver1_0.ExampleClassificationModel</export-type>
+</export-types>
