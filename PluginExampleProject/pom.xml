@@ -21,30 +21,35 @@
             <groupId>com.alpine</groupId>
             <artifactId>plugin-core</artifactId>
             <version>0.9.6</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-spark</artifactId>
             <version>0.9.6</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-model</artifactId>
             <version>0.9.6</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>alpine-model-api</artifactId>
             <version>0.9.6</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>alpine-model-pack</artifactId>
             <version>0.9.6</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Spark dependency -->
