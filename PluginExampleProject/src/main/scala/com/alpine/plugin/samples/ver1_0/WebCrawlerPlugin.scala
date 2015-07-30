@@ -115,7 +115,7 @@ class WebCrawlerGUINode extends OperatorGUINode[
 
     // Add where in the Hdfs this will get stored.
     OutputParameterUtils
-      .addStandardHDFSOutputParameters(operatorDialog, "WebCrawler", operatorDataSourceManager)
+          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
 
     operatorDialog.addRadioButtons(

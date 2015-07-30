@@ -47,7 +47,7 @@ class RawTextDataToClassifierDataGUINode extends OperatorGUINode[
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     OutputParameterUtils
-      .addStandardHDFSOutputParameters(operatorDialog, "RawTextToClassifier", operatorDataSourceManager)
+          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
     operatorDialog.addDropdownBox(
       id = "labelSyntax",

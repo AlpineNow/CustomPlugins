@@ -46,7 +46,7 @@ class SparkWordCountGUINode extends
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     // Add input parameters for selecting the output directory.
     OutputParameterUtils
-      .addStandardHDFSOutputParameters(operatorDialog, "WordCount", operatorDataSourceManager)
+          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
 
     val schemaOutline = operatorSchemaManager.createTabularSchemaOutline(

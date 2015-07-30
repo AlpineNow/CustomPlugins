@@ -36,7 +36,7 @@ class RegressionEvaluatorGUINode extends OperatorGUINode[
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     OutputParameterUtils
-      .addStandardHDFSOutputParameters(operatorDialog, "RegressionEvaluator", operatorDataSourceManager)
+          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
     val numColumns = 4
     val outputSchema: TabularSchemaOutline = operatorSchemaManager.createTabularSchemaOutline(

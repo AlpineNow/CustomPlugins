@@ -42,7 +42,7 @@ class HtmlsToRawTextsGUINode extends OperatorGUINode[
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
-    OutputParameterUtils.addStandardHDFSOutputParameters(operatorDialog, "HTMLToRawText", operatorDataSourceManager)
+    OutputParameterUtils.addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
   }
 }
 

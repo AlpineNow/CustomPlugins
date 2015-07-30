@@ -63,7 +63,7 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
     )
 
     OutputParameterUtils
-      .addStandardHDFSOutputParameters(operatorDialog, "NumericFeatureTransformer", operatorDataSourceManager)
+          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
   }
 
   private def updateOutputSchema(
