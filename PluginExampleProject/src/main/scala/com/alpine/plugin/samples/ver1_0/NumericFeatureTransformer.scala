@@ -13,10 +13,9 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.{SparkJobConfiguration, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.OperatorMetadata
 import com.alpine.plugin.core.spark.utils.SparkUtils
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
 import com.alpine.plugin.core.utils.{OutputParameterUtils, SchemaUtils}
 
 class NumericFeatureTransformerSignature extends OperatorSignature[
@@ -29,7 +28,7 @@ class NumericFeatureTransformerSignature extends OperatorSignature[
       author = "Sung Chung",
       version = 1,
       helpURL = "http://www.nytimes.com",
-      iconNamePrefix = ""
+      iconNamePrefix = "test"
     )
   }
 }
@@ -102,11 +101,11 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
         if (storageFormat.equals("Parquet")) {
           outputSchema.setExpectedOutputFormat(
             TabularFormatAttributes.createParquetFormat()
-          );
+          )
         } else if (storageFormat.equals("Avro")) {
           outputSchema.setExpectedOutputFormat(
             TabularFormatAttributes.createAvroFormat()
-          );
+          )
         } else { // Storage format is TSV.
           outputSchema.setExpectedOutputFormat(
             TabularFormatAttributes.createDelimitedFormat(
@@ -114,7 +113,7 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
               "\\",
               "\""
             )
-          );
+          )
         }
       }
     }
@@ -147,7 +146,15 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
 class NumericFeatureTransformerRuntime extends SparkRuntimeWithIOTypedJob[
   NumericFeatureTransformerJob,
   HdfsTabularDataset,
-  HdfsTabularDataset] {}
+  HdfsTabularDataset] {
+
+  override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
+    val config = super.getSparkJobConfiguration(parameters, input)
+    config.additionalParameters += ("spark.shuffle.memoryFraction" -> "0.1")
+    config
+  }
+
+}
 
 class NumericFeatureTransformerJob extends
   SparkIOTypedPluginJob[HdfsTabularDataset, HdfsTabularDataset] {

@@ -1,3 +1,6 @@
+/**
+ * COPYRIGHT (C) 2015 Alpine Data Labs Inc. All Rights Reserved.
+ */
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core._
@@ -8,8 +11,11 @@ import com.alpine.plugin.core.utils.OutputParameterUtils
 import com.alpine.plugin.model.RegressionModelWrapper
 
 /**
- * @author Jenny Thompson
- *         7/21/15
+ * This is the design-time code for the Regression evaluator operator.
+ * It takes an input dataset and a Regression model to create a set of metrics
+ * evaluating the quality of the model on the dataset.
+ *
+ * The result is a dataset containing one row, where each statistic is in a separate column.
  */
 class RegressionEvaluatorSignature extends OperatorSignature[
   RegressionEvaluatorGUINode,
@@ -47,6 +53,7 @@ class RegressionEvaluatorGUINode extends OperatorGUINode[
     outputSchema.addColumnDef(new ColumnDef("meanAbsoluteError", ColumnType.Double))
     outputSchema.addColumnDef(new ColumnDef("meanSquaredError", ColumnType.Double))
     outputSchema.addColumnDef(new ColumnDef("rootMeanSquaredError", ColumnType.Double))
+    outputSchema.addColumnDef(new ColumnDef("r2", ColumnType.Double))
     operatorSchemaManager.setOutputSchemaOutline(outputSchema)
 
     outputSchema.setExpectedOutputFormat(

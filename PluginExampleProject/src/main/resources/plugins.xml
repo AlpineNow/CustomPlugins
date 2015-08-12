@@ -27,4 +27,10 @@
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.RegressionEvaluatorSignature</signature-class>
   </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HiveColumnFilterSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.AggregationSignature</signature-class>
+  </plugin>
 </alpine-plugins>

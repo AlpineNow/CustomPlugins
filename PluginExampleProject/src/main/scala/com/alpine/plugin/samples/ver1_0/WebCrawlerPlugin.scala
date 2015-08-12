@@ -130,8 +130,8 @@ class WebCrawlerGUINode extends OperatorGUINode[
       label = "Comma Separated Url Seeds",
       defaultValue = "",
       regex = ".+",
-      width = 0,
-      height = 0
+      width = 100,
+      height = 100
     )
 
     operatorDialog.addIntegerBox(
@@ -206,6 +206,10 @@ class WebCrawlerRuntime extends SparkRuntime[
     )
 
     urlSeeds.foreach(seed => crawlController.addSeed(seed))
+
+    if (!context.exists(outputPath)) {
+      context.mkdir(outputPath)
+    }
 
     listener.notifyMessage("Crawler is starting with the following options :")
     listener.notifyMessage("  HDFS output path : " + outputPath)
