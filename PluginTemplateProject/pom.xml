@@ -26,6 +26,14 @@
         
         <dependency>
             <groupId>com.alpine</groupId>
+            <artifactId>plugin-test</artifactId>
+            <version>0.9.8</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.alpine</groupId>
             <artifactId>plugin-spark</artifactId>
             <version>0.9.8</version>
             <scope>provided</scope>
