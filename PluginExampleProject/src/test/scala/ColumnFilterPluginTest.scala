@@ -1,4 +1,3 @@
-import com.alpine.plugin.core.io.impl.OperatorParametersImpl
 import com.alpine.plugin.samples.ver1_0.ColumnFilterJob
 import com.alpine.plugin.test.AbstractSparkJobSuite
 import org.apache.spark.sql.Row
@@ -16,7 +15,7 @@ class ColumnFilterPluginTest extends AbstractSparkJobSuite {
       StructType(List(StructField("name", StringType), StructField("age", IntegerType)))
     val dataFrameInput = sContext.createDataFrame(input, schema)
     assert(dataFrameInput.schema.fieldNames.contains("age"))
-    val parameters: OperatorParametersImpl = getOperatorParameters(("columnsToDelete", "age"))
+    val parameters = getOperatorParameters(("columnsToKeep", "name"))
 
     parameters.setValue("outputPath", cluster.createDirectory())
     parameters.setValue("storageFormat", "tsv")
