@@ -33,4 +33,10 @@
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.AggregationSignature</signature-class>
   </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HelloWorldSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HelloWorldInSparkSignature</signature-class>
+  </plugin>
 </alpine-plugins>

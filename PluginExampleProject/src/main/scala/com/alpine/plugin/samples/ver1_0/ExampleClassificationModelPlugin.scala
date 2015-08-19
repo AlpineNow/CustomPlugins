@@ -4,15 +4,14 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import com.alpine.features.{DoubleType, StringType, FeatureDesc}
+import com.alpine.features.{DoubleType, FeatureDesc, StringType}
 import com.alpine.model.ClassificationRowModel
-import com.alpine.plugin.core._
+import com.alpine.plugin.core.{OperatorMetadata, _}
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
 import com.alpine.plugin.model._
-import com.alpine.plugin.core.OperatorMetadata
 import com.alpine.transformer.ClassificationTransformer
 
 /**
@@ -74,8 +73,7 @@ class ExampleClassificationModelRuntime extends SparkRuntime[
     context: SparkExecutionContext,
     input: IONone,
     params: OperatorParameters,
-    listener: OperatorListener,
-    ioFactory: IOFactory): ClassificationModelWrapper = {
+    listener: OperatorListener): ClassificationModelWrapper = {
     return new ClassificationModelWrapper(
       "Example classification model",
       new ExampleClassificationModel()

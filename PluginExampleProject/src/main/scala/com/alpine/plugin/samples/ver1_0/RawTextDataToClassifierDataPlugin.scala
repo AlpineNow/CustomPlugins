@@ -4,25 +4,21 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import com.alpine.plugin.core.utils.OutputParameterUtils
+import scala.collection.mutable
 
-import collection.mutable
-
+import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.{OperatorMetadata, _}
+import com.alpine.plugin.core.datasource.OperatorDataSourceManager
+import com.alpine.plugin.core.dialog.OperatorDialog
+import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
+import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.utils.HDFSParameterUtils
+import opennlp.tools.tokenize.{Tokenizer, TokenizerME, TokenizerModel}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.FileSystem
-import org.apache.hadoop.fs.Path
-
-import opennlp.tools.tokenize.{TokenizerME, Tokenizer, TokenizerModel}
-
-import com.alpine.plugin.core._
-import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.OperatorMetadata
-import com.alpine.plugin.core.datasource.OperatorDataSourceManager
-import com.alpine.plugin.core.spark.{SparkRuntimeWithIOTypedJob, SparkIOTypedPluginJob}
-import com.alpine.plugin.core.dialog.OperatorDialog
 
 class RawTextDataToClassifierDataSignature extends OperatorSignature[
   RawTextDataToClassifierDataGUINode,
@@ -46,7 +42,7 @@ class RawTextDataToClassifierDataGUINode extends OperatorGUINode[
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
-    OutputParameterUtils
+    HDFSParameterUtils
           .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
     operatorDialog.addDropdownBox(
@@ -56,21 +52,17 @@ class RawTextDataToClassifierDataGUINode extends OperatorGUINode[
       defaultSelection = "Path Name"
     )
 
-    // This can have a variable number of columns.
-    val schemaOutline = operatorSchemaManager.createTabularSchemaOutline(
-      minNumCols = 1001, // Stupid hack to pre-define columns.
-      maxNumCols = Int.MaxValue
-    )
-
+    val columnDefs = new mutable.ArrayBuffer[ColumnDef]()
     // The only thing we know for certain is that there will be a label column.
-    schemaOutline.addColumnDef(ColumnDef("Label", ColumnType.String))
+    columnDefs += ColumnDef("Label", ColumnType.String)
     var i = 0
     while (i < 1000) {
-      schemaOutline.addColumnDef(ColumnDef("Word" + (i + 1).toString, ColumnType.Int))
+      columnDefs += ColumnDef("Word" + (i + 1).toString, ColumnType.Int)
       i += 1
     }
 
-    operatorSchemaManager.setOutputSchemaOutline(schemaOutline)
+    val outputSchema = TabularSchema(columnDefs)
+    operatorSchemaManager.setOutputSchema(outputSchema)
   }
 }
 
@@ -87,8 +79,7 @@ class RawTextDataToClassifierDataJob extends SparkIOTypedPluginJob[
     appConf: mutable.Map[String, String],
     input: Tuple3[HdfsRawTextDataset, HdfsDelimitedTabularDataset, HdfsBinaryFile],
     operatorParameters: OperatorParameters,
-    listener: OperatorListener,
-    ioFactory: IOFactory): HdfsDelimitedTabularDataset = {
+    listener: OperatorListener): HdfsDelimitedTabularDataset = {
     val conf = new Configuration()
     val dfs = FileSystem.get(conf)
     val inputRawFiles = input.getT1()
@@ -96,7 +87,7 @@ class RawTextDataToClassifierDataJob extends SparkIOTypedPluginJob[
     val tokenizerConfigFile = input.getT3()
     val tokenizerConfigPath = tokenizerConfigFile.getPath()
     val inputPath = inputRawFiles.getPath()
-    val outputPathStr = OutputParameterUtils.getOutputPath(operatorParameters)
+    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
     val delimiter = dictionaryFile.getDelimiter
 
     // Load the dictionary first.
@@ -117,13 +108,8 @@ class RawTextDataToClassifierDataJob extends SparkIOTypedPluginJob[
 
     val numWords = math.min(allWordCntMap.size, 1000)
 
-    val schemaOutline = ioFactory.createTabularSchemaOutline(
-      minNumCols = numWords + 1,
-      maxNumCols = numWords + 1
-    )
-
-    // Define the output column types (label and word counts).
-    schemaOutline.addColumnDef(ColumnDef("Label", ColumnType.String))
+    val columnDefs = new mutable.ArrayBuffer[ColumnDef]()
+    columnDefs += ColumnDef("Label", ColumnType.String)
 
     // Now, assign a feature index to each word.
     val wordIndices = mutable.Map[String, Int]()
@@ -132,7 +118,7 @@ class RawTextDataToClassifierDataJob extends SparkIOTypedPluginJob[
     while (i < 1000 && itr.hasNext) {
       val wordCnt = itr.next()
       wordIndices.put(wordCnt._1, i)
-      schemaOutline.addColumnDef(ColumnDef("Word" + (i + 1).toString, ColumnType.Long))
+      columnDefs += ColumnDef("Word" + (i + 1).toString, ColumnType.Long)
       i += 1
     }
 
@@ -181,20 +167,18 @@ class RawTextDataToClassifierDataJob extends SparkIOTypedPluginJob[
       rddIndex += 1
     }
 
-    val outputPath = new Path(outputPathStr)
-    val driverHdfs = FileSystem.get(sparkContext.hadoopConfiguration)
-    if (driverHdfs.exists(outputPath)) {
-      driverHdfs.delete(outputPath, true)
+    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
+      new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
     unionRdd.saveAsTextFile(outputPathStr)
 
-    ioFactory.createHdfsDelimitedTabularDataset(
-      path = outputPathStr,
-      delimiter = "\t",
-      escapeStr = "\\",
-      quoteStr = "\"",
-      containsHeader = false,
-      schemaOutline = schemaOutline
+    new HdfsDelimitedTabularDatasetDefault(
+      outputPathStr,
+      TabularSchema(columnDefs),
+      "\t",
+      "\\",
+      "\"",
+      false
     )
   }
 }

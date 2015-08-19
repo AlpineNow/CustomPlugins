@@ -4,18 +4,20 @@
 
 package com.alpine.plugin.samples.ver1_0
 
+import scala.collection.mutable
+
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
+import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.OutputParameterUtils
+import com.alpine.plugin.core.utils.HDFSParameterUtils
 import opennlp.tools.tokenize.{Tokenizer, TokenizerME, TokenizerModel}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkContext
-
-import scala.collection.mutable
 
 /**
  * The companion object is used during operator registration.
@@ -45,17 +47,10 @@ class SparkWordCountGUINode extends
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     // Add input parameters for selecting the output directory.
-    OutputParameterUtils
+    HDFSParameterUtils
           .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
-
-    val schemaOutline = operatorSchemaManager.createTabularSchemaOutline(
-      minNumCols = 2,
-      maxNumCols = 2
-    )
-
-    WordCounter.addColumnsToOutputSchema(schemaOutline)
-    operatorSchemaManager.setOutputSchemaOutline(schemaOutline)
+    operatorSchemaManager.setOutputSchema(WordCounter.createOutputSchema())
   }
 
   /*
@@ -89,9 +84,11 @@ class SparkWordCountRuntime extends SparkRuntimeWithIOTypedJob[
   HdfsDelimitedTabularDataset] {}
 
 object WordCounter {
-  def addColumnsToOutputSchema(schemaOutline: TabularSchemaOutline) = {
-    schemaOutline.addColumnDef(ColumnDef("Word", ColumnType.String))
-    schemaOutline.addColumnDef(ColumnDef("Count", ColumnType.Long))
+  def createOutputSchema(): TabularSchema = {
+    TabularSchema(Array(
+      ColumnDef("Word", ColumnType.String),
+      ColumnDef("Count", ColumnType.Long)
+    ))
   }
 }
 
@@ -102,14 +99,13 @@ class WordCounter extends
     appConf: mutable.Map[String, String],
     input: Tuple2[HdfsRawTextDataset, HdfsBinaryFile],
     operatorParameters: OperatorParameters,
-    listener: OperatorListener,
-    ioFactory: IOFactory): HdfsDelimitedTabularDataset = {
+    listener: OperatorListener): HdfsDelimitedTabularDataset = {
     val inputData = input.getT1()
     val tokenizerConfigFile = input.getT2()
     val tokenizerConfigPath = tokenizerConfigFile.getPath()
     val rawPath = inputData.getPath()
     val textRdd = sparkContext.textFile(new Path(rawPath, "*/*").toString)
-    val outputPathStr = OutputParameterUtils.getOutputPath(operatorParameters)
+    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
     val wordCntFunc: Iterator[String] => Iterator[(String, Int)] =
       (lines: Iterator[String]) => {
         val stopWords = Set[String](
@@ -151,22 +147,19 @@ class WordCounter extends
         reduceByKey(_ + _).
         map(t => t._1 + "\t" + t._2)
 
-    val outputPath = new Path(outputPathStr)
-    val driverHdfs = FileSystem.get(sparkContext.hadoopConfiguration)
-    if (driverHdfs.exists(outputPath)) {
-      driverHdfs.delete(outputPath, true)
+
+    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
+      new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
 
     outputRdd.saveAsTextFile(outputPathStr)
-    val schemaOutline = ioFactory.createTabularSchemaOutline(2, 2)
-    WordCounter.addColumnsToOutputSchema(schemaOutline)
-    ioFactory.createHdfsDelimitedTabularDataset(
-      path = outputPathStr,
-      delimiter = "\t",
-      escapeStr = "\\",
-      quoteStr = "\"",
-      containsHeader = false,
-      schemaOutline = schemaOutline
+    new HdfsDelimitedTabularDatasetDefault(
+      outputPathStr,
+      WordCounter.createOutputSchema(),
+      "\t",
+      "\\",
+      "\"",
+      false
     )
   }
 }

@@ -7,7 +7,7 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.utils.OutputParameterUtils
+import com.alpine.plugin.core.utils.HDFSParameterUtils
 import com.alpine.plugin.model.RegressionModelWrapper
 
 /**
@@ -41,20 +41,17 @@ class RegressionEvaluatorGUINode extends OperatorGUINode[
                            operatorDataSourceManager: OperatorDataSourceManager,
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
 
-    OutputParameterUtils
+    HDFSParameterUtils
           .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
-    val numColumns = 4
-    val outputSchema: TabularSchemaOutline = operatorSchemaManager.createTabularSchemaOutline(
-      minNumCols = numColumns,
-      maxNumCols = numColumns
-    )
-    outputSchema.addColumnDef(new ColumnDef("explainedVariance", ColumnType.Double))
-    outputSchema.addColumnDef(new ColumnDef("meanAbsoluteError", ColumnType.Double))
-    outputSchema.addColumnDef(new ColumnDef("meanSquaredError", ColumnType.Double))
-    outputSchema.addColumnDef(new ColumnDef("rootMeanSquaredError", ColumnType.Double))
-    outputSchema.addColumnDef(new ColumnDef("r2", ColumnType.Double))
-    operatorSchemaManager.setOutputSchemaOutline(outputSchema)
+    val outputSchema = TabularSchema(Array(
+      ColumnDef("explainedVariance", ColumnType.Double),
+      ColumnDef("meanAbsoluteError", ColumnType.Double),
+      ColumnDef("meanSquaredError", ColumnType.Double),
+      ColumnDef("rootMeanSquaredError", ColumnType.Double),
+      ColumnDef("r2", ColumnType.Double)
+    ))
+    operatorSchemaManager.setOutputSchema(outputSchema)
 
     outputSchema.setExpectedOutputFormat(
       TabularFormatAttributes.createDelimitedFormat(

@@ -4,21 +4,19 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import com.alpine.plugin.core.utils.OutputParameterUtils
-
 import scala.collection.mutable
 
-import org.apache.hadoop.fs.{ FileSystem, Path }
-import org.apache.spark.SparkContext
-
-import org.jsoup.Jsoup
-
-import com.alpine.plugin.core._
-import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
-import com.alpine.plugin.core.OperatorMetadata
-import com.alpine.plugin.core.spark.{SparkRuntimeWithIOTypedJob, SparkIOTypedPluginJob}
 import com.alpine.plugin.core.dialog.OperatorDialog
+import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.io.defaults.HdfsRawTextDatasetDefault
+import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.{OperatorMetadata, _}
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.spark.SparkContext
+import org.jsoup.Jsoup
 
 class HtmlsToRawTextsSignature extends OperatorSignature[
   HtmlsToRawTextsGUINode,
@@ -42,7 +40,7 @@ class HtmlsToRawTextsGUINode extends OperatorGUINode[
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
-    OutputParameterUtils.addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
+    HDFSParameterUtils.addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
   }
 }
 
@@ -58,18 +56,16 @@ class HtmlsToRawTextsJob extends
     appConf: mutable.Map[String, String],
     input: HdfsHtmlDataset,
     operatorParameters: OperatorParameters,
-    listener: OperatorListener,
-    ioFactory: IOFactory): HdfsRawTextDataset = {
+    listener: OperatorListener): HdfsRawTextDataset = {
     val inputPath = input.getPath()
     val hdfs = FileSystem.get(sparkContext.hadoopConfiguration)
 
     // We use the standard output parameters.
-    val outputPathStr = OutputParameterUtils.getOutputPath(operatorParameters)
+    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
     val outputPath = new Path(outputPathStr)
 
-    // Delete the output path if it already exists.
-    if (hdfs.exists(outputPath)) {
-      hdfs.delete(outputPath, true)
+    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
+      new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
 
     // List all the directories under this directory.
@@ -98,6 +94,6 @@ class HtmlsToRawTextsJob extends
       }
     }
 
-    ioFactory.createHdfsRawTextDataset(outputPathStr)
+    new HdfsRawTextDatasetDefault(outputPathStr)
   }
 }

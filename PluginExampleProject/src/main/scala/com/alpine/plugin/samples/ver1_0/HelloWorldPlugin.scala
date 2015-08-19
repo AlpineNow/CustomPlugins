@@ -7,17 +7,17 @@ package com.alpine.plugin.samples.ver1_0
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
-import com.alpine.plugin.core.io.defaults.HdfsBinaryFileDefault
-import com.alpine.plugin.core.io.{HdfsBinaryFile, IONone, OperatorSchemaManager}
+import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.io.defaults.IOStringDefault
 import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
 
-class HdfsBinaryFileSignature extends OperatorSignature[
-  HdfsBinaryFileGUINode,
-  HdfsBinaryFileRuntime] {
+class HelloWorldSignature extends OperatorSignature[
+  HelloWorldGUINode,
+  HelloWorldRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "HdfsBinaryFile",
-      category = "Dataset",
+      name = "HelloWorld",
+      category = "Standalone",
       author = "Sung Chung",
       version = 1,
       helpURL = "",
@@ -26,32 +26,25 @@ class HdfsBinaryFileSignature extends OperatorSignature[
   }
 }
 
-class HdfsBinaryFileGUINode extends OperatorGUINode[
+class HelloWorldGUINode extends OperatorGUINode[
   IONone,
-  HdfsBinaryFile] {
+  IOString] {
   override def onPlacement(
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
-    operatorDialog.addHdfsFileSelector(
-      id = "sourcePath",
-      label = "Output Path",
-      defaultPath = "",
-      dataSourceManager = operatorDataSourceManager
-    )
   }
 }
 
-class HdfsBinaryFileRuntime extends SparkRuntime[
+class HelloWorldRuntime extends SparkRuntime[
   IONone,
-  HdfsBinaryFile] {
+  IOString] {
   override def onExecution(
     context: SparkExecutionContext,
     input: IONone,
     params: OperatorParameters,
-    listener: OperatorListener): HdfsBinaryFile = {
-    val sourcePath = params.getStringValue("sourcePath")
-    new HdfsBinaryFileDefault(sourcePath)
+    listener: OperatorListener): IOString = {
+    new IOStringDefault("Hello World")
   }
 
   override def onStop(

@@ -1,14 +1,17 @@
+/**
+ * COPYRIGHT (C) 2015 Alpine Data Labs Inc. All Rights Reserved.
+ */
+
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
-import com.alpine.plugin.core.io.{ColumnDef, ColumnType, OperatorSchemaManager, TabularSchemaOutline}
+import com.alpine.plugin.core.io.{ColumnDef, ColumnType, OperatorSchemaManager, TabularSchema}
 import com.alpine.plugin.core.spark.templates._
 import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
-
 
 /**
  * An example of a very simple pugin that take a  group by parameter and a a few numeric features and computers Sum
@@ -31,8 +34,6 @@ import org.apache.spark.sql.{DataFrame, Row}
  * "transform method which takes in the input dataset as a DataFrame and
  * produces the output as a dataFrame.
  */
-
-
 
 class AggregationSignature extends OperatorSignature[
   AggregationGUINode,
@@ -92,8 +93,8 @@ class AggregationGUINode extends SparkDataFrameGUINode[AggregationPluginSparkJob
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
   }
 
-  override def defineOutputSchemaColumns(inputSchema: TabularSchemaOutline,
-                                         params: OperatorParameters ) : Array[ColumnDef] = {
+  override def defineOutputSchemaColumns(inputSchema: TabularSchema,
+                                         params: OperatorParameters) : Seq[ColumnDef] = {
     AggregationOutputSchema.getColumnDefs(params) }
 }
 
@@ -115,7 +116,7 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
     val selectedData = inputDataFrame.select(groupByCol, colsToAggregate : _*)
     val rowRDD =  selectedData.map(row => {
       val key = row.getString(0)
-      val rest = Range(1, row.length).map(i => row.getDouble(i)).toList
+      val rest = Range(1, row.length).map(i => row.get(i).toString.toDouble).toList
       (key, rest)
     }).reduceByKey( (rowA, rowB) => rowA.zip(rowB).map{case (a, b) => a*b})
       .map{case (key, values) => Row.fromSeq( (key :: values).toSeq)}

@@ -10,8 +10,8 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.utils.SchemaUtils
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.io.defaults.DBTableDefault
+// import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
 
 class DBNumericFeatureTransformerSignature extends OperatorSignature[
   DBNumericFeatureTransformerGUINode,
@@ -38,7 +38,9 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     operatorDialog.addTabularDatasetColumnCheckboxes(
       "columnsToTransform",
       "Columns to transform",
-      ColumnFilter.NumericOnly,
+      // Need to figure out what numeric types the intended DBs have.
+      // Before that, we'll simply allow all column types to be shown.
+      ColumnFilter.All,
       "main"
     )
 
@@ -81,42 +83,32 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
   }
 
   private def updateOutputSchema(
-    inputSchemas: mutable.Map[String, TabularSchemaOutline],
+    inputSchemas: mutable.Map[String, TabularSchema],
     params: OperatorParameters,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
     if (inputSchemas.size > 0) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getFixedColumns().length > 0) {
-        val numInputColumns = inputSchema.getMaxNumColumns()
+      if (inputSchema.getDefinedColumns().length > 0) {
+        val numInputColumns = inputSchema.getNumDefinedColumns()
         val (_, columnsToTransform) =
           params.getTabularDatasetSelectedColumns("columnsToTransform")
         val transformationType = params.getStringValue("transformationType")
-        val numTransformedColumns = columnsToTransform.length
-        val outputSchema = operatorSchemaManager.createTabularSchemaOutline(
-          minNumCols = numInputColumns + numTransformedColumns,
-          maxNumCols = numInputColumns + numTransformedColumns
+        val outputSchema = SchemaTransformer.transform(
+          inputSchema,
+          columnsToTransform,
+          transformationType
         )
 
-        SchemaUtils.copyColumnDefs(inputSchema, outputSchema)
-        var i = 0
-        while (i < columnsToTransform.length) {
-          outputSchema.addColumnDef(
-            ColumnDef(
-              columnsToTransform(i) + "_" + transformationType.toLowerCase,
-              ColumnType.TypeValue("DOUBLE PRECISION")
-            )
-          )
-          i += 1
-        }
-
-        operatorSchemaManager.setOutputSchemaOutline(outputSchema)
+        operatorSchemaManager.setOutputSchema(
+          outputSchema
+        )
       }
     }
   }
 
   override def onInputOrParameterChange(
-    inputSchemas: mutable.Map[String, TabularSchemaOutline],
+    inputSchemas: mutable.Map[String, TabularSchema],
     params: OperatorParameters,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     this.updateOutputSchema(
@@ -139,13 +131,35 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
   */
 }
 
+object SchemaTransformer {
+  def transform(
+    inputSchema: TabularSchema,
+    columnsToTransform: Array[String],
+    transformationType: String): TabularSchema = {
+    val numInputColumns = inputSchema.getNumDefinedColumns()
+    val numTransformedColumns = columnsToTransform.length
+    val outputColumnDefs = mutable.ArrayBuffer[ColumnDef]()
+    outputColumnDefs ++= inputSchema.getDefinedColumns()
+    var i = 0
+    while (i < columnsToTransform.length) {
+      outputColumnDefs +=
+        ColumnDef(
+          columnsToTransform(i) + "_" + transformationType.toLowerCase,
+          ColumnType.TypeValue("DOUBLE PRECISION")
+        )
+      i += 1
+    }
+
+    TabularSchema(outputColumnDefs)
+  }
+}
+
 class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTable] {
   override def onExecution(
     context: DBExecutionContext,
     input: DBTable,
     params: OperatorParameters,
-    listener: OperatorListener,
-    ioFactory: IOFactory): DBTable = {
+    listener: OperatorListener): DBTable = {
     val (_, columnsToTransform) =
       params.getTabularDatasetSelectedColumns("columnsToTransform")
     val transformationType = params.getStringValue("transformationType")
@@ -158,9 +172,9 @@ class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTabl
     if (overwrite) {
       val dropSqlStatementBuilder = new StringBuilder()
       if (isView) {
-        dropSqlStatementBuilder ++= "DROP VIEW IF EXISTS " + outputSchema + "." + outputName + ";"
+        dropSqlStatementBuilder ++= "DROP VIEW IF EXISTS " + outputSchema + "." + outputName + " CASCADE;"
       } else {
-        dropSqlStatementBuilder ++= "DROP TABLE IF EXISTS " + outputSchema + "." + outputName + ";"
+        dropSqlStatementBuilder ++= "DROP TABLE IF EXISTS " + outputSchema + "." + outputName + " CASCADE;"
       }
 
       val stmt = connectionInfo.connection.createStatement()
@@ -175,8 +189,8 @@ class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTabl
       sqlStatementBuilder ++= "CREATE TABLE " + outputSchema + "." + outputName + " AS ("
     }
 
-    val inputSchemaOutline = input.getSchemaOutline()
-    val columnDefs = inputSchemaOutline.getFixedColumns()
+    val inputSchema = input.getTabularSchema()
+    val columnDefs = inputSchema.getDefinedColumns()
     sqlStatementBuilder ++= "SELECT "
     var i = 0
     while (i < columnDefs.length) {
@@ -201,7 +215,7 @@ class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTabl
       if (i != columnsToTransform.length) {
         sqlStatementBuilder ++= ", "
       } else {
-        sqlStatementBuilder ++= " FROM " + input.getTableName() + ");"
+        sqlStatementBuilder ++= " FROM " + input.getSchemaName() + "." + input.getTableName() + ");"
       }
     }
 
@@ -212,29 +226,18 @@ class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTabl
     val numInputColumns = columnDefs.length
     val numTransformedColumns = columnsToTransform.length
 
-    // Don't close the connection.
-    val outputSchemaOutline = ioFactory.createTabularSchemaOutline(
-      minNumCols = numInputColumns + numTransformedColumns,
-      maxNumCols = numInputColumns + numTransformedColumns
-    )
-
-    SchemaUtils.copyColumnDefs(input.getSchemaOutline(), outputSchemaOutline)
-    i = 0
-    while (i < columnsToTransform.length) {
-      outputSchemaOutline.addColumnDef(
-        ColumnDef(
-          columnsToTransform(i) + "_" + transformationType,
-          ColumnType.TypeValue("DOUBLE PRECISION")
-        )
+    val outputTabularSchema =
+      SchemaTransformer.transform(
+        input.getTabularSchema(),
+        columnsToTransform,
+        transformationType
       )
-      i += 1
-    }
 
     val output =
-      ioFactory.createDBTable(
+      new DBTableDefault(
         outputSchema,
         outputName,
-        outputSchemaOutline,
+        outputTabularSchema,
         isView,
         connectionInfo
       )

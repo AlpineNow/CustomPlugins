@@ -3,22 +3,22 @@
  */
 package com.alpine.plugin.samples.ver1_0
 
+import scala.collection.mutable
+
 import com.alpine.model.RegressionRowModel
-import com.alpine.plugin.core.spark.utils.SparkUtils
-import com.alpine.plugin.core.utils.OutputParameterUtils
-import com.alpine.plugin.core.{OperatorListener, OperatorParameters}
 import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.{OperatorListener, OperatorParameters}
 import com.alpine.plugin.model.RegressionModelWrapper
 import com.alpine.transformer.RegressionTransformer
-import org.apache.hadoop.fs.{Path, FileSystem}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.mllib.evaluation.RegressionMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.apache.spark.{sql, SparkContext}
-import org.apache.spark.sql.{SQLContext, DataFrame}
-
-import scala.collection.mutable
+import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.{SparkContext, sql}
 
 /**
  * This is the runtime code for the Regression evaluator operator.
@@ -44,14 +44,12 @@ SparkIOTypedPluginJob[
                            appConf: mutable.Map[String, String],
                            input: Tuple2[HdfsTabularDataset, RegressionModelWrapper],
                            operatorParameters: OperatorParameters,
-                           listener: OperatorListener,
-                           ioFactory: IOFactory): HdfsTabularDataset = {
+                           listener: OperatorListener): HdfsTabularDataset = {
     val sparkUtils = new SparkUtils(
-      sparkContext,
-      ioFactory
+      sparkContext
     )
     val inputDataSet = input.getT1()
-    val schemaFixedColumns = inputDataSet.getSchemaOutline().getFixedColumns()
+    val schemaFixedColumns = inputDataSet.getTabularSchema().getDefinedColumns()
 
     val dataFrame: DataFrame = sparkUtils.getDataFrame(inputDataSet)
 
@@ -67,7 +65,7 @@ SparkIOTypedPluginJob[
 
     RegressionEvaluatorUtil.saveOutput(
       sparkContext,
-      OutputParameterUtils.getOutputPath(operatorParameters),
+      HDFSParameterUtils.getOutputPath(operatorParameters),
       listener,
       sparkUtils,
       resultDataFrame
@@ -110,7 +108,7 @@ object RegressionEvaluatorUtil {
   }
 
   def calculateResultDataFrame(sparkContext: SparkContext,
-                               schemaFixedColumns: Array[ColumnDef],
+                               schemaFixedColumns: Seq[ColumnDef],
                                dataFrame: DataFrame,
                                model: RegressionRowModel,
                                listener: OperatorListener): DataFrame = {

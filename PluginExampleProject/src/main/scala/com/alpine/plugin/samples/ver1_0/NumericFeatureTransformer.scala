@@ -6,17 +6,15 @@ package com.alpine.plugin.samples.ver1_0
 
 import scala.collection.mutable
 
-import org.apache.spark.SparkContext
-import org.apache.hadoop.fs.{FileSystem, Path}
-
-import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.spark.{SparkJobConfiguration, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.OperatorMetadata
 import com.alpine.plugin.core.spark.utils.SparkUtils
-import com.alpine.plugin.core.utils.{OutputParameterUtils, SchemaUtils}
+import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkJobConfiguration, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.{OperatorMetadata, _}
+import org.apache.spark.SparkContext
 
 class NumericFeatureTransformerSignature extends OperatorSignature[
   NumericFeatureTransformerGUINode,
@@ -61,41 +59,38 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
       "Parquet"
     )
 
-    OutputParameterUtils
+    HDFSParameterUtils
           .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
   }
 
   private def updateOutputSchema(
-    inputSchemas: mutable.Map[String, TabularSchemaOutline],
+    inputSchemas: mutable.Map[String, TabularSchema],
     params: OperatorParameters,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
     if (inputSchemas.size > 0) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getFixedColumns().length > 0) {
-        val numInputColumns = inputSchema.getMaxNumColumns()
+      if (inputSchema.getDefinedColumns().length > 0) {
+        val numInputColumns = inputSchema.getNumDefinedColumns()
         val (_, columnsToTransform) =
           params.getTabularDatasetSelectedColumns("columnsToTransform")
         val transformationType = params.getStringValue("transformationType")
         val numTransformedColumns = columnsToTransform.length
-        val outputSchema = operatorSchemaManager.createTabularSchemaOutline(
-          minNumCols = numInputColumns + numTransformedColumns,
-          maxNumCols = numInputColumns + numTransformedColumns
-        )
 
-        SchemaUtils.copyColumnDefs(inputSchema, outputSchema)
+        val columnDefs = new mutable.ArrayBuffer[ColumnDef]()
+        columnDefs ++= inputSchema.getDefinedColumns()
         var i = 0
         while (i < columnsToTransform.length) {
-          outputSchema.addColumnDef(
+          columnDefs +=
             ColumnDef(
               columnsToTransform(i) + "_" + transformationType,
               ColumnType.Double
             )
-          )
           i += 1
         }
 
-        operatorSchemaManager.setOutputSchemaOutline(outputSchema)
+        val outputSchema = TabularSchema(columnDefs)
+        operatorSchemaManager.setOutputSchema(outputSchema)
 
         val storageFormat = params.getStringValue("storageFormat")
         if (storageFormat.equals("Parquet")) {
@@ -120,7 +115,7 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
   }
 
   override def onInputOrParameterChange(
-    inputSchemas: mutable.Map[String, TabularSchemaOutline],
+    inputSchemas: mutable.Map[String, TabularSchema],
     params: OperatorParameters,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     this.updateOutputSchema(
@@ -130,17 +125,21 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
     )
   }
 
-  /*
   override def onOutputVisualization(
     params: OperatorParameters,
     output: HdfsTabularDataset,
     visualFactory: VisualModelFactory): VisualModel = {
-    visualFactory.createTextVisualization(
-      output.getDictValue("TestValue1").toString + " " +
-      output.getDictValue("TestValue2").toString
-    )
+    val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
+    val addendumVisualModel =
+      visualFactory.createTextVisualization(
+        output.getDictValue("TestValue1").toString + " " +
+        output.getDictValue("TestValue2").toString
+      )
+    val compositeVisualModel = visualFactory.createCompositeVisualModel()
+    compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
+    compositeVisualModel.addVisualModel("Addendum", addendumVisualModel)
+    compositeVisualModel
   }
-  */
 }
 
 class NumericFeatureTransformerRuntime extends SparkRuntimeWithIOTypedJob[
@@ -163,15 +162,13 @@ class NumericFeatureTransformerJob extends
     appConf: mutable.Map[String, String],
     input: HdfsTabularDataset,
     operatorParameters: OperatorParameters,
-    listener: OperatorListener,
-    ioFactory: IOFactory): HdfsTabularDataset = {
+    listener: OperatorListener): HdfsTabularDataset = {
     val sparkUtils = new SparkUtils(
-      sparkContext,
-      ioFactory
+      sparkContext
     )
-    val schemaOutline = input.getSchemaOutline()
+    val inputSchema = input.getTabularSchema()
     println("Input schema : ")
-    schemaOutline.getFixedColumns().map(
+    inputSchema.getDefinedColumns().map(
       colDef =>
         println(colDef.columnName + " : " + colDef.columnType.name)
     )
@@ -186,7 +183,7 @@ class NumericFeatureTransformerJob extends
 
     listener.notifyMessage("Features to transform are : " + columnsToTransform.mkString(","))
 
-    val outputPathStr = OutputParameterUtils.getOutputPath(operatorParameters)
+    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
 
     listener.notifyMessage("Output path is : " + outputPathStr)
 
@@ -205,10 +202,8 @@ class NumericFeatureTransformerJob extends
         )
       }
 
-    val outputPath = new Path(outputPathStr)
-    val driverHdfs = FileSystem.get(sparkContext.hadoopConfiguration)
-    if (driverHdfs.exists(outputPath)) {
-      driverHdfs.delete(outputPath, true)
+    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
+      sparkUtils.deleteFilePathIfExists(outputPathStr)
     }
 
     val output: HdfsTabularDataset =

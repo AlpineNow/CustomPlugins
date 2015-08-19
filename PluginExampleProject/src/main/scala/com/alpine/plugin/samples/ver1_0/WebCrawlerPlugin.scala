@@ -6,17 +6,17 @@ package com.alpine.plugin.samples.ver1_0
 
 import java.io.File
 
-import com.alpine.plugin.core.utils.OutputParameterUtils
+import com.alpine.plugin.core._
+import com.alpine.plugin.core.datasource.OperatorDataSourceManager
+import com.alpine.plugin.core.dialog.OperatorDialog
+import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.io.defaults.HdfsHtmlDatasetDefault
+import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
+import com.alpine.plugin.core.utils.HDFSParameterUtils
 import edu.uci.ics.crawler4j.crawler._
 import edu.uci.ics.crawler4j.fetcher.PageFetcher
-import edu.uci.ics.crawler4j.robotstxt.{RobotstxtServer, RobotstxtConfig}
+import edu.uci.ics.crawler4j.robotstxt.{RobotstxtConfig, RobotstxtServer}
 import edu.uci.ics.crawler4j.url._
-
-import com.alpine.plugin.core._
-import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.datasource.OperatorDataSourceManager
-import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
-import com.alpine.plugin.core.dialog.OperatorDialog
 
 class WebCrawlerSignature extends OperatorSignature[
   WebCrawlerGUINode,
@@ -114,7 +114,7 @@ class WebCrawlerGUINode extends OperatorGUINode[
     )
 
     // Add where in the Hdfs this will get stored.
-    OutputParameterUtils
+    HDFSParameterUtils
           .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
 
 
@@ -169,9 +169,8 @@ class WebCrawlerRuntime extends SparkRuntime[
     context: SparkExecutionContext,
     input: IONone,
     params: OperatorParameters,
-    listener: OperatorListener,
-    ioFactory: IOFactory): HdfsHtmlDataset = {
-    val outputPath = OutputParameterUtils.getOutputPath(params)
+    listener: OperatorListener): HdfsHtmlDataset = {
+    val outputPath = HDFSParameterUtils.getOutputPath(params)
     val limitToSeedPrefixes = params.getStringValue("limitToSeedPrefixes")
     PluginCrawler.setStorePath(outputPath)
     PluginCrawler.setSparkExecutionContext(context)
@@ -223,7 +222,7 @@ class WebCrawlerRuntime extends SparkRuntime[
 
     crawlController.start(classOf[PluginCrawler], numCrawlers)
     listener.notifyMessage("Finished running the crawler !")
-    ioFactory.createHdfsHtmlDataset(outputPath)
+    new HdfsHtmlDatasetDefault(outputPath)
   }
 
   override def onStop(

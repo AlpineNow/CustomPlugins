@@ -3,17 +3,18 @@
  */
 package com.alpine.plugin.samples.ver1_0
 
+import scala.collection.mutable
+
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.io.defaults.HiveTableDefault
 import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HiveParameterUtils
 import com.alpine.plugin.core.{OperatorGUINode, OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.hive.HiveContext
-
-import scala.collection.mutable
 /**
  * This is an example operator that demonstrates how to:
  * -- take a HiveTable as input
@@ -50,35 +51,28 @@ class HiveColumnFilterGUINode extends OperatorGUINode[HiveTable, HiveTable] {
     HiveParameterUtils.addStandardOutputParameters(operatorDialog)
   }
 
-  private def updateOutputSchema(inputSchemas: mutable.Map[String, TabularSchemaOutline],
+  private def updateOutputSchema(inputSchemas: mutable.Map[String, TabularSchema],
                                   params: OperatorParameters,
                                   operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
     if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getFixedColumns().length > 0) {
+      if (inputSchema.getDefinedColumns().length > 0) {
 
-        val (_, columnsToKeep) = params.getTabularDatasetSelectedColumns("columnsToKeep")
-        val numColumnsToKeep = columnsToKeep.length
-        val outputSchema = operatorSchemaManager.createTabularSchemaOutline(
-          minNumCols = numColumnsToKeep,
-          maxNumCols = numColumnsToKeep
-        )
-
-        val inputColumns = inputSchema.getFixedColumns().map(c => (c.columnName, c)).toMap
-
-        for (columnName <- columnsToKeep) {
-          outputSchema.addColumnDef(inputColumns(columnName))
-        }
-
-        operatorSchemaManager.setOutputSchemaOutline(outputSchema)
-
+        val (_, columnsToKeepArray) =
+          params.getTabularDatasetSelectedColumns("columnsToKeep")
+        val columnsToKeep = columnsToKeepArray.toSet
+        val outputSchema =
+          TabularSchema(
+            inputSchema.getDefinedColumns().filter(colDef => columnsToKeep.contains(colDef.columnName))
+          )
         outputSchema.setExpectedOutputFormat(TabularFormatAttributes.createHiveFormat())
+        operatorSchemaManager.setOutputSchema(outputSchema)
       }
     }
   }
 
-  override def onInputOrParameterChange(inputSchemas: mutable.Map[String, TabularSchemaOutline],
+  override def onInputOrParameterChange(inputSchemas: mutable.Map[String, TabularSchema],
                                          params: OperatorParameters,
                                          operatorSchemaManager: OperatorSchemaManager): Unit = {
     this.updateOutputSchema(inputSchemas, params, operatorSchemaManager)
@@ -93,14 +87,13 @@ class HiveColumnFilterRuntime extends SparkRuntimeWithIOTypedJob[
 
 class HiveColumnFilterJob extends SparkIOTypedPluginJob[HiveTable, HiveTable] {
   override def onExecution(
-                            sparkContext: SparkContext,
-                            appConf: mutable.Map[String, String],
-                            input: HiveTable,
-                            operatorParameters: OperatorParameters,
-                            listener: OperatorListener,
-                            ioFactory: IOFactory): HiveTable = {
+    sparkContext: SparkContext,
+    appConf: mutable.Map[String, String],
+    input: HiveTable,
+    operatorParameters: OperatorParameters,
+    listener: OperatorListener): HiveTable = {
 
-    val sparkUtils = new SparkUtils(sparkContext, ioFactory)
+    val sparkUtils = new SparkUtils(sparkContext)
 
     listener.notifyMessage("Starting the column filter.")
 
@@ -116,7 +109,7 @@ class HiveColumnFilterJob extends SparkIOTypedPluginJob[HiveTable, HiveTable] {
 
     listener.notifyMessage("Full output name is : " + fullOutputName)
 
-    val overwrite = HiveParameterUtils.getOverwriteAsBoolean(operatorParameters)
+    val overwrite = HiveParameterUtils.getOverwriteParameterValue(operatorParameters)
     if (overwrite) {
       executeSQL(listener, hiveContext, s"""DROP TABLE IF EXISTS $fullOutputName""")
     }
@@ -124,10 +117,10 @@ class HiveColumnFilterJob extends SparkIOTypedPluginJob[HiveTable, HiveTable] {
     val sql = s"""CREATE TABLE $fullOutputName AS SELECT ${columnsToKeep.mkString(", ")} FROM ${input.getConcatenatedName}"""
     executeSQL(listener, hiveContext, sql)
 
-    ioFactory.createHiveTable(
+    new HiveTableDefault(
       outputTableName,
       outputDBName,
-      sparkUtils.convertSparkSQLSchemaToSchemaOutline(hiveContext.table(fullOutputName).schema)
+      sparkUtils.convertSparkSQLSchemaToTabularSchema(hiveContext.table(fullOutputName).schema)
     )
   }
 
