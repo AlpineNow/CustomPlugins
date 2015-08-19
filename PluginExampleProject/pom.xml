@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-example</artifactId>
-    <version>0.9.6</version>
+    <version>0.9.9</version>
 
     <repositories>
         <repository>
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>0.9.8</version>
+            <version>0.9.9</version>
             <scope>provided</scope>
         </dependency>
 
@@ -35,28 +35,28 @@
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>0.9.8</version>
+            <version>0.9.9</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-model</artifactId>
-            <version>0.9.8</version>
+            <version>0.9.9</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>alpine-model-api</artifactId>
-            <version>0.9.8</version>
+            <version>0.9.9</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>alpine-model-pack</artifactId>
-            <version>0.9.8</version>
+            <version>0.9.9</version>
             <scope>provided</scope>
         </dependency>
 
@@ -165,6 +165,7 @@
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
+                <version>2.15.2</version>
                 <executions>
                     <execution>
                         <goals>

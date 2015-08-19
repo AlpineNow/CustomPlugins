@@ -20,7 +20,7 @@ class ColumnFilterSignature extends OperatorSignature[
   ColumnFilterRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "ColumnFilter (Spark)",
+      name = "Example ColumnFilter (Spark)",
       category = "Transformation",
       author = "Egor Pakhomov",
       version = 1,
@@ -39,8 +39,8 @@ OperatorGUINode[HdfsTabularDataset, HdfsTabularDataset] {
                             operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     operatorDialog.addTabularDatasetColumnCheckboxes(
-      "columnsToDelete",
-      "Columns to delete",
+      "columnsToKeep",
+      "Columns to keep",
       ColumnFilter.All,
       "main"
     )
@@ -62,30 +62,22 @@ OperatorGUINode[HdfsTabularDataset, HdfsTabularDataset] {
   }
 
 
-  override def onInputOrParameterChange(
-                                         inputSchemas: mutable.Map[String, TabularSchemaOutline],
+  override def onInputOrParameterChange(inputSchemas: mutable.Map[String, TabularSchema],
                                          params: OperatorParameters,
                                          operatorSchemaManager: OperatorSchemaManager): Unit = {
-    val (_, columnsToDelete) =
-      params.getTabularDatasetSelectedColumns("columnsToDelete")
 
-
-    if (inputSchemas.size > 0) {
+    if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getFixedColumns().length > 0) {
-        val inputSchema = inputSchemas.values.head
 
-        val numCols: Int = inputSchema.getMaxNumColumns - columnsToDelete.size
-
-        val outputSchema = operatorSchemaManager.createTabularSchemaOutline(
-          minNumCols = numCols,
-          maxNumCols = numCols
-        )
-
-        inputSchema.getFixedColumns.filter(name => !columnsToDelete.contains(name.columnName)).foreach(cd => outputSchema.addColumnDef(cd))
-
-
-        operatorSchemaManager.setOutputSchemaOutline(outputSchema)
+      if (inputSchema.getDefinedColumns().nonEmpty) {
+        val (_, columnsToKeepArray) =
+          params.getTabularDatasetSelectedColumns("columnsToKeep")
+        val columnsToKeep = columnsToKeepArray.toSet
+        val outputSchema =
+          TabularSchema(
+            inputSchema.getDefinedColumns().filter(colDef => columnsToKeep.contains(colDef.columnName))
+          )
+        operatorSchemaManager.setOutputSchema(outputSchema)
 
         val storageFormat = params.getStringValue("storageFormat")
         if (storageFormat.equals("Parquet")) {
@@ -110,15 +102,6 @@ OperatorGUINode[HdfsTabularDataset, HdfsTabularDataset] {
     }
   }
 
-//  override def onOutputVisualization(
-//                                      input: HdfsTabularDataset,
-//                                      params: OperatorParameters,
-//                                      output: HdfsTabularDataset,
-//                                      visualFactory: VisualModelFactory): VisualModel = {
-//    visualFactory.createTextVisualization(
-//      "Some visualisation"
-//    )
-//  }
 }
 
 class ColumnFilterRuntime extends SparkRuntimeWithIOTypedJob[
@@ -133,15 +116,13 @@ SparkIOTypedPluginJob[HdfsTabularDataset, HdfsTabularDataset] {
                             appConf: mutable.Map[String, String],
                             input: HdfsTabularDataset,
                             operatorParameters: OperatorParameters,
-                            listener: OperatorListener,
-                            ioFactory: IOFactory): HdfsTabularDataset = {
+                            listener: OperatorListener): HdfsTabularDataset = {
     val sparkUtils = new SparkUtils(
-      sparkContext,
-      ioFactory
+      sparkContext
     )
-    val schemaOutline = input.getSchemaOutline()
+    val schemaOutline = input.getTabularSchema()
     println("Input schema : ")
-    schemaOutline.getFixedColumns().map(
+    schemaOutline.getDefinedColumns().foreach(
       colDef =>
         println(colDef.columnName + " : " + colDef.columnType.name)
     )
@@ -151,17 +132,17 @@ SparkIOTypedPluginJob[HdfsTabularDataset, HdfsTabularDataset] {
 
     listener.notifyMessage("Starting the feature transformer.")
 
-    val (_, columnsToDelete) =
-      operatorParameters.getTabularDatasetSelectedColumns("columnsToDelete")
+    val (_, columnsToKeep) =
+      operatorParameters.getTabularDatasetSelectedColumns("columnsToKeep")
 
-    listener.notifyMessage("Features to transform are : " + columnsToDelete.mkString(","))
+    listener.notifyMessage("COlumns to keep are : " + columnsToKeep.mkString(","))
 
     val outputPathStr = operatorParameters.getStringValue("outputPath")
 
     listener.notifyMessage("Output path is : " + outputPathStr)
 
     val storageFormat = operatorParameters.getStringValue("storageFormat")
-    val columnsToLeave = dataFrame.columns.filter(c => !columnsToDelete.contains(c)).map(dataFrame.col(_))
+    val columnsToLeave = dataFrame.columns.filter(c => columnsToKeep.contains(c)).map(dataFrame.col)
     val transformedDataFrame =
       dataFrame.select(columnsToLeave: _*)
 
