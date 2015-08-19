@@ -1,3 +1,4 @@
+import com.alpine.plugin.core.utils.HDFSParameterUtils
 import com.alpine.plugin.samples.ver1_0.ColumnFilterJob
 import com.alpine.plugin.test.AbstractSparkJobSuite
 import org.apache.spark.sql.Row
@@ -17,8 +18,9 @@ class ColumnFilterPluginTest extends AbstractSparkJobSuite {
     assert(dataFrameInput.schema.fieldNames.contains("age"))
     val parameters = getOperatorParameters(("columnsToKeep", "name"))
 
-    parameters.setValue("outputPath", cluster.createDirectory())
-    parameters.setValue("storageFormat", "tsv")
+    parameters.setValue(HDFSParameterUtils.outputDirectoryParameterID, cluster.createDirectory())
+    parameters.setValue(HDFSParameterUtils.outputNameParameterID, "column_filter_plugin_test")
+    parameters.setValue("storageFormat", "TSV")
 
     val result = runDataFrameThroughOperator(dataFrameInput, operator, parameters = parameters)
     assert(!result.schema.fieldNames.contains("age"))
