@@ -10,6 +10,7 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.io.defaults.HdfsHtmlDatasetDefault
 import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
 import com.alpine.plugin.core.utils.HDFSParameterUtils
 import edu.uci.ics.crawler4j.crawler._

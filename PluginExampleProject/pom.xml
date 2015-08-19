@@ -60,6 +60,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.alpine</groupId>
+            <artifactId>plugin-io-impl</artifactId>
+            <version>0.9.9</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Spark dependency -->
 
         <dependency>

@@ -1,1 +1,4 @@
+
+# IntelliJ files.
 .idea/
+*.iml
