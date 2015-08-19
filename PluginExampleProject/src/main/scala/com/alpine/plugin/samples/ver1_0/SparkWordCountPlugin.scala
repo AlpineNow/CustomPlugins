@@ -53,26 +53,6 @@ class SparkWordCountGUINode extends
     operatorSchemaManager.setOutputSchema(WordCounter.createOutputSchema())
   }
 
-  /*
-  override def onOutputVisualization(
-    input: Tuple2[HdfsRawTextDataset, HdfsBinaryFile],
-    params: OperatorParameters,
-    output: HdfsDelimitedTabularDataset,
-    visualFactory: VisualModelFactory): VisualModel = {
-    val sample = output.getSample()
-    val chiasmModel = visualFactory.createChiasmModel()
-    val wordCloudConfig = chiasmModel.addPluginConfiguration(
-      id = "wordcount",
-      plugin = "wordCloud",
-      state = "\"wordcolumn\": \"Word\", \"sizecolumn\": \"Count\""
-    )
-
-    wordCloudConfig.setDelimitedTextData(
-      sample.toDelimitedString(delimiter = ",")
-    )
-    chiasmModel
-  }
-  */
 }
 
 /**
