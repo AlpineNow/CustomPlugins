@@ -1,3 +1,6 @@
+/**
+ * COPYRIGHT (C) 2015 Alpine Data Labs Inc. All Rights Reserved.
+ */
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core._
@@ -23,18 +26,20 @@ class ColumnFilterSignature extends OperatorSignature[
   }
 }
 
-object ColumnFilterConstants {
+object ColumnFilterUtil {
   val COLUMNS_TO_KEEP_KEY = "columnsToKeep"
+  def getColumnsToKeep(parameters: OperatorParameters): Seq[String] = {
+    parameters.getTabularDatasetSelectedColumns(ColumnFilterUtil.COLUMNS_TO_KEEP_KEY)._2
+  }
 }
 
-class ColumnFilterGUINode extends
-SparkDataFrameGUINode[ColumnFilterJob] {
+class ColumnFilterGUINode extends SparkDataFrameGUINode[ColumnFilterJob] {
   override def onPlacement(operatorDialog: OperatorDialog,
                            operatorDataSourceManager: OperatorDataSourceManager,
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     operatorDialog.addTabularDatasetColumnCheckboxes(
-      ColumnFilterConstants.COLUMNS_TO_KEEP_KEY,
+      ColumnFilterUtil.COLUMNS_TO_KEEP_KEY,
       "Columns to keep",
       ColumnFilter.All,
       "main"
@@ -45,8 +50,7 @@ SparkDataFrameGUINode[ColumnFilterJob] {
 
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
                                          parameters: OperatorParameters): Seq[ColumnDef] = {
-    val columnsToKeep =
-      parameters.getTabularDatasetSelectedColumns(ColumnFilterConstants.COLUMNS_TO_KEEP_KEY)._2.toSet
+    val columnsToKeep = ColumnFilterUtil.getColumnsToKeep(parameters).toSet
     inputSchema.getDefinedColumns().filter(colDef => columnsToKeep.contains(colDef.columnName))
   }
 
@@ -59,8 +63,7 @@ class ColumnFilterJob extends SparkDataFrameJob {
                          dataFrame: DataFrame,
                          sparkUtils: SparkUtils,
                          listener: OperatorListener): DataFrame = {
-    val columnNamesToKeep = parameters
-      .getTabularDatasetSelectedColumns(ColumnFilterConstants.COLUMNS_TO_KEEP_KEY)._2
+    val columnNamesToKeep = ColumnFilterUtil.getColumnsToKeep(parameters)
     val columnsToKeep = columnNamesToKeep.map(dataFrame.col)
     dataFrame.select(columnsToKeep: _*)
   }

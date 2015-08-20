@@ -14,25 +14,28 @@ import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
 
 /**
- * An example of a very simple pugin that take a  group by parameter and a a few numeric features and computers Sum
- * of each column
+ * An example of a very simple plugin that take a  group by parameter and a a few numeric
+ * features and computers the product of each column by group.
  *
  * Class to define:
- * 1. SIGNATURE CLASS (AggregationPluginSignature)  which has the type of the GUI-NODE CLASS (AggregationGuiNode)
- * and the RUNTIME CLASS (AggregationRuntime): Defines some metadata about the operator in particular its name,
+ * 1. SIGNATURE CLASS (AggregationPluginSignature)  which has the type of the GUI-NODE CLASS
+ * (AggregationGuiNode) and the RUNTIME CLASS (AggregationRuntime):
+ * Defines some metadata about the operator in particular its name,
  * author and optionally, version.
  *
  * 2. GUINODE Class(AggregationGUINode) defines the gui box for when the user clicks on the operator.
- * ***The onPlacement( ... ) method defines the parameters that will appear when you place the operator
- * ***The getSparkOutputSchema( ... )  defines the schema for the output (in this case as a scala STRUCTTYPE  used
- * to defined dataframe schemas.
+ * ***The onPlacement( ... ) method defines the parameters that will appear
+ * when you place the operator
+ * ***The getSparkOutputSchema( ... )  defines the schema for the output (in this case as a scala
+ * STRUCTTYPE  used to defined DataFrame schemas.
  *
- * 3. RUNTIME CLASS (AggregationRuntime) which takes the SPARKJOB (AggregationPluginSparkJob) as a type parameter: Defines the run time behavior.
- * It is in this class where the spark environment is set up. To customize the spark settings override the getSparkJobConfiguration class.
+ * 3. RUNTIME CLASS (AggregationRuntime) which takes the SPARKJOB (AggregationPluginSparkJob) as a
+ * type parameter: Defines the run time behavior. It is in this class where the Spark environment
+ * is set up. To customize the Spark settings override the getSparkJobConfiguration class.
  *
- * 4. PLUGIN SPARK JOB CLASS (AggregationPluginSparkJob) This is the logic of the spark job, which should be contained in the
- * "transform method which takes in the input dataset as a DataFrame and
- * produces the output as a dataFrame.
+ * 4. PLUGIN SPARK JOB CLASS (AggregationPluginSparkJob) This is the logic of the Spark job,
+ * which should be contained in the "transform" method which takes in the input dataset
+ * as a DataFrame and produces the output as a dataFrame.
  */
 
 class AggregationSignature extends OperatorSignature[
@@ -51,23 +54,26 @@ class AggregationSignature extends OperatorSignature[
 
 object AggregationConstants {
   val GROUP_BY_PARAM_KEY = "group_by"
-  val AGGREGATION_PARAM_KEY  = "Aggregate"
+  val AGGREGATION_PARAM_KEY = "Aggregate"
 }
 
 /**
- * Static object which defines the output column names so that they can be reused in the GUI (for the design time
- * schema) and to define the actual runtime output schema.
+ * Static object which defines the output column names so that they can be reused in the GUI
+ * (for the design time schema) and to define the actual runtime output schema.
  */
 object AggregationOutputSchema {
-  //a method that defines the column defs.  for the output schema so they can be used in the GUI Node and spark job.
-  def getColumnDefs(operatorParameters: OperatorParameters) : Array[ColumnDef] = {
-    val (_, aggregationCols)  = operatorParameters.getTabularDatasetSelectedColumns(AggregationConstants.AGGREGATION_PARAM_KEY)
-    val newNames = Array.ofDim[ColumnDef](aggregationCols.length+1)
+  //a method that defines the columnDefs for the output schema so they can be used in the
+  // GUI Node and spark job.
+  def getColumnDefs(operatorParameters: OperatorParameters): Array[ColumnDef] = {
+    val (_, aggregationCols) =
+      operatorParameters.getTabularDatasetSelectedColumns(
+        AggregationConstants.AGGREGATION_PARAM_KEY)
+    val newNames = Array.ofDim[ColumnDef](aggregationCols.length + 1)
     newNames(0) = ColumnDef("GroupKey", ColumnType.String)
     var i = 0
-    while(i < aggregationCols.length){
-      newNames(i+1) = ColumnDef(aggregationCols(i)+"_PRODUCT", ColumnType.Double)
-      i+=1
+    while (i < aggregationCols.length) {
+      newNames(i + 1) = ColumnDef(aggregationCols(i) + "_PRODUCT", ColumnType.Double)
+      i += 1
     }
     newNames
   }
@@ -94,46 +100,59 @@ class AggregationGUINode extends SparkDataFrameGUINode[AggregationPluginSparkJob
   }
 
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
-                                         params: OperatorParameters) : Seq[ColumnDef] = {
-    AggregationOutputSchema.getColumnDefs(params) }
+                                         params: OperatorParameters): Seq[ColumnDef] = {
+    AggregationOutputSchema.getColumnDefs(params)
+  }
 }
 
-class AggregationRuntime extends SparkDataFrameRuntime[AggregationPluginSparkJob]{}
+class AggregationRuntime extends SparkDataFrameRuntime[AggregationPluginSparkJob] {}
 
 class AggregationPluginSparkJob extends SparkDataFrameJob {
 
-  def transform(operatorParameters: OperatorParameters, inputDataFrame: DataFrame, sparkUtils: SparkUtils,
-                listener: OperatorListener): DataFrame = {
+  def transform(operatorParameters: OperatorParameters, inputDataFrame: DataFrame,
+                sparkUtils: SparkUtils, listener: OperatorListener): DataFrame = {
     //get parameters
     val (_, groupByCol) =
       operatorParameters.getTabularDatasetSelectedColumn(AggregationConstants.GROUP_BY_PARAM_KEY)
-    val ( _, colsToAggregate) =
-      operatorParameters.getTabularDatasetSelectedColumns(AggregationConstants.AGGREGATION_PARAM_KEY)
+    val (_, colsToAggregate) =
+      operatorParameters.getTabularDatasetSelectedColumns(
+        AggregationConstants.AGGREGATION_PARAM_KEY)
 
     //write message to the UI
-    listener.notifyMessage("Starting the spark job now")
+    listener.notifyMessage("Starting the Spark job now")
 
-    val selectedData = inputDataFrame.select(groupByCol, colsToAggregate : _*)
-    val rowRDD =  selectedData.map(row => {
+    val selectedData = inputDataFrame.select(groupByCol, colsToAggregate: _*)
+    val rowRDD = selectedData.map(row => {
       val key = row.getString(0)
       val rest = Range(1, row.length).map(i => row.get(i).toString.toDouble).toList
       (key, rest)
-    }).reduceByKey( (rowA, rowB) => rowA.zip(rowB).map{case (a, b) => a*b})
-      .map{case (key, values) => Row.fromSeq( (key :: values).toSeq)}
+    }).reduceByKey((rowA, rowB) => rowA.zip(rowB).map { case (a, b) => a * b })
+      .map { case (key, values) => Row.fromSeq(key :: values) }
 
     val newSchema = getSchema(operatorParameters,
       sparkUtils)
     //create a data frame with the row RDD and the schema
-    inputDataFrame.sqlContext.createDataFrame( rowRDD, newSchema)
+    inputDataFrame.sqlContext.createDataFrame(rowRDD, newSchema)
   }
 
   //convert column definitions used at design time to DataFrame schema.
-  def getSchema(operatorParameters: OperatorParameters, sparkUtils : SparkUtils) : StructType = {
+  def getSchema(operatorParameters: OperatorParameters, sparkUtils: SparkUtils): StructType = {
     val newColumns = AggregationOutputSchema.getColumnDefs(operatorParameters)
-    StructType( newColumns.map( newCol  =>
-      StructField(newCol.columnName,
-        sparkUtils.convertColumnTypeToSparkSQLDataType(newCol.columnType), true))
-      .updated(0, StructField(newColumns(0).columnName,
-      StringType, true)) )
+    StructType(
+      newColumns.map(newCol =>
+        StructField(
+          newCol.columnName,
+          sparkUtils.convertColumnTypeToSparkSQLDataType(newCol.columnType),
+          nullable = true
+        )
+      ).updated(
+          0,
+          StructField(
+            newColumns(0).columnName,
+            StringType,
+            nullable = true
+          )
+        )
+    )
   }
 }
