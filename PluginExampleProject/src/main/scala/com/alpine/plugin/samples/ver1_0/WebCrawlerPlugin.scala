@@ -12,7 +12,7 @@ import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsHtmlDatasetDefault
 import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
-import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.utils.HdfsParameterUtils
 import edu.uci.ics.crawler4j.crawler._
 import edu.uci.ics.crawler4j.fetcher.PageFetcher
 import edu.uci.ics.crawler4j.robotstxt.{RobotstxtConfig, RobotstxtServer}
@@ -114,9 +114,7 @@ class WebCrawlerGUINode extends OperatorGUINode[
     )
 
     // Add where in the Hdfs this will get stored.
-    HDFSParameterUtils
-          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
-
+  HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
     operatorDialog.addRadioButtons(
       "limitToSeedPrefixes",
@@ -170,7 +168,7 @@ class WebCrawlerRuntime extends SparkRuntime[
     input: IONone,
     params: OperatorParameters,
     listener: OperatorListener): HdfsHtmlDataset = {
-    val outputPath = HDFSParameterUtils.getOutputPath(params)
+    val outputPath = HdfsParameterUtils.getOutputPath(params)
     val limitToSeedPrefixes = params.getStringValue("limitToSeedPrefixes")
     PluginCrawler.setStorePath(outputPath)
     PluginCrawler.setSparkExecutionContext(context)

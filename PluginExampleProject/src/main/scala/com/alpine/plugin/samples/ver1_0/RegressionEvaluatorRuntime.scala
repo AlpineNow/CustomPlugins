@@ -9,7 +9,7 @@ import com.alpine.model.RegressionRowModel
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.core.{OperatorListener, OperatorParameters}
 import com.alpine.plugin.model.RegressionModelWrapper
 import com.alpine.transformer.RegressionTransformer
@@ -65,7 +65,7 @@ SparkIOTypedPluginJob[
 
     RegressionEvaluatorUtil.saveOutput(
       sparkContext,
-      HDFSParameterUtils.getOutputPath(operatorParameters),
+      HdfsParameterUtils.getOutputPath(operatorParameters),
       listener,
       sparkUtils,
       resultDataFrame

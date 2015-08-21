@@ -36,8 +36,7 @@ class HdfsBinaryFileGUINode extends OperatorGUINode[
     operatorDialog.addHdfsFileSelector(
       id = "sourcePath",
       label = "Output Path",
-      defaultPath = "",
-      dataSourceManager = operatorDataSourceManager
+      defaultPath = ""
     )
   }
 }

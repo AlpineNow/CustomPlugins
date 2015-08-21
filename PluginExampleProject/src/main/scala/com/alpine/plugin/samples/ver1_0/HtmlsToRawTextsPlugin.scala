@@ -12,7 +12,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsRawTextDatasetDefault
 import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.core.{OperatorMetadata, _}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkContext
@@ -40,7 +40,7 @@ class HtmlsToRawTextsGUINode extends OperatorGUINode[
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
-    HDFSParameterUtils.addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
+    HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
   }
 }
 
@@ -61,10 +61,10 @@ class HtmlsToRawTextsJob extends
     val hdfs = FileSystem.get(sparkContext.hadoopConfiguration)
 
     // We use the standard output parameters.
-    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
+    val outputPathStr = HdfsParameterUtils.getOutputPath(operatorParameters)
     val outputPath = new Path(outputPathStr)
 
-    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
+    if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
       new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
 

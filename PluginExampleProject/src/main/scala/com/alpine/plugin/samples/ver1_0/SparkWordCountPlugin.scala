@@ -13,7 +13,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
 import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.utils.HdfsParameterUtils
 import opennlp.tools.tokenize.{Tokenizer, TokenizerME, TokenizerModel}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -47,9 +47,7 @@ class SparkWordCountGUINode extends
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     // Add input parameters for selecting the output directory.
-    HDFSParameterUtils
-          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
-
+    HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
     operatorSchemaManager.setOutputSchema(WordCounter.createOutputSchema())
   }
 
@@ -85,7 +83,7 @@ class WordCounter extends
     val tokenizerConfigPath = tokenizerConfigFile.getPath()
     val rawPath = inputData.getPath()
     val textRdd = sparkContext.textFile(new Path(rawPath, "*/*").toString)
-    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
+    val outputPathStr = HdfsParameterUtils.getOutputPath(operatorParameters)
     val wordCntFunc: Iterator[String] => Iterator[(String, Int)] =
       (lines: Iterator[String]) => {
         val stopWords = Set[String](
@@ -128,7 +126,7 @@ class WordCounter extends
         map(t => t._1 + "\t" + t._2)
 
 
-    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
+    if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
       new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
 

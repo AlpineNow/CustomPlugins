@@ -57,16 +57,14 @@ class HiveColumnFilterGUINode extends OperatorGUINode[HiveTable, HiveTable] {
     // There can only be one input schema.
     if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getDefinedColumns().length > 0) {
+      if (inputSchema.getDefinedColumns().nonEmpty) {
 
         val (_, columnsToKeepArray) =
           params.getTabularDatasetSelectedColumns("columnsToKeep")
         val columnsToKeep = columnsToKeepArray.toSet
-        val outputSchema =
-          TabularSchema(
-            inputSchema.getDefinedColumns().filter(colDef => columnsToKeep.contains(colDef.columnName))
-          )
-        outputSchema.setExpectedOutputFormat(TabularFormatAttributes.createHiveFormat())
+        val columnDefs: Seq[ColumnDef] = inputSchema.getDefinedColumns()
+          .filter(colDef => columnsToKeep.contains(colDef.columnName))
+        val outputSchema = TabularSchema(columnDefs,TabularFormatAttributes.createHiveFormat())
         operatorSchemaManager.setOutputSchema(outputSchema)
       }
     }

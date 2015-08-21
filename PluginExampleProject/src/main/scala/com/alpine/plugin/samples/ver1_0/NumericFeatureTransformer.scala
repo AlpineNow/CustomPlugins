@@ -4,17 +4,15 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import scala.collection.mutable
-
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.spark.SparkJobConfiguration
+import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkUtils
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkJobConfiguration, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.HDFSParameterUtils
 import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
 import com.alpine.plugin.core.{OperatorMetadata, _}
-import org.apache.spark.SparkContext
+import org.apache.spark.sql.DataFrame
 
 class NumericFeatureTransformerSignature extends OperatorSignature[
   NumericFeatureTransformerGUINode,
@@ -31,98 +29,44 @@ class NumericFeatureTransformerSignature extends OperatorSignature[
   }
 }
 
-class NumericFeatureTransformerGUINode extends OperatorGUINode[
-  HdfsTabularDataset,
-  HdfsTabularDataset] {
+class NumericFeatureTransformerGUINode
+  extends SparkDataFrameGUINode[NumericFeatureTransformerJob] {
   override def onPlacement(
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
+
+    import NumericFeatureTransformerUtil._
+
     operatorDialog.addTabularDatasetColumnCheckboxes(
-      "columnsToTransform",
+      columnsToTransformKey,
       "Columns to transform",
       ColumnFilter.NumericOnly,
       "main"
     )
 
     operatorDialog.addDropdownBox(
-      "transformationType",
+      transformationTypeKey,
       "Transformation type",
-      Array("Pow2", "Pow3").toSeq,
-      "Pow2"
+      Array(pow2, pow3),
+      pow2
     )
-
-    operatorDialog.addDropdownBox(
-      "storageFormat",
-      "Storage format",
-      Array("Parquet", "Avro", "TSV").toSeq,
-      "Parquet"
-    )
-
-    HDFSParameterUtils
-          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
+    super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
   }
 
-  private def updateOutputSchema(
-    inputSchemas: mutable.Map[String, TabularSchema],
-    params: OperatorParameters,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
-    // There can only be one input schema.
-    if (inputSchemas.size > 0) {
-      val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getDefinedColumns().length > 0) {
-        val numInputColumns = inputSchema.getNumDefinedColumns()
-        val (_, columnsToTransform) =
-          params.getTabularDatasetSelectedColumns("columnsToTransform")
-        val transformationType = params.getStringValue("transformationType")
-        val numTransformedColumns = columnsToTransform.length
+  override def defineOutputSchemaColumns(inputSchema: TabularSchema,
+                                         parameters: OperatorParameters): Seq[ColumnDef] = {
 
-        val columnDefs = new mutable.ArrayBuffer[ColumnDef]()
-        columnDefs ++= inputSchema.getDefinedColumns()
-        var i = 0
-        while (i < columnsToTransform.length) {
-          columnDefs +=
-            ColumnDef(
-              columnsToTransform(i) + "_" + transformationType,
-              ColumnType.Double
-            )
-          i += 1
-        }
+    val columnsToTransform = NumericFeatureTransformerUtil.getColumnsToTransform(parameters)
+    val transformationType = NumericFeatureTransformerUtil.getTransformationType(parameters)
 
-        val outputSchema = TabularSchema(columnDefs)
-        operatorSchemaManager.setOutputSchema(outputSchema)
-
-        val storageFormat = params.getStringValue("storageFormat")
-        if (storageFormat.equals("Parquet")) {
-          outputSchema.setExpectedOutputFormat(
-            TabularFormatAttributes.createParquetFormat()
-          )
-        } else if (storageFormat.equals("Avro")) {
-          outputSchema.setExpectedOutputFormat(
-            TabularFormatAttributes.createAvroFormat()
-          )
-        } else { // Storage format is TSV.
-          outputSchema.setExpectedOutputFormat(
-            TabularFormatAttributes.createDelimitedFormat(
-              "\t",
-              "\\",
-              "\""
-            )
-          )
-        }
-      }
-    }
-  }
-
-  override def onInputOrParameterChange(
-    inputSchemas: mutable.Map[String, TabularSchema],
-    params: OperatorParameters,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
-    this.updateOutputSchema(
-      inputSchemas,
-      params,
-      operatorSchemaManager
-    )
+    inputSchema.getDefinedColumns() ++
+      columnsToTransform.map(column => {
+        ColumnDef(
+          column + "_" + transformationType,
+          ColumnType.Double
+        )
+      })
   }
 
   override def onOutputVisualization(
@@ -142,10 +86,8 @@ class NumericFeatureTransformerGUINode extends OperatorGUINode[
   }
 }
 
-class NumericFeatureTransformerRuntime extends SparkRuntimeWithIOTypedJob[
-  NumericFeatureTransformerJob,
-  HdfsTabularDataset,
-  HdfsTabularDataset] {
+class NumericFeatureTransformerRuntime
+  extends SparkDataFrameRuntime[NumericFeatureTransformerJob] {
 
   override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
     val config = super.getSparkJobConfiguration(parameters, input)
@@ -155,78 +97,65 @@ class NumericFeatureTransformerRuntime extends SparkRuntimeWithIOTypedJob[
 
 }
 
-class NumericFeatureTransformerJob extends
-  SparkIOTypedPluginJob[HdfsTabularDataset, HdfsTabularDataset] {
-  override def onExecution(
-    sparkContext: SparkContext,
-    appConf: mutable.Map[String, String],
-    input: HdfsTabularDataset,
-    operatorParameters: OperatorParameters,
-    listener: OperatorListener): HdfsTabularDataset = {
-    val sparkUtils = new SparkUtils(
-      sparkContext
-    )
-    val inputSchema = input.getTabularSchema()
-    println("Input schema : ")
-    inputSchema.getDefinedColumns().map(
-      colDef =>
-        println(colDef.columnName + " : " + colDef.columnType.name)
-    )
-    val dataFrame = sparkUtils.getDataFrame(
-      input
-    )
+class NumericFeatureTransformerJob  extends SparkDataFrameJob {
 
-    listener.notifyMessage("Starting the feature transformer.")
+  override def transform(operatorParameters: OperatorParameters,
+                         dataFrame: DataFrame,
+                         sparkUtils: SparkUtils,
+                         listener: OperatorListener): DataFrame = {
 
-    val (_, columnsToTransform) =
-      operatorParameters.getTabularDatasetSelectedColumns("columnsToTransform")
+    val columnsToTransform = NumericFeatureTransformerUtil.getColumnsToTransform(operatorParameters)
+    val transformationType = NumericFeatureTransformerUtil.getTransformationType(operatorParameters)
 
-    listener.notifyMessage("Features to transform are : " + columnsToTransform.mkString(","))
-
-    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
-
-    listener.notifyMessage("Output path is : " + outputPathStr)
-
-    val storageFormat = operatorParameters.getStringValue("storageFormat")
-    val transformationType = operatorParameters.getStringValue("transformationType")
-    val transformedDataFrame =
-      if (transformationType.equals("Pow2")) {
-        dataFrame.selectExpr(
-          dataFrame.columns.toSeq ++
-            columnsToTransform.map(colName => "(" + colName + " * " + colName + ")" + " as " + colName + "_Pow2").toSeq : _*
-        )
-      } else {
-        dataFrame.selectExpr(
-          dataFrame.columns.toSeq ++
-            columnsToTransform.map(colName => "(" + colName + " * " + colName + " * " + colName + ")" + " as " + colName + "_Pow3").toSeq : _*
-        )
-      }
-
-    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
-      sparkUtils.deleteFilePathIfExists(outputPathStr)
+    listener.notifyMessage("Columns to transform are : " + columnsToTransform.mkString(","))
+    if (NumericFeatureTransformerUtil.pow2.equals(transformationType)) {
+      dataFrame.selectExpr(
+        dataFrame.columns.toSeq ++
+          columnsToTransform.map(colName =>
+            "(" + colName + " * " + colName + ")" + " as " + colName + "_" + transformationType
+          ): _*
+      )
+    } else {
+      dataFrame.selectExpr(
+        dataFrame.columns.toSeq ++
+          columnsToTransform.map(colName =>
+            "(" + colName + " * " + colName + " * " + colName + ")" + " as " + colName + "_" + transformationType
+          ): _*
+      )
     }
+  }
 
-    val output: HdfsTabularDataset =
-      if (storageFormat.equals("Parquet")) {
-        sparkUtils.saveAsParquet(
-          outputPathStr,
-          transformedDataFrame
-        )
-      } else if (storageFormat.equals("Avro")) {
-        sparkUtils.saveAsAvro(
-          outputPathStr,
-          transformedDataFrame
-        )
-      } else { // Storage format is TSV.
-        sparkUtils.saveAsTSV(
-          outputPathStr,
-          transformedDataFrame
-        )
-      }
-
+  override def saveResults(transformedDataFrame: DataFrame,
+                           sparkUtils: SparkUtils,
+                           storageFormat: String,
+                           outputPath: String,
+                           overwrite: Boolean): HdfsTabularDataset = {
+    val output = super.saveResults(transformedDataFrame, sparkUtils, storageFormat, outputPath, overwrite)
+    /**
+     * This is to show how information can be added to the output to be used for the visualization.
+     * This information is retrieved in [[NumericFeatureTransformerGUINode.onOutputVisualization()]]
+     */
     output.setDictValue("TestValue1", new Integer(1))
     output.setDictValue("TestValue2", new Integer(2))
-
     output
+  }
+}
+
+/**
+ * This is just a utility class to keep track of things that need to be used across the plugin classes.
+ * e.g. The String keys for parameters.
+ */
+object NumericFeatureTransformerUtil {
+  val columnsToTransformKey = "columnsToTransform"
+  val transformationTypeKey = "transformationType"
+  val pow2 = "Pow2"
+  val pow3 = "Pow3"
+
+  def getTransformationType(parameters: OperatorParameters): String = {
+    parameters.getStringValue(transformationTypeKey)
+  }
+
+  def getColumnsToTransform(parameters: OperatorParameters): Seq[String] = {
+    parameters.getTabularDatasetSelectedColumns(columnsToTransformKey)._2
   }
 }

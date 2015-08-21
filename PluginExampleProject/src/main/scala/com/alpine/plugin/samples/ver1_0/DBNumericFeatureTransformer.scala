@@ -54,8 +54,7 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     operatorDialog.addDBSchemaDropdownBox(
       "outputSchema",
       "Output Schema",
-      "",
-      operatorDataSourceManager
+      ""
     )
 
     operatorDialog.addRadioButtons(
@@ -87,10 +86,9 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     params: OperatorParameters,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
-    if (inputSchemas.size > 0) {
+    if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getDefinedColumns().length > 0) {
-        val numInputColumns = inputSchema.getNumDefinedColumns()
+      if (inputSchema.getDefinedColumns().nonEmpty) {
         val (_, columnsToTransform) =
           params.getTabularDatasetSelectedColumns("columnsToTransform")
         val transformationType = params.getStringValue("transformationType")

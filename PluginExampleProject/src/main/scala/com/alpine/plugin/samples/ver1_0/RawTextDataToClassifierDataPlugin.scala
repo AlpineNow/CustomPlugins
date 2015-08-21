@@ -13,7 +13,7 @@ import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.utils.HdfsParameterUtils
 import opennlp.tools.tokenize.{Tokenizer, TokenizerME, TokenizerModel}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -42,8 +42,8 @@ class RawTextDataToClassifierDataGUINode extends OperatorGUINode[
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
-    HDFSParameterUtils
-          .addStandardHDFSOutputParameters(operatorDialog, operatorDataSourceManager)
+
+    HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
     operatorDialog.addDropdownBox(
       id = "labelSyntax",
@@ -87,7 +87,7 @@ class RawTextDataToClassifierDataJob extends SparkIOTypedPluginJob[
     val tokenizerConfigFile = input.getT3()
     val tokenizerConfigPath = tokenizerConfigFile.getPath()
     val inputPath = inputRawFiles.getPath()
-    val outputPathStr = HDFSParameterUtils.getOutputPath(operatorParameters)
+    val outputPathStr = HdfsParameterUtils.getOutputPath(operatorParameters)
     val delimiter = dictionaryFile.getDelimiter
 
     // Load the dictionary first.
@@ -167,7 +167,7 @@ class RawTextDataToClassifierDataJob extends SparkIOTypedPluginJob[
       rddIndex += 1
     }
 
-    if (HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)) {
+    if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
       new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
     unionRdd.saveAsTextFile(outputPathStr)

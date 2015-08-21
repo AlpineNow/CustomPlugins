@@ -13,7 +13,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
 import com.alpine.plugin.core.spark.utils.SparkUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.HDFSParameterUtils
+import com.alpine.plugin.core.utils.HdfsParameterUtils
 import org.apache.spark.SparkContext
 
 class HelloWorldInSparkSignature extends OperatorSignature[
@@ -38,10 +38,8 @@ class HelloWorldInSparkGUINode extends OperatorGUINode[
     operatorDialog: OperatorDialog,
     operatorDataSourceManager: OperatorDataSourceManager,
     operatorSchemaManager: OperatorSchemaManager): Unit = {
-    HDFSParameterUtils.addStandardHDFSOutputParameters(
-      operatorDialog,
-      operatorDataSourceManager
-    )
+
+    HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
     val outputSchema =
       TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
@@ -68,9 +66,9 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
     )
 
     val outputPathStr =
-      HDFSParameterUtils.getOutputPath(operatorParameters)
+      HdfsParameterUtils.getOutputPath(operatorParameters)
     val overwrite =
-      HDFSParameterUtils.getOverwriteParameterValue(operatorParameters)
+      HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
 
     if (overwrite) {
       sparkUtils.deleteFilePathIfExists(outputPathStr)
