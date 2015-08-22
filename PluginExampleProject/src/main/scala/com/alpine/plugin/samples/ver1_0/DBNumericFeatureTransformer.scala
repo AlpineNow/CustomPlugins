@@ -4,18 +4,20 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import scala.collection.mutable
 
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.DBTableDefault
-// import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.utils.DBParameterUtils
+
+import scala.collection.mutable
+
 
 class DBNumericFeatureTransformerSignature extends OperatorSignature[
   DBNumericFeatureTransformerGUINode,
-  DBNumericFeatureTransformerRuntime]{
+  DBNumericFeatureTransformerRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
       name = "DBNumericFeatureTransformer",
@@ -31,10 +33,9 @@ class DBNumericFeatureTransformerSignature extends OperatorSignature[
 class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
   DBTable,
   DBTable] {
-  override def onPlacement(
-    operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onPlacement(operatorDialog: OperatorDialog,
+                           operatorDataSourceManager: OperatorDataSourceManager,
+                           operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addTabularDatasetColumnCheckboxes(
       "columnsToTransform",
       "Columns to transform",
@@ -51,40 +52,14 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
       "Pow2"
     )
 
-    operatorDialog.addDBSchemaDropdownBox(
-      "outputSchema",
-      "Output Schema",
-      ""
-    )
+    //add parameters to let the user determine how the output table will be written
+    DBParameterUtils.addStandardDatabaseOutputParameters(operatorDialog, operatorDataSourceManager)
 
-    operatorDialog.addRadioButtons(
-      "viewOrTable",
-      "Output Type",
-      Array("View", "Table").toSeq,
-      "View"
-    )
-
-    operatorDialog.addRadioButtons(
-      "overwrite",
-      "Overwrite Output",
-      Array("Yes", "No").toSeq,
-      "Yes"
-    )
-
-    operatorDialog.addStringBox(
-      "outputName",
-      "Output Name",
-      "tmp",
-      ".+",
-      0,
-      0
-    )
   }
 
-  private def updateOutputSchema(
-    inputSchemas: mutable.Map[String, TabularSchema],
-    params: OperatorParameters,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  private def updateOutputSchema(inputSchemas: mutable.Map[String, TabularSchema],
+                                 params: OperatorParameters,
+                                 operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
     if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
@@ -105,10 +80,9 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     }
   }
 
-  override def onInputOrParameterChange(
-    inputSchemas: mutable.Map[String, TabularSchema],
-    params: OperatorParameters,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onInputOrParameterChange(inputSchemas: mutable.Map[String, TabularSchema],
+                                        params: OperatorParameters,
+                                        operatorSchemaManager: OperatorSchemaManager): Unit = {
     this.updateOutputSchema(
       inputSchemas,
       params,
@@ -116,26 +90,15 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     )
   }
 
-  /*
-  override def onOutputVisualization(
-    params: OperatorParameters,
-    output: DBTable,
-    visualFactory: VisualModelFactory): VisualModel = {
-    visualFactory.createTextVisualization(
-      output.getDictValue("TestValue1").toString + " " +
-        output.getDictValue("TestValue2").toString
-    )
-  }
-  */
 }
 
 object SchemaTransformer {
-  def transform(
-    inputSchema: TabularSchema,
-    columnsToTransform: Array[String],
-    transformationType: String): TabularSchema = {
-    val numInputColumns = inputSchema.getNumDefinedColumns()
-    val numTransformedColumns = columnsToTransform.length
+  /**
+   * Transform the database schema to the alpine output schema.
+   */
+  def transform(inputSchema: TabularSchema,
+                columnsToTransform: Array[String],
+                transformationType: String): TabularSchema = {
     val outputColumnDefs = mutable.ArrayBuffer[ColumnDef]()
     outputColumnDefs ++= inputSchema.getDefinedColumns()
     var i = 0
@@ -153,38 +116,56 @@ object SchemaTransformer {
 }
 
 class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTable] {
-  override def onExecution(
-    context: DBExecutionContext,
-    input: DBTable,
-    params: OperatorParameters,
-    listener: OperatorListener): DBTable = {
+
+  override def onExecution(context: DBExecutionContext,
+                           input: DBTable,
+                           params: OperatorParameters,
+                           listener: OperatorListener): DBTable = {
     val (_, columnsToTransform) =
       params.getTabularDatasetSelectedColumns("columnsToTransform")
     val transformationType = params.getStringValue("transformationType")
-    val outputSchema = params.getStringValue("outputSchema")
-    val isView = params.getStringValue("viewOrTable").equals("View")
-    val overwrite = params.getStringValue("overwrite").equals("Yes")
-    val outputName = params.getStringValue("outputName").trim
+
+    //get the output parameters
+    val outputSchema = DBParameterUtils.getDBOutputSchemaParam(params)
+    val isView = DBParameterUtils.getIsViewParam(params)
+    val outputName = DBParameterUtils.getResultTableName(params)
     val connectionInfo = context.getDBConnectionInfo
 
+    //check if there is a table  or with the same name as the output table and drop according to the
+    // "overwrite"
+    val overwrite = DBParameterUtils.getOverwriteParameterValue(params)
+    val fullOutputName = getQuoteOutputName(outputName, outputSchema)
     if (overwrite) {
-      val dropSqlStatementBuilder = new StringBuilder()
-      if (isView) {
-        dropSqlStatementBuilder ++= "DROP VIEW IF EXISTS " + outputSchema + "." + outputName + " CASCADE;"
-      } else {
-        dropSqlStatementBuilder ++= "DROP TABLE IF EXISTS " + outputSchema + "." + outputName + " CASCADE;"
+      val stmtTable = connectionInfo.connection.createStatement()
+      //First see if a table of that name exists.
+      // This will throw an exception if there is a view with the output name,
+      // we will catch the exception and delete the view in the next block of code.
+      try {
+        listener.notifyMessage("Dropping table if it exists")
+        val dropTableStatementBuilder = new StringBuilder()
+        dropTableStatementBuilder ++= "DROP TABLE IF EXISTS " + fullOutputName + " CASCADE;"
+        stmtTable.execute(dropTableStatementBuilder.toString())
       }
-
-      val stmt = connectionInfo.connection.createStatement()
-      stmt.execute(dropSqlStatementBuilder.toString())
-      stmt.close()
+      catch {
+        case (e: Exception) => listener.notifyMessage("A view of the name " + fullOutputName + "exists");
+      }
+      finally {
+        stmtTable.close()
+      }
+     //Now see if there is a view with the output name
+      listener.notifyMessage("Dropping view if it exists")
+      val dropViewStatementBuilder = new StringBuilder()
+      dropViewStatementBuilder ++= "DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"
+      val stmtView = connectionInfo.connection.createStatement()
+      stmtView.execute(dropViewStatementBuilder.toString())
+      stmtView.close()
     }
 
     val sqlStatementBuilder = new StringBuilder()
     if (isView) {
-      sqlStatementBuilder ++= "CREATE VIEW " + outputSchema + "." + outputName + " AS ("
+      sqlStatementBuilder ++= "CREATE VIEW " + fullOutputName + " AS ("
     } else {
-      sqlStatementBuilder ++= "CREATE TABLE " + outputSchema + "." + outputName + " AS ("
+      sqlStatementBuilder ++= "CREATE TABLE " + fullOutputName + " AS ("
     }
 
     val inputSchema = input.getTabularSchema()
@@ -216,14 +197,11 @@ class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTabl
         sqlStatementBuilder ++= " FROM " + input.getSchemaName() + "." + input.getTableName() + ");"
       }
     }
-
     val stmt = connectionInfo.connection.createStatement()
     stmt.execute(sqlStatementBuilder.toString())
     stmt.close()
 
-    val numInputColumns = columnDefs.length
-    val numTransformedColumns = columnsToTransform.length
-
+    //create the output schema
     val outputTabularSchema =
       SchemaTransformer.transform(
         input.getTabularSchema(),
@@ -231,24 +209,22 @@ class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTabl
         transformationType
       )
 
-    val output =
-      new DBTableDefault(
-        outputSchema,
-        outputName,
-        outputTabularSchema,
-        isView,
-        connectionInfo
-      )
-
+    val output = new DBTableDefault(
+      outputSchema,
+      outputName,
+      outputTabularSchema,
+      isView,
+      connectionInfo
+    )
+    //save keys to the output to create visualizations
     output.setDictValue("TestValue1", new Integer(1))
     output.setDictValue("TestValue2", new Integer(2))
 
     output
   }
 
-  override def onStop(
-    context: DBExecutionContext,
-    listener: OperatorListener): Unit = {
-    // Do nothing.
+  def getQuoteOutputName(tableName: String, schemaName: String): String = {
+    "\"" + schemaName + "\"" + "." + "\"" + tableName + "\""
   }
+
 }
