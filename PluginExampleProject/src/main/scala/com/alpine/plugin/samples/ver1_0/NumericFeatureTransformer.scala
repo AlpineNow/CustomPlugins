@@ -76,8 +76,11 @@ class NumericFeatureTransformerGUINode
     val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
     val addendumVisualModel =
       visualFactory.createTextVisualization(
-        output.getDictValue("TestValue1").toString + " " +
-        output.getDictValue("TestValue2").toString
+      //the output contains the map of the visual information returned by the dataFrameJob
+        "Data transformation type completed:  " + output.getDictValue(
+          NumericFeatureTransformerUtil.transformationTypeVisualKey).toString + " .\n" +
+        "The resulting data has " + output.getDictValue(
+          NumericFeatureTransformerUtil.dataFrameLengthVisualKey).toString + " rows."
       )
     val compositeVisualModel = visualFactory.createCompositeVisualModel()
     compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
@@ -96,13 +99,16 @@ class NumericFeatureTransformerRuntime
   }
 
 }
-
 class NumericFeatureTransformerJob  extends SparkDataFrameJob {
-
-  override def transform(operatorParameters: OperatorParameters,
+  /**
+   * Returns a tuple with the transformed dataFrame and a map containing two
+   * additional pieces of information for visualization: the type of data
+   * transformation completed, and the number of rows in the resulting DataFrame.
+   */
+  override def transformWithAddendum(operatorParameters: OperatorParameters,
                          dataFrame: DataFrame,
                          sparkUtils: SparkUtils,
-                         listener: OperatorListener): DataFrame = {
+                         listener: OperatorListener): (DataFrame , Map[String, AnyRef]) = {
 
     val columnsToTransform = NumericFeatureTransformerUtil.getColumnsToTransform(operatorParameters)
     val transformationType = NumericFeatureTransformerUtil.getTransformationType(operatorParameters)
@@ -123,22 +129,14 @@ class NumericFeatureTransformerJob  extends SparkDataFrameJob {
           ): _*
       )
     }
+    //we want to create a visualization with the number of rows in the result and the type of
+    //transformation that we used, so we add that information to the outputVisualization map
+    val dataFrameSize = dataFrame.count.toString
+    val outputVisualization = Map(NumericFeatureTransformerUtil.transformationTypeVisualKey -> transformationType,
+    NumericFeatureTransformerUtil.dataFrameLengthVisualKey -> new Integer(dataFrameSize))
+    (dataFrame, outputVisualization)
   }
 
-  override def saveResults(transformedDataFrame: DataFrame,
-                           sparkUtils: SparkUtils,
-                           storageFormat: String,
-                           outputPath: String,
-                           overwrite: Boolean): HdfsTabularDataset = {
-    val output = super.saveResults(transformedDataFrame, sparkUtils, storageFormat, outputPath, overwrite)
-    /**
-     * This is to show how information can be added to the output to be used for the visualization.
-     * This information is retrieved in [[NumericFeatureTransformerGUINode.onOutputVisualization()]]
-     */
-    output.setDictValue("TestValue1", new Integer(1))
-    output.setDictValue("TestValue2", new Integer(2))
-    output
-  }
 }
 
 /**
@@ -151,6 +149,8 @@ object NumericFeatureTransformerUtil {
   val pow2 = "Pow2"
   val pow3 = "Pow3"
 
+  val dataFrameLengthVisualKey = "dataFrameLength"
+  val transformationTypeVisualKey = "transformationType"
   def getTransformationType(parameters: OperatorParameters): String = {
     parameters.getStringValue(transformationTypeKey)
   }

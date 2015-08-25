@@ -109,7 +109,7 @@ class AggregationRuntime extends SparkDataFrameRuntime[AggregationPluginSparkJob
 
 class AggregationPluginSparkJob extends SparkDataFrameJob {
 
-  def transform(operatorParameters: OperatorParameters, inputDataFrame: DataFrame,
+  override def transform(operatorParameters: OperatorParameters, inputDataFrame: DataFrame,
                 sparkUtils: SparkUtils, listener: OperatorListener): DataFrame = {
     //get parameters
     val (_, groupByCol) =
