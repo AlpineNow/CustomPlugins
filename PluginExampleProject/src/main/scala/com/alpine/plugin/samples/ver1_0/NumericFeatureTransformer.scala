@@ -9,7 +9,8 @@ import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.SparkJobConfiguration
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
+import com.alpine.plugin.core.utils.SparkParameterUtils
 import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
 import com.alpine.plugin.core.{OperatorMetadata, _}
 import org.apache.spark.sql.DataFrame
@@ -51,7 +52,16 @@ class NumericFeatureTransformerGUINode
       Array(pow2, pow3),
       pow2
     )
+
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
+
+    SparkParameterUtils.addStandardSparkOptions(
+      operatorDialog,
+      defaultNumExecutors = 2,
+      defaultExecutorMemoryMB = 1024,
+      defaultDriverMemoryMB = 1024,
+      defaultNumExecutorCores = 1
+    )
   }
 
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
@@ -107,34 +117,35 @@ class NumericFeatureTransformerJob  extends SparkDataFrameJob {
    */
   override def transformWithAddendum(operatorParameters: OperatorParameters,
                          dataFrame: DataFrame,
-                         sparkUtils: SparkUtils,
+                         sparkUtils: SparkRuntimeUtils,
                          listener: OperatorListener): (DataFrame , Map[String, AnyRef]) = {
 
     val columnsToTransform = NumericFeatureTransformerUtil.getColumnsToTransform(operatorParameters)
     val transformationType = NumericFeatureTransformerUtil.getTransformationType(operatorParameters)
 
     listener.notifyMessage("Columns to transform are : " + columnsToTransform.mkString(","))
-    if (NumericFeatureTransformerUtil.pow2.equals(transformationType)) {
-      dataFrame.selectExpr(
-        dataFrame.columns.toSeq ++
-          columnsToTransform.map(colName =>
-            "(" + colName + " * " + colName + ")" + " as " + colName + "_" + transformationType
-          ): _*
-      )
-    } else {
-      dataFrame.selectExpr(
-        dataFrame.columns.toSeq ++
-          columnsToTransform.map(colName =>
-            "(" + colName + " * " + colName + " * " + colName + ")" + " as " + colName + "_" + transformationType
-          ): _*
-      )
-    }
+    val transformedDataFrame =
+      if (NumericFeatureTransformerUtil.pow2.equals(transformationType)) {
+        dataFrame.selectExpr(
+          dataFrame.columns.map("`" + _ + "`") ++
+            columnsToTransform.map(colName =>
+              "(`" + colName + "` * `" + colName + "`)" + " as `" + colName + "_" + transformationType + "`"
+            ): _*
+        )
+      } else {
+        dataFrame.selectExpr(
+          dataFrame.columns.map("`" + _ + "`") ++
+            columnsToTransform.map(colName =>
+              "(`" + colName + "` * `" + colName + "` * `" + colName + "`)" + " as `" + colName + "_" + transformationType + "`"
+            ): _*
+        )
+      }
     //we want to create a visualization with the number of rows in the result and the type of
     //transformation that we used, so we add that information to the outputVisualization map
-    val dataFrameSize = dataFrame.count.toString
+    val dataFrameSize = transformedDataFrame.count.toString
     val outputVisualization = Map(NumericFeatureTransformerUtil.transformationTypeVisualKey -> transformationType,
     NumericFeatureTransformerUtil.dataFrameLengthVisualKey -> new Integer(dataFrameSize))
-    (dataFrame, outputVisualization)
+    (transformedDataFrame, outputVisualization)
   }
 
 }

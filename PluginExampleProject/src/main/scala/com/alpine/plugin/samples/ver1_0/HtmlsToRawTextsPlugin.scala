@@ -10,7 +10,7 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsRawTextDatasetDefault
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.core.{OperatorMetadata, _}
@@ -65,7 +65,7 @@ class HtmlsToRawTextsJob extends
     val outputPath = new Path(outputPathStr)
 
     if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
-      new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
+      new SparkRuntimeUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
 
     // List all the directories under this directory.

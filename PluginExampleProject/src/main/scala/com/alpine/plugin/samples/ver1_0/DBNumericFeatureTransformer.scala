@@ -13,6 +13,7 @@ import com.alpine.plugin.core.io.defaults.DBTableDefault
 import com.alpine.plugin.core.utils.DBParameterUtils
 
 import scala.collection.mutable
+import com.alpine.plugin.core.db.{DBExecutionContext, DBRuntime}
 
 
 class DBNumericFeatureTransformerSignature extends OperatorSignature[
@@ -115,7 +116,7 @@ object SchemaTransformer {
   }
 }
 
-class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTable] {
+class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
 
   override def onExecution(context: DBExecutionContext,
                            input: DBTable,
@@ -194,7 +195,7 @@ class DBNumericFeatureTransformerRuntime extends DatabaseRuntime[DBTable, DBTabl
       if (i != columnsToTransform.length) {
         sqlStatementBuilder ++= ", "
       } else {
-        sqlStatementBuilder ++= " FROM " + input.getSchemaName() + "." + input.getTableName() + ");"
+        sqlStatementBuilder ++= " FROM \"" + input.getSchemaName() + "\".\"" + input.getTableName() + "\");"
       }
     }
     val stmt = connectionInfo.connection.createStatement()

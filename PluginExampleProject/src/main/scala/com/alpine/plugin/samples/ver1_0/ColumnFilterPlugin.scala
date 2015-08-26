@@ -8,7 +8,7 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import org.apache.spark.sql.DataFrame
 
 class ColumnFilterSignature extends OperatorSignature[
@@ -61,7 +61,7 @@ class ColumnFilterRuntime extends SparkDataFrameRuntime[ColumnFilterJob] {}
 class ColumnFilterJob extends SparkDataFrameJob {
   override def transform(parameters: OperatorParameters,
                          dataFrame: DataFrame,
-                         sparkUtils: SparkUtils,
+                         sparkUtils: SparkRuntimeUtils,
                          listener: OperatorListener): DataFrame = {
     val columnNamesToKeep = ColumnFilterUtil.getColumnsToKeep(parameters)
     val columnsToKeep = columnNamesToKeep.map(dataFrame.col)

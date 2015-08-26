@@ -11,7 +11,7 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HdfsParameterUtils
 import opennlp.tools.tokenize.{Tokenizer, TokenizerME, TokenizerModel}
@@ -127,7 +127,7 @@ class WordCounter extends
 
 
     if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
-      new SparkUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
+      new SparkRuntimeUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
     }
 
     outputRdd.saveAsTextFile(outputPathStr)

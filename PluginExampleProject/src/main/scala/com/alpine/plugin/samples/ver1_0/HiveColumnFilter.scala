@@ -9,7 +9,7 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HiveTableDefault
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HiveParameterUtils
 import com.alpine.plugin.core.{OperatorGUINode, OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
@@ -91,7 +91,7 @@ class HiveColumnFilterJob extends SparkIOTypedPluginJob[HiveTable, HiveTable] {
     operatorParameters: OperatorParameters,
     listener: OperatorListener): HiveTable = {
 
-    val sparkUtils = new SparkUtils(sparkContext)
+    val sparkUtils = new SparkRuntimeUtils(sparkContext)
 
     listener.notifyMessage("Starting the column filter.")
 

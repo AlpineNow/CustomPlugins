@@ -11,7 +11,7 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HdfsParameterUtils
 import org.apache.spark.SparkContext
@@ -61,7 +61,7 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
     input: IONone,
     operatorParameters: OperatorParameters,
     listener: OperatorListener): HdfsDelimitedTabularDataset = {
-    val sparkUtils = new SparkUtils(
+    val sparkUtils = new SparkRuntimeUtils(
       sparkContext
     )
 

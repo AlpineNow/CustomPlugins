@@ -8,7 +8,8 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, OperatorSchemaManager, TabularSchema}
 import com.alpine.plugin.core.spark.templates._
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
+import com.alpine.plugin.core.utils.SparkParameterUtils
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
@@ -97,6 +98,14 @@ class AggregationGUINode extends SparkDataFrameGUINode[AggregationPluginSparkJob
       "main"
     )
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
+
+    SparkParameterUtils.addStandardSparkOptions(
+      operatorDialog,
+      defaultNumExecutors = 2,
+      defaultExecutorMemoryMB = 1024,
+      defaultDriverMemoryMB = 1024,
+      defaultNumExecutorCores = 1
+    )
   }
 
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
@@ -110,7 +119,7 @@ class AggregationRuntime extends SparkDataFrameRuntime[AggregationPluginSparkJob
 class AggregationPluginSparkJob extends SparkDataFrameJob {
 
   override def transform(operatorParameters: OperatorParameters, inputDataFrame: DataFrame,
-                sparkUtils: SparkUtils, listener: OperatorListener): DataFrame = {
+                sparkUtils: SparkRuntimeUtils, listener: OperatorListener): DataFrame = {
     //get parameters
     val (_, groupByCol) =
       operatorParameters.getTabularDatasetSelectedColumn(AggregationConstants.GROUP_BY_PARAM_KEY)
@@ -136,7 +145,7 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
   }
 
   //convert column definitions used at design time to DataFrame schema.
-  def getSchema(operatorParameters: OperatorParameters, sparkUtils: SparkUtils): StructType = {
+  def getSchema(operatorParameters: OperatorParameters, sparkUtils: SparkRuntimeUtils): StructType = {
     val newColumns = AggregationOutputSchema.getColumnDefs(operatorParameters)
     StructType(
       newColumns.map(newCol =>

@@ -7,7 +7,7 @@ import scala.collection.mutable
 
 import com.alpine.model.RegressionRowModel
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.spark.utils.SparkUtils
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.core.{OperatorListener, OperatorParameters}
@@ -45,7 +45,7 @@ SparkIOTypedPluginJob[
                            input: Tuple2[HdfsTabularDataset, RegressionModelWrapper],
                            operatorParameters: OperatorParameters,
                            listener: OperatorListener): HdfsTabularDataset = {
-    val sparkUtils = new SparkUtils(
+    val sparkUtils = new SparkRuntimeUtils(
       sparkContext
     )
     val inputDataSet = input.getT1()
@@ -167,7 +167,7 @@ object RegressionEvaluatorUtil {
   def saveOutput(sparkContext: SparkContext,
                  outputPathStr: String,
                  listener: OperatorListener,
-                 sparkUtils: SparkUtils,
+                 sparkUtils: SparkRuntimeUtils,
                  resultDataFrame: DataFrame): HdfsDelimitedTabularDataset = {
     listener.notifyMessage("Output path is : " + outputPathStr)
     val driverHdfs = FileSystem.get(sparkContext.hadoopConfiguration)
