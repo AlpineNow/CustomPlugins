@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alpine-plugins>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HtmlsToRawTextsSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.RawTextDataToClassifierDataSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.SparkWordCountSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.WebCrawlerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HdfsBinaryFileSignature</signature-class>
+  </plugin>
+</alpine-plugins>
