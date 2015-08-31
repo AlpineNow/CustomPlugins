@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-test</artifactId>
-            <version>0.9.9.7</version>
+            <version>0.9.9.8</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
