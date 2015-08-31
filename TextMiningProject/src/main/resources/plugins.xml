@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <alpine-plugins>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.HtmlsToRawTextsSignature</signature-class>
+    <signature-class>com.alpine.textmining.HtmlTagStripperSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.RawTextDataToClassifierDataSignature</signature-class>
+    <signature-class>com.alpine.textmining.RawTextToTabularDataSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.SparkWordCountSignature</signature-class>
+    <signature-class>com.alpine.textmining.WordDictionaryBuilderSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.WebCrawlerSignature</signature-class>
+    <signature-class>com.alpine.textmining.WebCrawlerSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.HdfsBinaryFileSignature</signature-class>
+    <signature-class>com.alpine.textmining.HdfsOpenNLPModelFileSignature</signature-class>
   </plugin>
 </alpine-plugins>

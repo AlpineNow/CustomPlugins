@@ -10,6 +10,9 @@
     <signature-class>com.alpine.plugin.samples.ver1_0.DBNumericFeatureTransformerSignature</signature-class>
   </plugin>
   <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.DBTableInfoViewerSignature</signature-class>
+  </plugin>
+  <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.RegressionEvaluatorSignature</signature-class>
   </plugin>
   <plugin>
@@ -26,5 +29,11 @@
   </plugin>
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.ColumnFilterSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.IOListSampleSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.Tuple4SampleSignature</signature-class>
   </plugin>
 </alpine-plugins>
