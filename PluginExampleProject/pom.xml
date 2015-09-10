@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-example</artifactId>
-    <version>0.9.9.9</version>
+    <version>0.9.9.9.1</version>
 
     <repositories>
         <repository>
@@ -20,14 +20,14 @@
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>0.9.9.9</version>
+            <version>0.9.9.9.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-test</artifactId>
-            <version>0.9.9.9</version>
+            <version>0.9.9.9.1</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -35,35 +35,35 @@
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>0.9.9.9</version>
+            <version>0.9.9.9.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-model</artifactId>
-            <version>0.9.9.9</version>
+            <version>0.9.9.9.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>alpine-model-api</artifactId>
-            <version>0.9.9.9</version>
+            <version>0.9.9.9.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>alpine-model-pack</artifactId>
-            <version>0.9.9.9</version>
+            <version>0.9.9.9.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpine</groupId>
             <artifactId>plugin-io-impl</artifactId>
-            <version>0.9.9.9</version>
+            <version>0.9.9.9.1</version>
             <scope>provided</scope>
         </dependency>
 

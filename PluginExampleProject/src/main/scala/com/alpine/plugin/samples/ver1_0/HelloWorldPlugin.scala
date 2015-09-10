@@ -28,8 +28,8 @@ class HelloWorldSignature extends OperatorSignature[
   HelloWorldRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "HelloWorld",
-      category = "Standalone",
+      name = "Sample - HelloWorld",
+      category = "Plugin Sample - Local",
       author = "Sung Chung",
       version = 1,
       helpURL = "",
@@ -56,7 +56,7 @@ class HelloWorldRuntime extends SparkRuntime[
     input: IONone,
     params: OperatorParameters,
     listener: OperatorListener): IOString = {
-    new IOStringDefault("Hello World")
+    new IOStringDefault("Hello World", Some(params.operatorInfo))
   }
 
   override def onStop(

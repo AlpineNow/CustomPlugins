@@ -33,8 +33,8 @@ class HelloWorldInSparkSignature extends OperatorSignature[
   HelloWorldInSparkRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "HelloWorldInSpark",
-      category = "Dataset",
+      name = "Sample - HelloWorldInSpark",
+      category = "Plugin Sample - Spark",
       author = "Sung Chung",
       version = 1,
       helpURL = "",
@@ -93,10 +93,8 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
     new HdfsDelimitedTabularDatasetDefault(
       outputPathStr,
       outputSchema,
-      "\t",
-      "\\",
-      "\"",
-      false
+      TSVAttributes.default,
+      Some(operatorParameters.operatorInfo)
     )
   }
 }

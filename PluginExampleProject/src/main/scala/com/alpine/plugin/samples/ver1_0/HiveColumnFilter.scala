@@ -18,6 +18,7 @@ package com.alpine.plugin.samples.ver1_0
 
 import scala.collection.mutable
 
+import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
@@ -25,9 +26,9 @@ import com.alpine.plugin.core.io.defaults.HiveTableDefault
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HiveParameterUtils
-import com.alpine.plugin.core.{OperatorGUINode, OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.hive.HiveContext
+
 /**
  * This is an example operator that demonstrates how to:
  * -- take a HiveTable as input
@@ -39,8 +40,8 @@ class HiveColumnFilterSignature extends OperatorSignature[
   HiveColumnFilterRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Hive Column Filter",
-      category = "Transformation",
+      name = "Sample - Hive Column Filter",
+      category = "Plugin Sample - Spark",
       author = "Jenny Thompson",
       version = 1,
       helpURL = "",
@@ -64,18 +65,18 @@ class HiveColumnFilterGUINode extends OperatorGUINode[HiveTable, HiveTable] {
     HiveParameterUtils.addStandardOutputParameters(operatorDialog)
   }
 
-  private def updateOutputSchema(inputSchemas: mutable.Map[String, TabularSchema],
+  private def updateOutputSchema(inputSchemas: Map[String, TabularSchema],
                                   params: OperatorParameters,
                                   operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
     if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getDefinedColumns().nonEmpty) {
+      if (inputSchema.getDefinedColumns.nonEmpty) {
 
         val (_, columnsToKeepArray) =
           params.getTabularDatasetSelectedColumns("columnsToKeep")
         val columnsToKeep = columnsToKeepArray.toSet
-        val columnDefs: Seq[ColumnDef] = inputSchema.getDefinedColumns()
+        val columnDefs: Seq[ColumnDef] = inputSchema.getDefinedColumns
           .filter(colDef => columnsToKeep.contains(colDef.columnName))
         val outputSchema = TabularSchema(columnDefs,TabularFormatAttributes.createHiveFormat())
         operatorSchemaManager.setOutputSchema(outputSchema)
@@ -83,10 +84,12 @@ class HiveColumnFilterGUINode extends OperatorGUINode[HiveTable, HiveTable] {
     }
   }
 
-  override def onInputOrParameterChange(inputSchemas: mutable.Map[String, TabularSchema],
+  override def onInputOrParameterChange(inputSchemas: Map[String, TabularSchema],
                                          params: OperatorParameters,
-                                         operatorSchemaManager: OperatorSchemaManager): Unit = {
+                                         operatorSchemaManager: OperatorSchemaManager): OperatorStatus = {
     this.updateOutputSchema(inputSchemas, params, operatorSchemaManager)
+
+    OperatorStatus(isValid = true, msg = None)
   }
 
 }
@@ -131,7 +134,8 @@ class HiveColumnFilterJob extends SparkIOTypedPluginJob[HiveTable, HiveTable] {
     new HiveTableDefault(
       outputTableName,
       outputDBName,
-      sparkUtils.convertSparkSQLSchemaToTabularSchema(hiveContext.table(fullOutputName).schema)
+      sparkUtils.convertSparkSQLSchemaToTabularSchema(hiveContext.table(fullOutputName).schema),
+      Some(operatorParameters.operatorInfo)
     )
   }
 

@@ -34,8 +34,8 @@ class ExampleClassificationModelSignature extends OperatorSignature[
   ExampleClassificationModelRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "ExampleClassificationModel",
-      category = "Classification",
+      name = "Sample - ExampleClassificationModel",
+      category = "Plugin Sample - Spark",
       author = "Sung Chung",
       version = 1,
       helpURL = "",
@@ -86,9 +86,10 @@ class ExampleClassificationModelRuntime extends SparkRuntime[
     input: IONone,
     params: OperatorParameters,
     listener: OperatorListener): ClassificationModelWrapper = {
-    return new ClassificationModelWrapper(
+    new ClassificationModelWrapper(
       "Example classification model",
-      new ExampleClassificationModel()
+      new ExampleClassificationModel(),
+      Some(params.operatorInfo)
     )
   }
 

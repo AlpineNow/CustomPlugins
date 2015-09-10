@@ -16,6 +16,9 @@
     <signature-class>com.alpine.plugin.samples.ver1_0.RegressionEvaluatorSignature</signature-class>
   </plugin>
   <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.LinearRegressionSignature</signature-class>
+  </plugin>
+  <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.HiveColumnFilterSignature</signature-class>
   </plugin>
   <plugin>
@@ -35,5 +38,14 @@
   </plugin>
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.Tuple4SampleSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.JavaCountPlugin.CountByGroupSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.JavaDBTransformer.JavaDBTransformerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.SparkRandomDatasetGeneratorSignature</signature-class>
   </plugin>
 </alpine-plugins>

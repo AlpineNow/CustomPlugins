@@ -29,8 +29,8 @@ class ColumnFilterSignature extends OperatorSignature[
   ColumnFilterRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Example ColumnFilter (Spark)",
-      category = "Transformation",
+      name = "Sample - Spark ColumnFilter",
+      category = "Plugin Sample - Spark",
       author = "Egor Pakhomov",
       version = 1,
       helpURL = "",
@@ -64,7 +64,7 @@ class ColumnFilterGUINode extends SparkDataFrameGUINode[ColumnFilterJob] {
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
                                          parameters: OperatorParameters): Seq[ColumnDef] = {
     val columnsToKeep = ColumnFilterUtil.getColumnsToKeep(parameters).toSet
-    inputSchema.getDefinedColumns().filter(colDef => columnsToKeep.contains(colDef.columnName))
+    inputSchema.getDefinedColumns.filter(colDef => columnsToKeep.contains(colDef.columnName))
   }
 
 }

@@ -32,8 +32,8 @@ class DBNumericFeatureTransformerSignature extends OperatorSignature[
   DBNumericFeatureTransformerRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "DBNumericFeatureTransformer",
-      category = "Transformation",
+      name = "Sample - DBNumericFeatureTransformer",
+      category = "Plugin Sample - DB",
       author = "Sung Chung",
       version = 1,
       helpURL = "",
@@ -69,13 +69,13 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
 
   }
 
-  private def updateOutputSchema(inputSchemas: mutable.Map[String, TabularSchema],
+  private def updateOutputSchema(inputSchemas: Map[String, TabularSchema],
                                  params: OperatorParameters,
                                  operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
     if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getDefinedColumns().nonEmpty) {
+      if (inputSchema.getDefinedColumns.nonEmpty) {
         val (_, columnsToTransform) =
           params.getTabularDatasetSelectedColumns("columnsToTransform")
         val transformationType = params.getStringValue("transformationType")
@@ -92,14 +92,16 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     }
   }
 
-  override def onInputOrParameterChange(inputSchemas: mutable.Map[String, TabularSchema],
+  override def onInputOrParameterChange(inputSchemas: Map[String, TabularSchema],
                                         params: OperatorParameters,
-                                        operatorSchemaManager: OperatorSchemaManager): Unit = {
+                                        operatorSchemaManager: OperatorSchemaManager): OperatorStatus = {
     this.updateOutputSchema(
       inputSchemas,
       params,
       operatorSchemaManager
     )
+
+    OperatorStatus(isValid = true, msg = None)
   }
 
 }
@@ -112,7 +114,7 @@ object SchemaTransformer {
                 columnsToTransform: Array[String],
                 transformationType: String): TabularSchema = {
     val outputColumnDefs = mutable.ArrayBuffer[ColumnDef]()
-    outputColumnDefs ++= inputSchema.getDefinedColumns()
+    outputColumnDefs ++= inputSchema.getDefinedColumns
     var i = 0
     while (i < columnsToTransform.length) {
       outputColumnDefs +=
@@ -180,35 +182,34 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
       sqlStatementBuilder ++= "CREATE TABLE " + fullOutputName + " AS ("
     }
 
-    val inputSchema = input.getTabularSchema()
-    val columnDefs = inputSchema.getDefinedColumns()
+    val inputSchema = input.tabularSchema
+    val columnDefs = inputSchema.getDefinedColumns
     sqlStatementBuilder ++= "SELECT "
     var i = 0
     while (i < columnDefs.length) {
       val columnDef = columnDefs(i)
-      sqlStatementBuilder ++= columnDef.columnName + ", "
+      sqlStatementBuilder ++= quoteName(columnDef.columnName) + ", "
       i += 1
     }
 
-    i = 0
-    while (i < columnsToTransform.length) {
-      val columnToTransform = columnsToTransform(i)
-      val power =
-        if (transformationType.equals("Pow2")) {
-          "2"
-        } else {
-          "3"
-        }
-      sqlStatementBuilder ++= "POWER(" + columnToTransform + ", " + power + ") AS "
-      sqlStatementBuilder ++= columnToTransform + "_pow" + power
-      i += 1
-
-      if (i != columnsToTransform.length) {
-        sqlStatementBuilder ++= ", "
+    val power =
+      if (transformationType.equals("Pow2")) {
+        "2"
       } else {
-        sqlStatementBuilder ++= " FROM \"" + input.getSchemaName() + "\".\"" + input.getTableName() + "\");"
+        "3"
       }
+    i = 0
+    while (i < columnsToTransform.length-1) {
+      val columnToTransform = columnsToTransform(i)
+      sqlStatementBuilder ++= "POWER(" + quoteName(columnToTransform) + ", " + power + ") AS "
+      sqlStatementBuilder ++= columnToTransform + "_pow" + power
+      sqlStatementBuilder ++= ", "
+      i += 1
     }
+    val columnToTransform = columnsToTransform(i)
+    sqlStatementBuilder ++= "POWER(" + quoteName(columnToTransform) + ", " + power + ") AS "
+    sqlStatementBuilder ++= columnToTransform + "_pow" + power
+    sqlStatementBuilder ++= ", "
     val stmt = connectionInfo.connection.createStatement()
     stmt.execute(sqlStatementBuilder.toString())
     stmt.close()
@@ -216,27 +217,30 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
     //create the output schema
     val outputTabularSchema =
       SchemaTransformer.transform(
-        input.getTabularSchema(),
+        input.tabularSchema,
         columnsToTransform,
         transformationType
       )
 
-    val output = new DBTableDefault(
+    DBTableDefault(
       outputSchema,
       outputName,
       outputTabularSchema,
       isView,
-      connectionInfo
+      connectionInfo.name,
+      connectionInfo.url,
+      Some(params.operatorInfo),
+      //save keys to the output to create visualizations
+      Map("TestValue1" -> new Integer(1), "TestValue2" -> new Integer(2))
     )
-    //save keys to the output to create visualizations
-    output.setDictValue("TestValue1", new Integer(1))
-    output.setDictValue("TestValue2", new Integer(2))
-
-    output
   }
 
-  def getQuoteOutputName(tableName: String, schemaName: String): String = {
-    "\"" + schemaName + "\"" + "." + "\"" + tableName + "\""
+   def getQuoteOutputName(tableName: String, schemaName: String) : String = {
+     quoteName(schemaName) + "." + quoteName(schemaName)
+  }
+
+  def quoteName( colName : String ) : String = {
+    "\"" + colName + "\""
   }
 
 }

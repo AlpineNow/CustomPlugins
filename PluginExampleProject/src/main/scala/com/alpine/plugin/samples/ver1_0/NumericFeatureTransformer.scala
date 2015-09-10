@@ -32,11 +32,11 @@ class NumericFeatureTransformerSignature extends OperatorSignature[
   NumericFeatureTransformerRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "NumericFeatureTransformer",
-      category = "Transformation",
+      name = "Sample - NumericFeatureTransformer",
+      category = "Plugin Sample - Spark",
       author = "Sung Chung",
       version = 1,
-      helpURL = "http://www.nytimes.com",
+      helpURL = "http://alpinenow.com",
       iconNamePrefix = "test"
     )
   }
@@ -82,7 +82,7 @@ class NumericFeatureTransformerGUINode
     val columnsToTransform = NumericFeatureTransformerUtil.getColumnsToTransform(parameters)
     val transformationType = NumericFeatureTransformerUtil.getTransformationType(parameters)
 
-    inputSchema.getDefinedColumns() ++
+    inputSchema.getDefinedColumns ++
       columnsToTransform.map(column => {
         ColumnDef(
           column + "_" + transformationType,
@@ -96,12 +96,13 @@ class NumericFeatureTransformerGUINode
     output: HdfsTabularDataset,
     visualFactory: VisualModelFactory): VisualModel = {
     val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
+    val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
       visualFactory.createTextVisualization(
       //the output contains the map of the visual information returned by the dataFrameJob
-        "Data transformation type completed:  " + output.getDictValue(
+        "Data transformation type completed:  " + addendum(
           NumericFeatureTransformerUtil.transformationTypeVisualKey).toString + " .\n" +
-        "The resulting data has " + output.getDictValue(
+        "The resulting data has " + addendum(
           NumericFeatureTransformerUtil.dataFrameLengthVisualKey).toString + " rows."
       )
     val compositeVisualModel = visualFactory.createCompositeVisualModel()
@@ -121,7 +122,7 @@ class NumericFeatureTransformerRuntime
   }
 
 }
-class NumericFeatureTransformerJob  extends SparkDataFrameJob {
+class NumericFeatureTransformerJob extends SparkDataFrameJob {
   /**
    * Returns a tuple with the transformed dataFrame and a map containing two
    * additional pieces of information for visualization: the type of data

@@ -56,10 +56,10 @@ class AggregationSignature extends OperatorSignature[
   AggregationRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Aggregate By Product",
+      name = "Sample - Aggregate By Product",
       author = "Rachel Warren",
       version = 1,
-      category = "Transformation",
+      category = "Plugin Sample - Spark",
       helpURL = "",
       iconNamePrefix = "")
   }
