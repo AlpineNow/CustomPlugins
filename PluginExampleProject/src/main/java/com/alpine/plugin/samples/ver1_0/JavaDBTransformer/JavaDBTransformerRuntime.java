@@ -16,19 +16,25 @@
  */
 package com.alpine.plugin.samples.ver1_0.JavaDBTransformer;
 
-import com.alpine.plugin.core.*;
+import com.alpine.plugin.core.OperatorListener;
+import com.alpine.plugin.core.OperatorParameters;
 import com.alpine.plugin.core.db.DBConnectionInfo;
 import com.alpine.plugin.core.db.DBExecutionContext;
 import com.alpine.plugin.core.db.DBRuntime;
-import com.alpine.plugin.core.io.*;
+import com.alpine.plugin.core.io.ColumnDef;
+import com.alpine.plugin.core.io.ColumnType;
+import com.alpine.plugin.core.io.DBTable;
+import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.io.defaults.DBTableDefault;
 import com.alpine.plugin.core.utils.DBParameterUtils;
-import com.alpine.plugin.samples.ver1_0.SchemaTransformer;
 import com.alpine.plugin.util.JavaConversionUtils;
 import scala.Option;
+import scala.collection.Iterator;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
+
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -123,11 +129,23 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             stmt.execute(createTableStatement.toString());
             stmt.close();
 
-            TabularSchema outputTabularSchema = SchemaTransformer.transform(
-                    input.tabularSchema(),
-                    cols2transform,
-                    transformationType
-            );
+            List<ColumnDef> outputColumns = new ArrayList<ColumnDef>();
+
+            Iterator<ColumnDef> inputColsIterator = input.tabularSchema().definedColumns().iterator();
+            while(inputColsIterator.hasNext()) {
+                outputColumns.add(inputColsIterator.next());
+            }
+
+            int i = 0;
+            while (i < cols2transform.length) {
+                outputColumns.add(
+                        new ColumnDef(
+                                cols2transform[i] + "_" + transformationType.toLowerCase(),
+                                new ColumnType.TypeValue("DOUBLE PRECISION")
+                        ));
+                i++;
+            }
+            TabularSchema outputTabularSchema = TabularSchema.apply(outputColumns);
 
             HashMap<String, Object> addendum = new HashMap<String, Object>();
             addendum.put("TestValue1", 1);
