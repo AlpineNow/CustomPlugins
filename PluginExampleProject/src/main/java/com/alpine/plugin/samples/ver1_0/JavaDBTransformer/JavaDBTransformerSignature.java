@@ -23,7 +23,8 @@ public class JavaDBTransformerSignature extends
         OperatorSignature<JavaDBNumericTransformerGUINode,JavaDBTransformerRuntime>  {
     public OperatorMetadata getMetadata(){
         return new OperatorMetadata(
-                "JavaDBNumericFeatureTransformer", "Plugins",
+                "Sample - Java DB Transform",
+                "Plugin Sample - DB",
                 "Rachel Warren", 1, "", ""
         );
     }

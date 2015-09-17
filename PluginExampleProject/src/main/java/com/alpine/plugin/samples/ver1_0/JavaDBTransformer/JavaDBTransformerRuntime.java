@@ -22,19 +22,16 @@ import com.alpine.plugin.core.db.DBConnectionInfo;
 import com.alpine.plugin.core.db.DBExecutionContext;
 import com.alpine.plugin.core.db.DBRuntime;
 import com.alpine.plugin.core.io.ColumnDef;
-import com.alpine.plugin.core.io.ColumnType;
 import com.alpine.plugin.core.io.DBTable;
 import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.io.defaults.DBTableDefault;
 import com.alpine.plugin.core.utils.DBParameterUtils;
 import com.alpine.plugin.util.JavaConversionUtils;
 import scala.Option;
-import scala.collection.Iterator;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -58,7 +55,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             Boolean isView = DBParameterUtils.getIsViewParam(params);
             Boolean overwrite = DBParameterUtils.getOverwriteParameterValue(params);
             DBConnectionInfo connectionInfo = context.getDBConnectionInfo();
-            String fullOutputName = getQuoteOutputName(tableName, outputSchemaName);
+            String fullOutputName = getQuotedSchemaTableName(outputSchemaName, tableName);
 
             //a SQL object
             Statement stmtTable = connectionInfo.connection().createStatement();
@@ -66,21 +63,15 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                 //drop the table if it already exists
                 try {
                     listener.notifyMessage("Dropping table if it exists.");
-                    StringBuilder dropTableStatementBuilder = new StringBuilder();
-                    dropTableStatementBuilder.append("DROP TABLE IF EXISTS " + fullOutputName +
-                            " CASCADE;");
-                    stmtTable.execute(dropTableStatementBuilder.toString());
+                    stmtTable.execute(("DROP TABLE IF EXISTS " + fullOutputName + " CASCADE;"));
                 } catch (Exception e) {
                     listener.notifyMessage("A view of the name " + fullOutputName + "exists");
                 } finally {
                     stmtTable.close();
                 }
 
-                StringBuilder dropViewStatementBuilder = new StringBuilder();
-                dropViewStatementBuilder.append("DROP VIEW IF EXISTS " + fullOutputName +
-                        " CASCADE;");
                 Statement stmtView = connectionInfo.connection().createStatement();
-                stmtView.execute(dropViewStatementBuilder.toString());
+                stmtView.execute(("DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"));
                 stmtView.close();
             } //end if
 
@@ -108,7 +99,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                 power = "3";
             }
 
-            for (int i  = 0; i < cols2transform.length-1; i ++) {
+            for (int i = 0; i < cols2transform.length - 1; i++) {
                 String columnName = cols2transform[i];
                 createTableStatement.append("POWER(" + quoteName(columnName) + ", " + power + ") AS ");
                 createTableStatement.append(columnName + "_pow" + power);
@@ -116,12 +107,11 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                 createTableStatement.append(", ");
             }
             //add the last column
-            String columnName = cols2transform[cols2transform.length-1];
+            String columnName = cols2transform[cols2transform.length - 1];
             createTableStatement.append("POWER(" + quoteName(columnName) + ", " + power + ") AS ");
             createTableStatement.append(columnName + "_pow" + power);
 
-            createTableStatement.append(" FROM \"" + input.schemaName() + "\".\"" +
-                    input.tableName() + "\");");
+            createTableStatement.append(" FROM " + getQuotedSchemaTableName(input.schemaName(), input.tableName()) + ");");
             //execute the statement
             Statement stmt = connectionInfo.connection().createStatement();
             listener.notifyMessage("Executing the sql statement \n"
@@ -129,23 +119,12 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             stmt.execute(createTableStatement.toString());
             stmt.close();
 
-            List<ColumnDef> outputColumns = new ArrayList<ColumnDef>();
-
-            Iterator<ColumnDef> inputColsIterator = input.tabularSchema().definedColumns().iterator();
-            while(inputColsIterator.hasNext()) {
-                outputColumns.add(inputColsIterator.next());
-            }
-
-            int i = 0;
-            while (i < cols2transform.length) {
-                outputColumns.add(
-                        new ColumnDef(
-                                cols2transform[i] + "_" + transformationType.toLowerCase(),
-                                new ColumnType.TypeValue("DOUBLE PRECISION")
-                        ));
-                i++;
-            }
-            TabularSchema outputTabularSchema = TabularSchema.apply(outputColumns);
+            TabularSchema outputTabularSchema = DBTransformerConstants
+                    .transformSchema(
+                            input.tabularSchema(),
+                            cols2transform,
+                            transformationType
+                    );
 
             HashMap<String, Object> addendum = new HashMap<String, Object>();
             addendum.put("TestValue1", 1);
@@ -156,7 +135,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                     connectionInfo.name(), connectionInfo.url(),
                     Option.apply(params.operatorInfo()),
                     JavaConversionUtils.toImmutableMap(addendum)
-                    );
+            );
         } catch (Exception sqlException) {
             listener.notifyError("Failed due to exception. " + sqlException.getMessage());
             return null;
@@ -166,13 +145,12 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
     /**
      * Create the output format as "schemaName"."tableName".
      */
-    private String getQuoteOutputName(String tableName, String schemaName) {
-        //  return "\"" + schemaName + "\"" + "." + "\"" + tableName + "\"";
+    private String getQuotedSchemaTableName(String schemaName, String tableName) {
         return quoteName(schemaName) + "." + quoteName(tableName);
     }
 
-    private String quoteName(String colName){
-        return "\"" + colName +"\"";
+    private String quoteName(String colName) {
+        return "\"" + colName + "\"";
     }
 }
 

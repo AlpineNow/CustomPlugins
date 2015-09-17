@@ -29,15 +29,17 @@ import org.apache.spark.sql.types.StructType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CountPluginSparkJob extends SparkDataFrameJob{
+public class CountPluginSparkJob extends SparkDataFrameJob {
+
     public static final String GroupByParamKey = "groupBy";
+
     public DataFrame transform(OperatorParameters params, DataFrame inputDataFrame,
-                               SparkRuntimeUtils sparkUtils, OperatorListener listener){
+                               SparkRuntimeUtils sparkUtils, OperatorListener listener) {
         String groupByVar = params.getTabularDatasetSelectedColumn(
                 GroupByParamKey)._2();
         listener.notifyMessage("Starting the DataFrame Transformation");
         DataFrame selectedData = inputDataFrame.select(groupByVar);
-        DataFrame df =  selectedData.groupBy(groupByVar).count();
+        DataFrame df = selectedData.groupBy(groupByVar).count();
 
         //customize the output schema
         List<StructField> fields = new ArrayList<StructField>();

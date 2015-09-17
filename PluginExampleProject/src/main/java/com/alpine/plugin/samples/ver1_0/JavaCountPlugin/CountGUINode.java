@@ -32,18 +32,17 @@ import scala.collection.Seq;
  * Design time behavior for the Count Plugin. Defines the parameters and
  * output schema.
  */
-public class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob>  {
+public class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob> {
 
     public void onPlacement(OperatorDialog operatorDialog,
                             OperatorDataSourceManager operatorDataSourceManager,
                             OperatorSchemaManager operatorSchemaManager) {
-        try{
+        try {
             operatorDialog.addTabularDatasetColumnDropdownBox(CountPluginSparkJob.GroupByParamKey,
                     "Column to Group By",
                     ColumnFilter.CategoricalOnly(),
                     "main");
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Error could not set up parameters for Count operator");
         }
         //call the super class onPlacement method which adds the standard output parameters

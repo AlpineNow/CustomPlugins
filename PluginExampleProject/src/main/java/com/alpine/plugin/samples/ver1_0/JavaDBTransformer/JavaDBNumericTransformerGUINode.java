@@ -25,6 +25,7 @@ import com.alpine.plugin.core.dialog.ColumnFilter;
 import com.alpine.plugin.core.dialog.OperatorDialog;
 import com.alpine.plugin.core.io.*;
 import com.alpine.plugin.core.utils.DBParameterUtils;
+import scala.Option;
 import scala.collection.immutable.Map;
 
 public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DBTable> {
@@ -57,6 +58,7 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
                     e.getMessage());
         }
     }
+
     /**
      * Updates the schema manager with the new output schema
      * whenever the parameters or inputs are changed.
@@ -71,17 +73,19 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
                         DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM)._2();
                 TabularSchema outputSchema = DBTransformerConstants.transformSchema(
                         inputSchema,
-                        colsToTransform);
+                        colsToTransform,
+                        params.getStringValue(DBTransformerConstants.TRANSFORMATION_TYPE_PARAM)
+                );
                 operatorSchemaManager.setOutputSchema(outputSchema);
             }
         }
     }
 
     public OperatorStatus onInputOrParameterChange(Map<String, TabularSchema> inputSchemas,
-                                         OperatorParameters params,
-                                         OperatorSchemaManager operatorSchemaManager) {
+                                                   OperatorParameters params,
+                                                   OperatorSchemaManager operatorSchemaManager) {
         this.updateOutputSchema(inputSchemas, params, operatorSchemaManager);
-        scala.Option<String> msg =  ScalaConversionUtils.None();
-       return new OperatorStatus(true, msg);
+        scala.Option<String> msg = Option.empty();
+        return new OperatorStatus(true, msg);
     }
 }

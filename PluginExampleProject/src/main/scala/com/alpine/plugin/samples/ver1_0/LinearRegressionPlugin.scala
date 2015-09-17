@@ -147,7 +147,7 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
 
     new RegressionModelWrapper(
       "Simple Linear Regression Model",
-      new LinearRegressionModel(mlLibModel.weights.toArray,
+      LinearRegressionModel.make(mlLibModel.weights.toArray,
         independentColumns.map(f => FeatureDesc(f, DoubleType()).asInstanceOf[FeatureDesc[_ <: Number]]),
         mlLibModel.intercept,
         dependentColumn

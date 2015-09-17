@@ -27,6 +27,9 @@ import com.alpine.plugin.core.OperatorSignature;
  */
 public class CountByGroupSignature extends OperatorSignature<CountGUINode, CountRuntime> {
     public OperatorMetadata getMetadata(){
-        return new OperatorMetadata("Count By Group", "Rachel Warren", "Transformation",1, "", "");
+        return new OperatorMetadata(
+                "Sample - Java Count By Group",
+                "Plugin Sample - Spark",
+                "Rachel Warren",1, "", "");
     }
 }

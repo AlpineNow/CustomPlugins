@@ -20,7 +20,9 @@ import com.alpine.plugin.core.io.ColumnDef;
 import com.alpine.plugin.core.io.ColumnType;
 import com.alpine.plugin.core.io.TabularSchema;
 import scala.collection.Seq;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class DBTransformerConstants {
 
@@ -31,18 +33,23 @@ public class DBTransformerConstants {
     public static final String TRANSFORMATION_TYPE_POW3 = "Pow3";
 
     public static TabularSchema transformSchema(TabularSchema inputSchema,
-                                                String[] columnsToTransform) {
+                                                String[] columnsToTransform,
+                                                String transformationType) {
 
         Seq<ColumnDef> inputCols = inputSchema.getDefinedColumns();
-        ArrayList<ColumnDef> outputColumnDefs = new ArrayList<ColumnDef>(inputCols.size());
+        List<ColumnDef> outputColumnDefs = new ArrayList<ColumnDef>(inputCols.size() + columnsToTransform.length);
 
         for (int i = 0; i < inputCols.length(); i++) {
             outputColumnDefs.add(inputCols.apply(i));
         }
 
-        for (int j= 0; j < columnsToTransform.length; j++) {
-            outputColumnDefs.add(new ColumnDef(columnsToTransform[j],
-                    new ColumnType.TypeValue("DOUBLE PRECISION")));
+        for (String columnToTransform : columnsToTransform) {
+            outputColumnDefs.add(
+                    new ColumnDef(
+                            columnToTransform + "_" + transformationType,
+                            new ColumnType.TypeValue("DOUBLE PRECISION")
+                    )
+            );
         }
         return TabularSchema.apply(outputColumnDefs);
     }

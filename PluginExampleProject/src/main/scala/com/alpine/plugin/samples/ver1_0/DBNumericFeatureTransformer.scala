@@ -32,7 +32,7 @@ class DBNumericFeatureTransformerSignature extends OperatorSignature[
   DBNumericFeatureTransformerRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Sample - DBNumericFeatureTransformer",
+      name = "Sample - DB Transform",
       category = "Plugin Sample - DB",
       author = "Sung Chung",
       version = 1,
@@ -148,7 +148,7 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
     //check if there is a table  or with the same name as the output table and drop according to the
     // "overwrite"
     val overwrite = DBParameterUtils.getOverwriteParameterValue(params)
-    val fullOutputName = getQuoteOutputName(outputName, outputSchema)
+    val fullOutputName = getQuotedSchemaTableName(outputSchema, outputName)
     if (overwrite) {
       val stmtTable = connectionInfo.connection.createStatement()
       //First see if a table of that name exists.
@@ -166,7 +166,7 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
       finally {
         stmtTable.close()
       }
-     //Now see if there is a view with the output name
+      //Now see if there is a view with the output name
       listener.notifyMessage("Dropping view if it exists")
       val dropViewStatementBuilder = new StringBuilder()
       dropViewStatementBuilder ++= "DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"
@@ -199,17 +199,16 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
         "3"
       }
     i = 0
-    while (i < columnsToTransform.length-1) {
+    while (i < columnsToTransform.length) {
       val columnToTransform = columnsToTransform(i)
       sqlStatementBuilder ++= "POWER(" + quoteName(columnToTransform) + ", " + power + ") AS "
       sqlStatementBuilder ++= columnToTransform + "_pow" + power
-      sqlStatementBuilder ++= ", "
       i += 1
+      if (i != columnsToTransform.length) {
+        sqlStatementBuilder ++= ", "
+      }
     }
-    val columnToTransform = columnsToTransform(i)
-    sqlStatementBuilder ++= "POWER(" + quoteName(columnToTransform) + ", " + power + ") AS "
-    sqlStatementBuilder ++= columnToTransform + "_pow" + power
-    sqlStatementBuilder ++= ", "
+    sqlStatementBuilder ++= " FROM " + getQuotedSchemaTableName(input.schemaName, input.tableName) + ");"
     val stmt = connectionInfo.connection.createStatement()
     stmt.execute(sqlStatementBuilder.toString())
     stmt.close()
@@ -235,11 +234,11 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
     )
   }
 
-   def getQuoteOutputName(tableName: String, schemaName: String) : String = {
-     quoteName(schemaName) + "." + quoteName(schemaName)
+  def getQuotedSchemaTableName(schemaName: String, tableName: String): String = {
+    quoteName(schemaName) + "." + quoteName(tableName)
   }
 
-  def quoteName( colName : String ) : String = {
+  def quoteName(colName: String): String = {
     "\"" + colName + "\""
   }
 
