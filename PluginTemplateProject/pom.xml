@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>0.9.9.12</version>
+    <version>0.9.9.19</version>
 
     <repositories>
       <repository>
@@ -18,23 +18,50 @@
           <enabled>false</enabled>
 	</snapshots>
       </repository>
+      <!-- Incase there is a sync delay -->
+      <repository>
+	<id>sonatype-releases</id>
+	<name>Sonatype Repository</name>
+	<url>https://oss.sonatype.org/content/repositories/releases</url>
+	<releases>
+	  <enabled>true</enabled>
+	</releases>
+	<snapshots>
+          <enabled>false</enabled>
+	</snapshots>
+      </repository>
     </repositories>
 
     <dependencies>
 
+        <!-- Test dependency -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.10</artifactId>
+            <version>2.2.4</version>
+            <scope>test</scope>
+        </dependency>
+      
         <!-- Alpine dependency -->
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>0.9.9.12</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-test</artifactId>
-            <version>0.9.9.12</version>
+            <version>0.9.9.19</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -42,35 +69,35 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>0.9.9.12</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-model</artifactId>
-            <version>0.9.9.12</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-api</artifactId>
-            <version>0.9.9.12</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-pack</artifactId>
-            <version>0.9.9.12</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-io-impl</artifactId>
-            <version>0.9.9.12</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
@@ -124,6 +151,14 @@
                     <source>1.6</source>
                     <target>1.6</target>
                 </configuration>
+            </plugin>
+
+	    <!-- Useful for testing -->
+	    <plugin>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <configuration>
+                <argLine>-Xmx2048m -XX:MaxPermSize=1024m</argLine>
+              </configuration>
             </plugin>
 
             <plugin>
