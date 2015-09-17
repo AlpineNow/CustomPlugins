@@ -7,10 +7,17 @@
     <version>0.9.9.11</version>
 
     <repositories>
-        <repository>
-            <id>Alpine</id>
-            <url>https://github.com/AlpineNow/MavenRepo/raw/master/releases</url>
-        </repository>
+      <repository>
+	<id>central</id>
+	<name>Maven Repository</name>
+	<url>https://repo1.maven.org/maven2</url>
+	<releases>
+          <enabled>true</enabled>
+	</releases>
+	<snapshots>
+          <enabled>false</enabled>
+	</snapshots>
+      </repository>
     </repositories>
 
     <dependencies>
