@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>text-mining</artifactId>
-    <version>1.0</version>
+    <version>0.9.9.19</version>
 
     <repositories>
       <repository>
@@ -54,14 +54,14 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>1.0</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-test</artifactId>
-            <version>1.0</version>
+            <version>0.9.9.19</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -69,35 +69,35 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>1.0</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-model</artifactId>
-            <version>1.0</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-api</artifactId>
-            <version>1.0</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-pack</artifactId>
-            <version>1.0</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-io-impl</artifactId>
-            <version>1.0</version>
+            <version>0.9.9.19</version>
             <scope>provided</scope>
         </dependency>
 
