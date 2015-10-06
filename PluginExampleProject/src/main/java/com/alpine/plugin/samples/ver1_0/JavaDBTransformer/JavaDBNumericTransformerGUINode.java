@@ -62,12 +62,17 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
     /**
      * Updates the schema manager with the new output schema
      * whenever the parameters or inputs are changed.
+     * Called by the onInputOrParameterChange method
      */
     private void updateOutputSchema(Map<String, TabularSchema> inputSchemas,
                                     OperatorParameters params,
                                     OperatorSchemaManager operatorSchemaManager) {
+        //only update the output schema if something has been connected to this operator
+        //(if the list of input schemas is nonEmpty)
         if (!inputSchemas.isEmpty()) {
             TabularSchema inputSchema = inputSchemas.values().iterator().next();
+            //add columns to the output schema only if the input Schemas are not empty
+
             if (inputSchema.getDefinedColumns().nonEmpty()) {
                 String[] colsToTransform = params.getTabularDatasetSelectedColumns(
                         DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM)._2();

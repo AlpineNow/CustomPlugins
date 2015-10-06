@@ -23,7 +23,6 @@ import com.alpine.plugin.core.OperatorSignature;
 /**
  * The signature of a simple plugin which groups by a single column and
  * counts how many elements are in each group.
- * Will only work with Postgres and Greenplum Databases .
  */
 public class CountByGroupSignature extends OperatorSignature<CountGUINode, CountRuntime> {
     public OperatorMetadata getMetadata(){

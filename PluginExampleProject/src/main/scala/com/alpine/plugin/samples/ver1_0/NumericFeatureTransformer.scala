@@ -51,6 +51,7 @@ class NumericFeatureTransformerGUINode
 
     import NumericFeatureTransformerUtil._
 
+ //add a checkbox so the user can select the columns to transform
     operatorDialog.addTabularDatasetColumnCheckboxes(
       columnsToTransformKey,
       "Columns to transform",
@@ -58,6 +59,8 @@ class NumericFeatureTransformerGUINode
       "main"
     )
 
+    //add a drop down box so that the user can select whether to do a square (pow2) or cubic (pow3)
+    //transformation
     operatorDialog.addDropdownBox(
       transformationTypeKey,
       "Transformation type",
@@ -65,8 +68,10 @@ class NumericFeatureTransformerGUINode
       pow2
     )
 
+    //call the super method which adds the standard Hadoop storage output parameters.
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
 
+    //add the standard spark configuration parameters
     SparkParameterUtils.addStandardSparkOptions(
       operatorDialog,
       defaultNumExecutors = 2,
@@ -76,6 +81,15 @@ class NumericFeatureTransformerGUINode
     )
   }
 
+  /**
+   * Define the columns in the output schema.
+   * The resulting dataset will have all the same columns as the input dataset, but with the
+   * addition of each column to selected to transform named with the original column name,
+   * underscore, the transformation type.
+   * I.e. If the user selected columns 'ColB' and 'ColC' from a dataset with columns
+   * 'ColA', 'ColB', 'ColC' and the 'pow2' transformation type, the result dataset would have
+   * columns: 'ColA', 'ColB', 'ColC', 'ColB_pow2', 'ColC_pow2'
+   */
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
                                          parameters: OperatorParameters): Seq[ColumnDef] = {
 
@@ -95,6 +109,7 @@ class NumericFeatureTransformerGUINode
     params: OperatorParameters,
     output: HdfsTabularDataset,
     visualFactory: VisualModelFactory): VisualModel = {
+    //create the standard visualization of the output data
     val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
@@ -125,8 +140,10 @@ class NumericFeatureTransformerRuntime
 class NumericFeatureTransformerJob extends SparkDataFrameJob {
   /**
    * Returns a tuple with the transformed dataFrame and a map containing two
-   * additional pieces of information for visualization: the type of data
-   * transformation completed, and the number of rows in the resulting DataFrame.
+   * additional pieces of information: the type of data transformation completed,
+   * and the number of rows in the resulting DataFrame. That extra information is used to create a
+   * second visualization for the plugin (in addition to a preview of the result dataset)
+   * in the GUI node with the addendum information.
    */
   override def transformWithAddendum(operatorParameters: OperatorParameters,
                          dataFrame: DataFrame,
@@ -142,29 +159,31 @@ class NumericFeatureTransformerJob extends SparkDataFrameJob {
         dataFrame.selectExpr(
           dataFrame.columns.map("`" + _ + "`") ++
             columnsToTransform.map(colName =>
-              "(`" + colName + "` * `" + colName + "`)" + " as `" + colName + "_" + transformationType + "`"
-            ): _*
+              "(`" + colName + "` * `" + colName + "`)" + " as `" + colName + "_" +
+                transformationType + "`"): _*
         )
       } else {
         dataFrame.selectExpr(
           dataFrame.columns.map("`" + _ + "`") ++
             columnsToTransform.map(colName =>
-              "(`" + colName + "` * `" + colName + "` * `" + colName + "`)" + " as `" + colName + "_" + transformationType + "`"
+              "(`" + colName + "` * `" + colName + "` * `" + colName + "`)" + " as `" + colName +
+                "_" + transformationType + "`"
             ): _*
         )
       }
-    //we want to create a visualization with the number of rows in the result and the type of
-    //transformation that we used, so we add that information to the outputVisualization map
+    //In order to create a visualization with the number of rows in the result and the type of
+    //transformation that we used, so we add that information to the addendum.
     val dataFrameSize = transformedDataFrame.count.toString
-    val outputVisualization = Map(NumericFeatureTransformerUtil.transformationTypeVisualKey -> transformationType,
+    val addendum = Map(
+      NumericFeatureTransformerUtil.transformationTypeVisualKey -> transformationType,
     NumericFeatureTransformerUtil.dataFrameLengthVisualKey -> new Integer(dataFrameSize))
-    (transformedDataFrame, outputVisualization)
+    (transformedDataFrame, addendum)
   }
 
 }
 
 /**
- * This is just a utility class to keep track of things that need to be used across the plugin classes.
+ * This is a utility object to keep track of things that need to be used across the plugin classes.
  * e.g. The String keys for parameters.
  */
 object NumericFeatureTransformerUtil {

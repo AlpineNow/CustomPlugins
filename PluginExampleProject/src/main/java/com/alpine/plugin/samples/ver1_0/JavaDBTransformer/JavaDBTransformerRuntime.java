@@ -49,15 +49,15 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
         String transformationType = params.getStringValue(
                 DBTransformerConstants.TRANSFORMATION_TYPE_PARAM);
         try {
-            //get parameter values using the utils class
+            //get parameter values using the DBParameterUtils class
             String outputSchemaName = DBParameterUtils.getDBOutputSchemaParam(params);
             String tableName = DBParameterUtils.getResultTableName(params);
             Boolean isView = DBParameterUtils.getIsViewParam(params);
             Boolean overwrite = DBParameterUtils.getOverwriteParameterValue(params);
             DBConnectionInfo connectionInfo = context.getDBConnectionInfo();
             String fullOutputName = getQuotedSchemaTableName(outputSchemaName, tableName);
-
-            //a SQL object
+            //Create an sql statement object and build the statement according to the values
+            //of the parameters and the input data.
             Statement stmtTable = connectionInfo.connection().createStatement();
             if (overwrite) {
                 //drop the table if it already exists
@@ -77,16 +77,20 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
 
             StringBuilder createTableStatement = new StringBuilder();
             //use a string builder to create a the sql statement
+
+            //create a new table/view according to the database output parameters.
             if (isView) {
                 createTableStatement.append("CREATE VIEW " + fullOutputName + " AS (");
             } else {
                 createTableStatement.append("CREATE TABLE " + fullOutputName + " AS (");
             }
+            //Generate the select stable
             createTableStatement.append("SELECT ");
             TabularSchema inputSchemaOutline = input.tabularSchema();
             Seq<ColumnDef> inputColSeq = inputSchemaOutline.getDefinedColumns().toSeq();
             List<ColumnDef> inputCols = JavaConversions.asJavaList(inputColSeq);
 
+            //select all of the input Columns (append them to the select statement)
             for (ColumnDef inputCol : inputCols) {
                 String columnName = quoteName(inputCol.columnName());
                 createTableStatement.append(columnName + ", ");
@@ -98,7 +102,8 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             } else {
                 power = "3";
             }
-
+            //Perform the transformation according to the value set for the transformation type
+            //parameter and the columns to transform parameter
             for (int i = 0; i < cols2transform.length - 1; i++) {
                 String columnName = cols2transform[i];
                 createTableStatement.append("POWER(" + quoteName(columnName) + ", " + power + ") AS ");
@@ -111,7 +116,8 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             createTableStatement.append("POWER(" + quoteName(columnName) + ", " + power + ") AS ");
             createTableStatement.append(columnName + "_pow" + power);
 
-            createTableStatement.append(" FROM " + getQuotedSchemaTableName(input.schemaName(), input.tableName()) + ");");
+            createTableStatement.append(" FROM " + getQuotedSchemaTableName(input.schemaName(),
+                    input.tableName()) + ");");
             //execute the statement
             Statement stmt = connectionInfo.connection().createStatement();
             listener.notifyMessage("Executing the sql statement \n"
@@ -119,6 +125,9 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             stmt.execute(createTableStatement.toString());
             stmt.close();
 
+            //create the Tabular schema, which is required for the DBTable object.
+            //Use the "transformSchema" method defined in the DBTransformerConstants class so that
+            //the runtime schema will be consistent with the one defined in the GUI node.
             TabularSchema outputTabularSchema = DBTransformerConstants
                     .transformSchema(
                             input.tabularSchema(),
@@ -126,9 +135,13 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                             transformationType
                     );
 
+            //create an empty addendum object
             HashMap<String, Object> addendum = new HashMap<String, Object>();
+
+            //add a dummy value to the addendum object
             addendum.put("TestValue1", 1);
 
+            //create the DBTable object
             return new DBTableDefault(
                     outputSchemaName, tableName,
                     outputTabularSchema, isView,
@@ -137,18 +150,24 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                     JavaConversionUtils.toImmutableMap(addendum)
             );
         } catch (Exception sqlException) {
+            //report Exception to the progress bar, but handle it since this method is not
+            //annotated to throw an exception.
             listener.notifyError("Failed due to exception. " + sqlException.getMessage());
             return null;
         }
     }
 
     /**
-     * Create the output format as "schemaName"."tableName".
+     * Create the output table/view as "schemaName"."tableName".
      */
     private String getQuotedSchemaTableName(String schemaName, String tableName) {
         return quoteName(schemaName) + "." + quoteName(tableName);
     }
 
+    /**
+     * Wrap a string in double quotes (used to wrap table, schema, variable names, so that
+     * the SQL query will not fail if it contains capitals).
+     */
     private String quoteName(String colName) {
         return "\"" + colName + "\"";
     }

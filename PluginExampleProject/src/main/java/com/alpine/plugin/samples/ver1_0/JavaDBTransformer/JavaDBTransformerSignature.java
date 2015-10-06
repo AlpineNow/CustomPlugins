@@ -19,6 +19,9 @@ package com.alpine.plugin.samples.ver1_0.JavaDBTransformer;
 import com.alpine.plugin.core.OperatorMetadata;
 import com.alpine.plugin.core.OperatorSignature;
 
+/**
+ * A java version of the DBNumericFeatureTransformer plugin written in scala.
+ */
 public class JavaDBTransformerSignature extends
         OperatorSignature<JavaDBNumericTransformerGUINode,JavaDBTransformerRuntime>  {
     public OperatorMetadata getMetadata(){

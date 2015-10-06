@@ -158,9 +158,8 @@ object RegressionEvaluatorUtil {
     val inputRow = Array.ofDim[Any](independentColumnIndices.length)
     var i = 0
     while (i < inputRow.length) {
-      // TODO: Handle type conversion between SparkSQL types and Model types.
-      // This code will work if the types happen to match (e.g. are numeric or String),
-      // but not in other cases (e.g. Boolean, Sparse etc).
+      // TODO: (Warning).
+      // This code will work for simple types, but not Sparse or non ISO Datetime.
       inputRow(i) = row(independentColumnIndices(i))
       i += 1
     }
@@ -182,25 +181,34 @@ object RegressionEvaluatorUtil {
                                model: RegressionRowModel,
                                listener: OperatorListener): DataFrame = {
     val inputFeatures = model.inputFeatures
+
+    /**
+     * Build a map from the column names in the input dataset to their corresponding indices in that dataset.
+     */
+    val nameToIndexMap: Map[String, Int] = schemaFixedColumns.zipWithIndex.map(t => (t._1.columnName, t._2)).toMap
+    /**
+     * We match only on the name and not the whole ColumnDef to allow leniency in the types.
+     * e.g. A Linear Regression takes Double input columns, but the data-frame has Long types.
+     */
     val independentColumnIndices = inputFeatures.map(feature => {
-      val index = schemaFixedColumns.indexWhere(columnDef => columnDef.columnName == feature.name)
-      if (index == -1) {
+      val index: Option[Int] = nameToIndexMap.get(feature.columnName)
+      if (index.isEmpty) {
         val errorMessage =
           s"""Cannot find the column with name
-             |${feature.name}
+             |${feature.columnName}
               | needed for prediction in the input dataset.""".stripMargin
         listener.notifyError(errorMessage)
         throw new IllegalArgumentException(errorMessage)
       }
-      index
+      index.get
     }).toArray
 
     val dependentColumnIndex = schemaFixedColumns
-      .indexWhere(columnDef => columnDef.columnName == model.dependentFeature.name)
+      .indexWhere(columnDef => columnDef.columnName == model.dependentFeature.columnName)
     if (dependentColumnIndex == -1) {
       val errorMessage =
         s"""Cannot find the column with name
-           |${model.dependentFeature.name}
+           |${model.dependentFeature.columnName}
             | (the dependent column of the model) in the input dataset.""".stripMargin
       listener.notifyError(errorMessage)
       throw new IllegalArgumentException(errorMessage)

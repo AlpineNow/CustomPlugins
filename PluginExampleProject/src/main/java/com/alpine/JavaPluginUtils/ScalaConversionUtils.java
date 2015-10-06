@@ -38,7 +38,8 @@ public class ScalaConversionUtils {
     }
 
     /**
-     * Builds a scala sequence natively in Java.
+     * Build a scala sequence natively in Java.
+     * Using the syntax : Seq(a1, a2, a3... )
      * @param args Java objects or collections
      */
     public static <T> Seq<T> scalaSeq(T ... args){

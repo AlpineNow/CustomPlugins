@@ -16,12 +16,11 @@
  */
 package com.alpine.plugin.samples.ver1_0
 
-import com.alpine.features.{DoubleType, FeatureDesc}
 import com.alpine.model.pack.ml.LinearRegressionModel
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
-import com.alpine.plugin.core.io.{HdfsTabularDataset, OperatorSchemaManager}
+import com.alpine.plugin.core.io.{ColumnDef, ColumnType, HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.SparkParameterUtils
@@ -97,7 +96,7 @@ class LinearRegressionPluginGUINode extends OperatorGUINode[
                                      visualFactory: VisualModelFactory): VisualModel = {
     val model = output.model.asInstanceOf[LinearRegressionModel]
     val eqn = model.dependentFeatureName + " = " + model.intercept + " + " +
-      (model.coefficients zip model.inputFeatures).map(t => s"${t._1} * ${t._2.name}").mkString(" + ")
+      (model.coefficients zip model.inputFeatures).map(t => s"${t._1} * ${t._2.columnName}").mkString(" + ")
     val text: String = s"Model is \n $eqn"
     visualFactory.createTextVisualization(text)
   }
@@ -148,7 +147,7 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
     new RegressionModelWrapper(
       "Simple Linear Regression Model",
       LinearRegressionModel.make(mlLibModel.weights.toArray,
-        independentColumns.map(f => FeatureDesc(f, DoubleType()).asInstanceOf[FeatureDesc[_ <: Number]]),
+        independentColumns.map(f => ColumnDef(f, ColumnType.Double)),
         mlLibModel.intercept,
         dependentColumn
       ),

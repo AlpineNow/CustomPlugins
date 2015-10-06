@@ -4,32 +4,32 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>0.9.9.19</version>
+    <version>1.1</version>
 
     <repositories>
-      <repository>
-	<id>central</id>
-	<name>Maven Repository</name>
-	<url>https://repo1.maven.org/maven2</url>
-	<releases>
-          <enabled>true</enabled>
-	</releases>
-	<snapshots>
-          <enabled>false</enabled>
-	</snapshots>
-      </repository>
-      <!-- Incase there is a sync delay -->
-      <repository>
-	<id>sonatype-releases</id>
-	<name>Sonatype Repository</name>
-	<url>https://oss.sonatype.org/content/repositories/releases</url>
-	<releases>
-	  <enabled>true</enabled>
-	</releases>
-	<snapshots>
-          <enabled>false</enabled>
-	</snapshots>
-      </repository>
+        <repository>
+            <id>central</id>
+            <name>Maven Repository</name>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <!-- Incase there is a sync delay -->
+        <repository>
+            <id>sonatype-releases</id>
+            <name>Sonatype Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
     <dependencies>
 
@@ -38,57 +38,57 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>0.9.9.19</version>
+            <version>1.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alpinenow</groupId>
+            <artifactId>common</artifactId>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-test</artifactId>
-            <version>0.9.9.19</version>
+            <version>1.1</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.alpinenow</groupId>
-            <artifactId>plugin-test</artifactId>
-            <version>0.9.9.19</version>
-            <scope>test</scope>
-        </dependency>
 
-	
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>0.9.9.19</version>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-model</artifactId>
-            <version>0.9.9.19</version>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-api</artifactId>
-            <version>0.9.9.19</version>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-pack</artifactId>
-            <version>0.9.9.19</version>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-io-impl</artifactId>
-            <version>0.9.9.19</version>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -144,12 +144,12 @@
                 </configuration>
             </plugin>
 
-	    <!-- Useful for testing -->
-	    <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <argLine>-Xmx2048m -XX:MaxPermSize=1024m</argLine>
-              </configuration>
+            <!-- Useful for testing -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Xmx2048m -XX:MaxPermSize=1024m</argLine>
+                </configuration>
             </plugin>
 
             <plugin>

@@ -16,13 +16,12 @@
  */
 package com.alpine.plugin.samples.ver1_0
 
-import com.alpine.features.{DoubleType, FeatureDesc, StringType}
 import com.alpine.model.ClassificationRowModel
-import com.alpine.plugin.core.{OperatorMetadata, _}
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
+import com.alpine.plugin.core.{OperatorMetadata, _}
 import com.alpine.plugin.model._
 import com.alpine.transformer.ClassificationTransformer
 
@@ -67,15 +66,15 @@ class ExampleClassificationModel extends ClassificationRowModel {
     new ExampleClassificationTransformer()
   }
 
-  def inputFeatures: Seq[FeatureDesc[_]] =
+  def inputFeatures: Seq[ColumnDef] =
     Array(
-      FeatureDesc("humidity", DoubleType()),
-      FeatureDesc("temperature", DoubleType())
+      ColumnDef("humidity", ColumnType.Double),
+      ColumnDef("temperature", ColumnType.Double)
     )
 
   def classLabels: Seq[String] = Array("yes", "no").toSeq
 
-  def dependentFeature = new FeatureDesc("play", StringType())
+  def dependentFeature = new ColumnDef("play", ColumnType.String)
 }
 
 class ExampleClassificationModelRuntime extends SparkRuntime[
