@@ -41,7 +41,9 @@ public class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob> {
             operatorDialog.addTabularDatasetColumnDropdownBox(CountPluginSparkJob.GroupByParamKey,
                     "Column to Group By",
                     ColumnFilter.CategoricalOnly(),
-                    "main");
+                    "main",
+                    true
+            );
         } catch (Exception e) {
             System.out.println("Error could not set up parameters for Count operator");
         }

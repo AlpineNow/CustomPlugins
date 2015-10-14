@@ -89,9 +89,14 @@ class InternalNormalizationJob extends InferredSparkDataFrameJob {
     val avgVarExpressions = columns.flatMap{name =>
       val column = new Column(name)
       val expr = ExperimentalSqlTools.getExpr(column)
-      List(new Column(Average(expr)),
+
+      //fixme: doesn't compile with Spark 1.5.x, has to comment this out and replace var with avg for now,
+      //fixme: just to get it compile
+    /*  List(new Column(Average(expr)),
         new Column(ExperimentalSqlTools.makeHiveUdaf("var", Seq(expr)))
-      )
+      )*/
+
+      List(new Column(Average(expr)),new Column(Average(expr)))
     }
     val avgVars = input.agg(avgVarExpressions.head,
       avgVarExpressions.tail:_*).head()

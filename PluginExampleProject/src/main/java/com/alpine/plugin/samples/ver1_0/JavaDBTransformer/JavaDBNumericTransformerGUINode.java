@@ -41,15 +41,23 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
             //add the parameters
             operatorDialog.addTabularDatasetColumnCheckboxes(
                     DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM,
-                    "Columns to Transform", ColumnFilter.All(), SELECTION_GROUP_ID_MAIN);
+                    "Columns to Transform",
+                    ColumnFilter.All(),
+                    SELECTION_GROUP_ID_MAIN,
+                    true
+            );
             //the operator dialog methods require scala collection types.
             //use the ScalaConversionUtils class to generate those in Java.
             scala.collection.Seq<String> transformationTypes = ScalaConversionUtils.scalaSeq(
                     DBTransformerConstants.TRANSFORMATION_TYPE_POW2,
                     DBTransformerConstants.TRANSFORMATION_TYPE_POW3);
-            operatorDialog.addDropdownBox(DBTransformerConstants.TRANSFORMATION_TYPE_PARAM,
-                    "Transformation Type", transformationTypes,
-                    DBTransformerConstants.TRANSFORMATION_TYPE_POW2);
+            operatorDialog.addDropdownBox(
+                    DBTransformerConstants.TRANSFORMATION_TYPE_PARAM,
+                    "Transformation Type",
+                    transformationTypes,
+                    DBTransformerConstants.TRANSFORMATION_TYPE_POW2,
+                    true
+            );
             DBParameterUtils.addStandardDatabaseOutputParameters(operatorDialog,
                     operatorDataSourceManager, "");
         } catch (Exception e) {
