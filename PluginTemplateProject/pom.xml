@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>1.2.1</version>
+    <version>1.3</version>
 
     <repositories>
         <repository>
@@ -38,21 +38,21 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>common</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-test</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -60,35 +60,35 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-model</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-api</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-pack</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-io-impl</artifactId>
-            <version>1.2.1</version>
+            <version>1.3</version>
             <scope>provided</scope>
         </dependency>
 

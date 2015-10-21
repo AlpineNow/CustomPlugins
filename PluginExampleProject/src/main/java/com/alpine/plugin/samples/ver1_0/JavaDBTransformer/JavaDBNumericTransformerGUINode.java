@@ -55,8 +55,7 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
                     DBTransformerConstants.TRANSFORMATION_TYPE_PARAM,
                     "Transformation Type",
                     transformationTypes,
-                    DBTransformerConstants.TRANSFORMATION_TYPE_POW2,
-                    true
+                    DBTransformerConstants.TRANSFORMATION_TYPE_POW2
             );
             DBParameterUtils.addStandardDatabaseOutputParameters(operatorDialog,
                     operatorDataSourceManager, "");
