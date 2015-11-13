@@ -144,7 +144,7 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
     val (_ , colsSelected) = params.getTabularDatasetSelectedColumns(
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY)
     if( colsSelected.length < 2){
-      OperatorStatus(false, Option("You need to select at least two columns"))
+      OperatorStatus(false, Some("You need to select at least two columns"))
     }
     else {
       OperatorStatus(true , None)

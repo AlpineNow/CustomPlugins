@@ -43,6 +43,7 @@ class SimpleAbstractSparkJobSuite extends FunSuite with SparkContextTest {
   }
 
   def createHdfsTabularDatasetLocal(dataFrame: DataFrame, opInfo: Option[OperatorInfo], path : String) = {
+   sparkUtils.deleteFilePathIfExists(path)
     sparkUtils.saveAsTSV(path , dataFrame, opInfo)
   }
 
@@ -68,6 +69,12 @@ object ParameterMockUtil{
     val arrayList = new util.ArrayList[String ]()
     colNames.foreach(colName => arrayList.add(arrayList.size(), colName))
      map.put("group", arrayList)
+    params.setValue(paramId, map)
+  }
+
+  def addTabularColumn(params : OperatorParametersMock, paramId : String , colName : String ) : Unit  = {
+    val map : util.HashMap[String ,String]  = new util.HashMap[String ,String]()
+    map.put("group", colName)
     params.setValue(paramId, map)
   }
 
