@@ -34,7 +34,11 @@ import scala.collection.mutable
 /**
  * This is an example plugin showing how to use MLlib to train a basic Linear Regression Model.
  * The output of this operator can be connected to the "Regression Evaluator" plugin,
- * or the "Predictor" operator.
+ * or Alpine's "Predictor" operator.
+ *
+ * In this example we show how to use one of Alpine's predefined Model types,
+ * the LinearRegressionModel. See the ExampleClassificationModel for an example of creating
+ * a new model type.
  *
  * N.B. The algorithm used works best on normalized input data.
  */
@@ -82,21 +86,13 @@ class LinearRegressionPluginGUINode extends OperatorGUINode[
     )
   }
 
-  /**
-   * This is invoked for GUI to customize the operator output visualization after
-   * the operator finishes running. Each output should have associated default
-   * visualization, but the developer can customize it here.
-   * @param params The parameter values to the operator.
-   * @param output This is the output from running the operator.
-   * @param visualFactory For creating visual models.
-   * @return The visual model to be sent to the GUI for visualization.
-   */
+
   override def onOutputVisualization(params: OperatorParameters,
                                      output: RegressionModelWrapper,
                                      visualFactory: VisualModelFactory): VisualModel = {
     val model = output.model.asInstanceOf[LinearRegressionModel]
     val eqn = model.dependentFeatureName + " = " + model.intercept + " + " +
-      (model.coefficients zip model.inputFeatures).map(t => s"${t._1} * ${t._2.columnName}").mkString(" + ")
+      model.coefficients.zip(model.inputFeatures).map(t => s"${t._1} * ${t._2.columnName}").mkString(" + ")
     val text: String = s"Model is \n $eqn"
     visualFactory.createTextVisualization(text)
   }
@@ -118,17 +114,18 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
     val sparkUtils = new SparkRuntimeUtils(sparkContext)
 
     val dependentColumn = operatorParameters.getTabularDatasetSelectedColumn("dependentColumn")._2
-    val independentColumns = operatorParameters.getTabularDatasetSelectedColumns("independentColumns")._2
+    val independentColumnNames = operatorParameters.getTabularDatasetSelectedColumns("independentColumns")._2
 
     val schemaFixedColumns = input.tabularSchema.getDefinedColumns
 
     // If there are a large number of columns, it would be a good idea to create a map from the column name to the
     // index of that column before looking up the index
     // (it would bring the complexity from n^2 to n, where n is the number of columns).
-    val independentColumnIndices = independentColumns.map(name => {
+    val independentColumnIndices = independentColumnNames.map(name => {
       schemaFixedColumns.indexWhere(columnDef => columnDef.columnName == name)
     })
 
+    //find the index fo the dependent column
     val dependentColumnIndex = schemaFixedColumns
       .indexWhere(columnDef => columnDef.columnName == dependentColumn)
 
@@ -144,13 +141,19 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
     // e.g.
     // val mlLibModel = LassoWithSGD.train(labeledPoints, 10, 1.0, 0.0, 1.0)
 
+
+    val mLlibCoefficients: Array[Double] = mlLibModel.weights.toArray
+    val independentColumnDefs: Array[ColumnDef] =  independentColumnNames.map(f => ColumnDef(f, ColumnType.Double))
+    val alpineLinearRegressionModel: LinearRegressionModel =
+      LinearRegressionModel.make(
+      mLlibCoefficients , independentColumnDefs,
+      mlLibModel.intercept,  dependentColumn
+    )
+
+    //return a RegressionModelWrapper containing the alpineLinearRegressionModel
     new RegressionModelWrapper(
       "Simple Linear Regression Model",
-      LinearRegressionModel.make(mlLibModel.weights.toArray,
-        independentColumns.map(f => ColumnDef(f, ColumnType.Double)),
-        mlLibModel.intercept,
-        dependentColumn
-      ),
+      alpineLinearRegressionModel,
       Some(operatorParameters.operatorInfo)
     )
   }

@@ -61,6 +61,12 @@ class IOListSampleGUINode extends OperatorGUINode[
   }
 }
 
+/**
+ * As with the ExampleClassificationModel, we don't launch a Spark Job
+ * since we are not ever using the data stored on HDFS. Instead this plugin
+ * simply returns a string object with a message about the paths to the datasets
+ * selected as the number one and number two dataset.
+ */
 class IOListSampleRuntime extends SparkRuntime[
   IOList[HdfsTabularDataset],
   IOString] {
@@ -76,17 +82,21 @@ class IOListSampleRuntime extends SparkRuntime[
     var dataset2Path: String = ""
     var dataset2Type: String = ""
     val itr = input.elements.iterator
+
+    //loop through the input elements and find the ones whose UUID's match
+    //the value of the input parameters for "number one dataset" and "number two dataset"
     while (itr.hasNext) {
       val dataset = itr.next()
       if (dataset.sourceOperatorInfo.get.uuid.equals(dataset1UUID)) {
         dataset1Path = dataset.path
+        //get the class used to create the HdfsTabularDataset
         dataset1Type = dataset.getClass.getCanonicalName
       } else if (dataset.sourceOperatorInfo.get.uuid.equals(dataset2UUID)) {
         dataset2Path = dataset.path
         dataset2Type = dataset.getClass.getCanonicalName
       }
     }
-
+ //return the IOString default object
     new IOStringDefault(
       "The number one dataset has the path '" + dataset1Path +
         "' and is of the type '" + dataset1Type + "'\n" +
