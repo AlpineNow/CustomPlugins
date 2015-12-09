@@ -56,7 +56,6 @@
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-test</artifactId>
             <version>${alpine.version}</version>
-            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
 

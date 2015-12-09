@@ -3,8 +3,7 @@ package com.alpine.plugin.samples.ver1_0
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.Tuple2Default
 import com.alpine.plugin.model.RegressionModelWrapper
-import com.alpine.plugin.test.SimpleOperatorListener
-import com.alpine.plugin.test.mock.OperatorParametersMock
+import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMock}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 

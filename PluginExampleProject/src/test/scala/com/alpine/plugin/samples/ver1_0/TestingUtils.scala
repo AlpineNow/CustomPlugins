@@ -6,8 +6,7 @@ import com.alpine.plugin.core.spark.SparkIOTypedPluginJob
 import com.alpine.plugin.core.spark.templates.SparkDataFrameJob
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.HdfsParameterUtils
-import com.alpine.plugin.test.SimpleOperatorListener
-import com.alpine.plugin.test.mock.OperatorParametersMock
+import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMock}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
