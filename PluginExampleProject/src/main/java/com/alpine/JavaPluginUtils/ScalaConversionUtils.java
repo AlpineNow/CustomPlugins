@@ -29,20 +29,22 @@ import java.util.Arrays;
 public class ScalaConversionUtils {
     /**
      * Builds a scala list natively in Java.
+     *
      * @param args objects or collection
-     * @param <T> Object type of the collection
+     * @param <T>  Object type of the collection
      * @return A Scala list containing args
      */
-    public static <T> List<T> scalaList(T ... args) {
+    public static <T> List<T> scalaList(T... args) {
         return scalaSeq(args).toList();
     }
 
     /**
      * Build a scala sequence natively in Java.
      * Using the syntax : Seq(a1, a2, a3... )
+     *
      * @param args Java objects or collections
      */
-    public static <T> Seq<T> scalaSeq(T ... args){
+    public static <T> Seq<T> scalaSeq(T... args) {
         return JavaConversions.asScalaBuffer(
                 Arrays.asList(args));
     }
@@ -50,14 +52,14 @@ public class ScalaConversionUtils {
     /**
      * Utility Function to create the scala option type None in Java
      */
-    public static <T>scala.Option<T> None(){
+    public static <T> scala.Option<T> None() {
         return Option.empty();
     }
 
     /**
      * Utility function to create scala option type Some(Value) in Java.
      */
-    public static  <T>scala.Option<T> Some(T value){
+    public static <T> scala.Option<T> Some(T value) {
         return Option.apply(value);
     }
 }

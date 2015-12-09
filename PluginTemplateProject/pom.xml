@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>1.3</version>
+    <version>1.4</version>
 
     <repositories>
         <repository>
@@ -31,6 +31,9 @@
             </snapshots>
         </repository>
     </repositories>
+    <properties>
+        <alpine.version>1.4</alpine.version>
+    </properties>
     <dependencies>
 
         <!-- Alpine dependency -->
@@ -38,21 +41,21 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-core</artifactId>
-            <version>1.3</version>
+            <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>common</artifactId>
-            <version>1.3</version>
+            <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-test</artifactId>
-            <version>1.3</version>
+            <version>${alpine.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -60,72 +63,35 @@
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-spark</artifactId>
-            <version>1.3</version>
+            <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-model</artifactId>
-            <version>1.3</version>
+            <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-api</artifactId>
-            <version>1.3</version>
+            <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>alpine-model-pack</artifactId>
-            <version>1.3</version>
+            <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.alpinenow</groupId>
             <artifactId>plugin-io-impl</artifactId>
-            <version>1.3</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Spark dependency -->
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.10</artifactId>
-            <version>1.5.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-mllib_2.10</artifactId>
-            <version>1.5.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-catalyst_2.10</artifactId>
-            <version>1.5.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.10</artifactId>
-            <version>1.5.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-hive_2.10</artifactId>
-            <version>1.5.1</version>
+            <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
 

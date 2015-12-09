@@ -16,6 +16,7 @@
  */
 package com.alpine.plugin.samples.ver1_0.JavaCountPlugin;
 
+import com.alpine.JavaPluginUtils.ScalaConversionUtils;
 import com.alpine.plugin.core.OperatorParameters;
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager;
 import com.alpine.plugin.core.dialog.ColumnFilter;
@@ -25,7 +26,6 @@ import com.alpine.plugin.core.io.ColumnType;
 import com.alpine.plugin.core.io.OperatorSchemaManager;
 import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.spark.templates.SparkDataFrameGUINode;
-import com.alpine.JavaPluginUtils.ScalaConversionUtils;
 import scala.collection.Seq;
 
 /**
