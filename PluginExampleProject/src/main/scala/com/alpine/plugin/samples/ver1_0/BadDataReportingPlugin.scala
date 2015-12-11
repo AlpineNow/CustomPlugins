@@ -52,6 +52,8 @@ object BadDataConstants {
   val fancyHtmlTableId = "fancy"
   val badDataReportId = "bad"
   val timerReportId = "timer"
+
+  val DEFAULT_STYLE_TAG = "padding-right:50px;"
 }
 
 class BadDataReportingPluginGUINode extends SparkDataFrameGUINode[BadDataReportingPluginJob] {
@@ -68,7 +70,7 @@ class BadDataReportingPluginGUINode extends SparkDataFrameGUINode[BadDataReporti
 
     //a custom style tag to be used in formatting the "fancy table"
     operatorDialog.addStringBox(id = BadDataConstants.styleTagParamId, label = "Custom Style Tag",
-      defaultValue = "padding-right:50px;", regex = ".+", width = 0, height = 0)
+      defaultValue = BadDataConstants.DEFAULT_STYLE_TAG, regex = ".+", width = 0, height = 0)
 
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
   }

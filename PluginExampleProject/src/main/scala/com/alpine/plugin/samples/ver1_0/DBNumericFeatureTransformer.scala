@@ -32,7 +32,7 @@ class DBNumericFeatureTransformerSignature extends OperatorSignature[
   DBNumericFeatureTransformerRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Sample - DB Transform",
+      name = "Sample - DB Numeric Feature Transformer",
       category = "Plugin Sample - DB",
       author = "Sung Chung",
       version = 1,
