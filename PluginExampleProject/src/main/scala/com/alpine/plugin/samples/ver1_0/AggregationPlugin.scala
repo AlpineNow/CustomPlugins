@@ -21,9 +21,9 @@ import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, OperatorSchemaManager, TabularSchema}
 import com.alpine.plugin.core.spark.templates._
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import com.alpine.plugin.core.utils.SparkParameterUtils
+import com.alpine.plugin.core.utils.{HdfsParameterUtils, SparkParameterUtils}
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Row}
 
 /**
@@ -71,24 +71,30 @@ object AggregationConstants {
 }
 
 /**
- * Static object which defines the output column names so that they can be reused in the GUI
+ * Static object which defines the Alpine Output Schema so that it can be  reused in the GUI
  * (for the design time schema) and to define the actual runtime output schema.
  */
+
 object AggregationOutputSchema {
   //a method that defines the columnDefs for the output schema so they can be used in the
   // GUI Node and spark job.
-  def getColumnDefs(operatorParameters: OperatorParameters): Array[ColumnDef] = {
+  def getAlpineSchema(operatorParameters: OperatorParameters): TabularSchema =  {
+    //get the storgage format i.e. Avro, Parquet, delmited,
+    val storageFormatParam = HdfsParameterUtils.getHdfsStorageFormat(operatorParameters)
+    //create an object with all the information about the tabular structure such as delimieter and
+    //escape character
+    val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(storageFormatParam)
     val (_, aggregationCols) =
       operatorParameters.getTabularDatasetSelectedColumns(
         AggregationConstants.AGGREGATION_PARAM_KEY)
-    val newNames = Array.ofDim[ColumnDef](aggregationCols.length + 1)
-    newNames(0) = ColumnDef("GroupKey", ColumnType.String)
+    val newColumnDefs: Array[ColumnDef] = Array.ofDim[ColumnDef](aggregationCols.length + 1)
+    newColumnDefs(0) = ColumnDef("GroupKey", ColumnType.String)
     var i = 0
     while (i < aggregationCols.length) {
-      newNames(i + 1) = ColumnDef(aggregationCols(i) + "_PRODUCT", ColumnType.Double)
+      newColumnDefs(i + 1) = ColumnDef(aggregationCols(i) + "_PRODUCT", ColumnType.Double)
       i += 1
     }
-    newNames
+    TabularSchema(newColumnDefs, tabularFormatAttributes)
   }
 }
 
@@ -120,10 +126,9 @@ class AggregationGUINode extends SparkDataFrameGUINode[AggregationPluginSparkJob
     )
   }
 
-  override def defineOutputSchemaColumns(inputSchema: TabularSchema,
-                                         params: OperatorParameters): Seq[ColumnDef] = {
-    AggregationOutputSchema.getColumnDefs(params)
-  }
+  override def defineEntireOutputSchema(
+    inputSchema: TabularSchema, params: OperatorParameters): TabularSchema =
+    AggregationOutputSchema.getAlpineSchema(params)
 }
 
 class AggregationRuntime extends SparkDataFrameRuntime[AggregationPluginSparkJob] {}
@@ -150,30 +155,16 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
     }).reduceByKey((rowA, rowB) => rowA.zip(rowB).map { case (a, b) => a * b })
       .map { case (key, values) => Row.fromSeq(key :: values) }
 
-    val newSchema = getSchema(operatorParameters,
-      sparkUtils)
+    val newSchema = getSchema(operatorParameters, sparkUtils)
     //create a data frame with the row RDD and the schema
+    //we need to recreate the schema here since our transformation required converting from dataFrame to RDD
+    //in order to use functionality outside of SparkSQL
     inputDataFrame.sqlContext.createDataFrame(rowRDD, newSchema)
   }
 
   //convert column definitions used at design time to DataFrame schema.
   def getSchema(operatorParameters: OperatorParameters, sparkUtils: SparkRuntimeUtils): StructType = {
-    val newColumns = AggregationOutputSchema.getColumnDefs(operatorParameters)
-    StructType(
-      newColumns.map(newCol =>
-        StructField(
-          newCol.columnName,
-          sparkUtils.convertColumnTypeToSparkSQLDataType(newCol.columnType),
-          nullable = true
-        )
-      ).updated(
-          0,
-          StructField(
-            newColumns(0).columnName,
-            StringType,
-            nullable = true
-          )
-        )
-    )
+    val alpineSchema = AggregationOutputSchema.getAlpineSchema(operatorParameters)
+     sparkUtils.convertTabularSchemaToSparkSQLSchema(alpineSchema)
   }
 }

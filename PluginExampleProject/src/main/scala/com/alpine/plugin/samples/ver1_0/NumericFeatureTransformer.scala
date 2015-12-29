@@ -32,7 +32,7 @@ class NumericFeatureTransformerSignature extends OperatorSignature[
   NumericFeatureTransformerRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Sample - NumericFeatureTransformer",
+      name = "Sample - Numeric Feature Transformer",
       category = "Plugin Sample - Spark",
       author = "Sung Chung",
       version = 1,

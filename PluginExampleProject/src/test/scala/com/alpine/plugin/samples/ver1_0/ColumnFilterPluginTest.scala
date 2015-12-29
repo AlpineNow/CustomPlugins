@@ -1,13 +1,14 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.test.mock.OperatorParametersMock
+import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 
 
 class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
-
+  import com.alpine.plugin.core.spark.utils.TestSparkContexts._
   test("Col Filter"){
     //create the input data frame
     val inputRows = List(
