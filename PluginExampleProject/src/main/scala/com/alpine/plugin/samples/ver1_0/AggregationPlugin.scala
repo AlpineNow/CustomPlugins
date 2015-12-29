@@ -142,13 +142,19 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
     //write message to the UI
     listener.notifyMessage("Starting the Spark job now")
 
+    //select only the data we care about
     val selectedData = inputDataFrame.select(groupByCol, colsToAggregate: _*)
-    val rowRDD = selectedData.map(row => {
+
+    //map the data frame to key value pairs with the group as the key
+    val keyValueData = selectedData.map(row => {
       val key = row.getString(0)
       val rest = Range(1, row.length).map(i => row.get(i).toString.toDouble).toList
-      (key, rest)
-    }).reduceByKey((rowA, rowB) => rowA.zip(rowB).map { case (a, b) => a * b })
-      .map { case (key, values) => Row.fromSeq(key :: values) }
+      (key, rest)})
+    //use reduce by key to compute the product
+    val groupedData = keyValueData.reduceByKey((rowA, rowB) => rowA.zip(rowB).map { case (a, b) => a * b })
+
+    //map the data to an rdd of rows so we can create a dataframe
+    val rowRDD = groupedData.map { case (key, values) => Row.fromSeq(key :: values) }
 
     val newSchema = getSchema(operatorParameters,
       sparkUtils)
