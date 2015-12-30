@@ -5,8 +5,12 @@ import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSu
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-
+//Include this tag so that the tests can be run from the command line with mvn test
+//this also means that this test will be run automatically with mvn package
+@RunWith(classOf[JUnitRunner])
 class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
   import com.alpine.plugin.core.spark.utils.TestSparkContexts._
   test("Col Filter"){

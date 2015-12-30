@@ -7,7 +7,8 @@ import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMo
 import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 
 /**
@@ -18,6 +19,7 @@ import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
  * model on this data you will notice that this algorithm does a very poor job on
  * data which isn't normalized.
  */
+@RunWith(classOf[JUnitRunner])
 class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
   import com.alpine.plugin.core.spark.utils.TestSparkContexts._
   //values which we can use in both tests

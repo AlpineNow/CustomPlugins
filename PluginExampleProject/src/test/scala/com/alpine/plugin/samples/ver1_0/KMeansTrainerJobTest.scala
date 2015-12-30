@@ -4,7 +4,10 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.model.ClusteringModelWrapper
 import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMock}
 import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class KMeansTrainerJobTest extends SimpleAbstractSparkJobSuite {
   //we need to import this line in order to get the pre-defined Spark Local Context Test
   import com.alpine.plugin.core.spark.utils.TestSparkContexts._

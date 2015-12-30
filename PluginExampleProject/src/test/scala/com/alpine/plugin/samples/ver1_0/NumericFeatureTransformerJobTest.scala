@@ -2,8 +2,10 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.test.mock.OperatorParametersMock
 import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-
+@RunWith(classOf[JUnitRunner])
 class NumericFeatureTransformerJobTest extends SimpleAbstractSparkJobSuite {
   import com.alpine.plugin.core.spark.utils.TestSparkContexts._
 

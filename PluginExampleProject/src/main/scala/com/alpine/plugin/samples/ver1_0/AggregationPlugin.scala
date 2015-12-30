@@ -40,7 +40,7 @@ import org.apache.spark.sql.{DataFrame, Row}
  * ***The onPlacement( ... ) method defines the parameters that will appear
  * when you place the operator
  * ***The getSparkOutputSchema( ... )  defines the schema for the output (in this case as a scala
- * STRUCTTYPE  used to defined DataFrame schemas.
+ * StuctType used to defined DataFrame schemas.
  *
  * 3. RUNTIME CLASS (AggregationRuntime) which takes the SPARKJOB (AggregationPluginSparkJob) as a
  * type parameter: Defines the run time behavior. It is in this class where the Spark environment
@@ -76,10 +76,12 @@ object AggregationConstants {
  */
 
 object AggregationOutputSchema {
-  //a method that defines the columnDefs for the output schema so they can be used in the
-  // GUI Node and spark job.
+  /**
+   *  A method that defines the columnDefs for the output schema so they can be used in the
+   *  GUI Node and spark job.
+   */
   def getAlpineSchema(operatorParameters: OperatorParameters): TabularSchema =  {
-    //get the storgage format i.e. Avro, Parquet, delmited,
+    //get the storage format i.e. Avro, Parquet, delmitted,
     val storageFormatParam = HdfsParameterUtils.getHdfsStorageFormat(operatorParameters)
     //create an object with all the information about the tabular structure such as delimieter and
     //escape character
@@ -148,12 +150,17 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
     listener.notifyMessage("Starting the Spark job now")
 
     val selectedData = inputDataFrame.select(groupByCol, colsToAggregate: _*)
-    val rowRDD = selectedData.map(row => {
+
+    //map the data frame to key value pairs with the group as the key
+    val keyValueData = selectedData.map(row => {
       val key = row.getString(0)
       val rest = Range(1, row.length).map(i => row.get(i).toString.toDouble).toList
-      (key, rest)
-    }).reduceByKey((rowA, rowB) => rowA.zip(rowB).map { case (a, b) => a * b })
-      .map { case (key, values) => Row.fromSeq(key :: values) }
+      (key, rest)})
+    //use reduce by key to compute the product
+    val groupedData = keyValueData.reduceByKey((rowA, rowB) => rowA.zip(rowB).map { case (a, b) => a * b })
+
+    //map the data to an rdd of rows so we can create a DataFrame
+    val rowRDD = groupedData.map { case (key, values) => Row.fromSeq(key :: values) }
 
     val newSchema = getSchema(operatorParameters, sparkUtils)
     //create a data frame with the row RDD and the schema
