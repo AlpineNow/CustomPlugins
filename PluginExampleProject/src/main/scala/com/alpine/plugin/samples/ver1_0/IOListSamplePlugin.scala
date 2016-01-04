@@ -62,7 +62,7 @@ class IOListSampleGUINode extends OperatorGUINode[
 }
 
 /**
- * As with the ExampleClassificationModel, we don't launch a Spark Job
+ * As with the Tuple4 SamplePlugin, we don't launch a Spark Job
  * since we are not ever using the data stored on HDFS. Instead this plugin
  * simply returns a string object with a message about the paths to the datasets
  * selected as the number one and number two dataset.

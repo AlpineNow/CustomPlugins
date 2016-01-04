@@ -81,7 +81,7 @@ object AggregationOutputSchema {
    *  GUI Node and spark job.
    */
   def getAlpineSchema(operatorParameters: OperatorParameters): TabularSchema =  {
-    //get the storage format i.e. Avro, Parquet, delmitted,
+    //get the storage format i.e. Avro, Parquet, delimited ,
     val storageFormatParam = HdfsParameterUtils.getHdfsStorageFormat(operatorParameters)
     //create an object with all the information about the tabular structure such as delimieter and
     //escape character
