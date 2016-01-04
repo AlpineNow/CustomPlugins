@@ -4,9 +4,11 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.Tuple2Default
 import com.alpine.plugin.model.RegressionModelWrapper
 import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMock}
+import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 
 /**
@@ -17,8 +19,9 @@ import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
  * model on this data you will notice that this algorithm does a very poor job on
  * data which isn't normalized.
  */
+@RunWith(classOf[JUnitRunner])
 class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
-
+  import com.alpine.plugin.core.spark.utils.TestSparkContexts._
   //values which we can use in both tests
   val outputDirectory = "target/testResults/regression"
   val listener = new SimpleOperatorListener
@@ -88,7 +91,7 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
           regressionModel,
           Some(operatorInfo))
 
-    //rum the input data through the on execution method
+    //run the input data through the on-execution method
     val result = regEvalOperator.onExecution(sc, null,
           inputTuple, params, listener)
 

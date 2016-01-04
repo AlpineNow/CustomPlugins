@@ -22,7 +22,7 @@ import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{Column, DataFrame}
 
 /**
  * An example of how to write a standard Column Filter plugin to run on Spark
@@ -52,7 +52,7 @@ class ColumnFilterSignature extends OperatorSignature[
   ColumnFilterRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Sample - Spark ColumnFilter", //display name of plugin
+      name = "Sample - Spark Column Filter", //display name of plugin
       category = "Plugin Sample - Spark", //category for the plugin in the left-hand GUI bar
       author = "Egor Pakhomov",
       version = 1, //version of the plugin
@@ -170,9 +170,9 @@ class ColumnFilterJob extends SparkDataFrameJob {
                          sparkUtils: SparkRuntimeUtils,
                          listener: OperatorListener): DataFrame = {
     //get the value of the columnsToKeep parameter
-    val columnNamesToKeep = ColumnFilterUtil.getColumnsToKeep(parameters)
+    val columnNamesToKeep: Seq[String] = ColumnFilterUtil.getColumnsToKeep(parameters)
     // map the list of column names to DataFrame column definitions.
-    val columnsToKeep = columnNamesToKeep.map(name => dataFrame.col(name))
+    val columnsToKeep: Seq[Column] = columnNamesToKeep.map(name => dataFrame.col(name))
     // Use the select function on the DataFrame to select all the columns to keep.
     dataFrame.select(columnsToKeep: _*)
   }

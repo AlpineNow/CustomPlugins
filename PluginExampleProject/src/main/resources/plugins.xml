@@ -19,7 +19,7 @@
     <signature-class>com.alpine.plugin.samples.ver1_0.LinearRegressionSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.HiveColumnFilterSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.KMeansTrainerSignature</signature-class>
   </plugin>
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.AggregationSignature</signature-class>
