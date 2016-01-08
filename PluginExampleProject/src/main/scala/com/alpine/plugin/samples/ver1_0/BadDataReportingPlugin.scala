@@ -31,7 +31,7 @@ class BadDataReportingPluginSignature extends OperatorSignature[
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
       name = "Sample - Bad Data Reporting", //display name of plugin
-      category = "Plugin Samples - Spark", //category for the plugin in the left-hand GUI bar
+      category = "Plugin Sample - Spark", //category for the plugin in the left-hand GUI bar
       author = "Rachel Warren",
       version = 1, //version of the plugin
       helpURL = "", //a link to documentation
