@@ -27,6 +27,11 @@ import com.alpine.plugin.model.ClassificationModelWrapper
 
 /**
  * Demonstrates using Tuple4 as an input.
+ * Must be used with:
+ * - 1) An Hdfs tabular dataset
+ * - 2) An Alpine Classification model i.e. Logistic Regression
+ * - 3) An I.O string type, like the result of the Hello World plugin
+ * - 4) A second Hdfs tabular dataset
  */
 class Tuple4SampleSignature extends OperatorSignature[
   Tuple4SampleGUINode,
