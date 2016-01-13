@@ -11,16 +11,6 @@ Customers can now create Custom Operators to integrate with Alpine. This opens u
 
 As a result, an entire customer team can share pre-existing libraries of Analytics and have those incorporated into the Alpine visual workflows as simply another operator that can be chosen and configured through the Alpine drag and drop interface very quickly. 
 
-To get started using Custom Operators, see the links below.
-
-[How to Compile and Run the Sample Operators](https://alpine.atlassian.net/wiki/display/V5/How+To+Compile+and+Run+the+Sample+Operators)
-
-[Building Your First Custom Operator in Scala](https://alpine.atlassian.net/wiki/display/V5/Building+Your+First+Custom+Operator+in+Scala)
-
-[Building a Source Operator](https://alpine.atlassian.net/wiki/display/V5/Building+a+Source+Operator)
-
-[Scala SDK Docs](http://alpinenow.github.io/PluginSDK/latest/api/#package)
-
 ## What Version Should I Use?
 
 There are different versions of the Custom Operator Framework that map to different versions of the Alpine software. For more information, see the page here: [How to Update Custom Operators With New SDK Changes](https://alpine.atlassian.net/wiki/display/KB/How+to+Update+Custom+Operators+With+New+SDK+Changes)
@@ -31,3 +21,12 @@ Alpine Version | Custom Operator SDK Version | Spark Version
 5.7.1          | 1.3                         | 1.5.1
 5.8            | 1.4.2                       | 1.5.1
 
+## Resources
+
+[How to Compile and Run the Sample Operators](https://alpine.atlassian.net/wiki/display/V5/How+To+Compile+and+Run+the+Sample+Operators)
+
+[Building Your First Custom Operator in Scala](https://alpine.atlassian.net/wiki/display/V5/Building+Your+First+Custom+Operator+in+Scala)
+
+[Building a Source Operator](https://alpine.atlassian.net/wiki/display/V5/Building+a+Source+Operator)
+
+[Scala SDK Docs](http://alpinenow.github.io/PluginSDK/latest/api/#package)
