@@ -1,15 +1,15 @@
 # Alpine Custom Operator Framework
 
-Customers can now create Custom Operators to integrate with Alpine. This opens up a new world of possibilities for data scientists and engineers to expand Alpine's functionality. 
+Customers can now create Custom Operators to integrate with Alpine. This extensibilty framework opens up a new world of possibilities for data scientists and engineers.
 
-- This framework allows data scientists and programmers to create a wide variety of Custom Operators to be used within an Alpine analytics workflow.
+- This framework allows one to create a wide variety of Custom Operators to be used within an Alpine analytics workflow.
 - The Custom Operators can consume one or more tabular datasets and may produce a tabular dataset as output to following operators. 
 - Custom Operators can be written in either Java or Scala.
 - The Custom Operator framework supports Spark and Database operators. 
 - Once Custom Operators are deployed to an Alpine instance, the end user will not need to read, write or understand any code in order to use the new Custom Operator.
-- Specifically, users can easily integrate with their own specific Spark jobs or run their own custom code against their data within the Alpine framework.  
+- Specifically, users can easily write their own custom Spark code against their data within the Alpine framework.  
 
-As a result, an entire customer team can share pre-existing libraries of Analytics and have those incorporated into the Alpine visual workflows as simply another operator that can be chosen and configured through the Alpine drag and drop interface very quickly. 
+As a result, an entire team can share pre-existing libraries of analytics and have those incorporated into the Alpine visual workflows as simply another operator. This operator can be chosen and configured through the Alpine drag and drop interface very quickly. 
 
 ## What Version Should I Use?
 
