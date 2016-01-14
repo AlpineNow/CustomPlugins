@@ -45,4 +45,7 @@
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.SparkRandomDatasetGeneratorSignature</signature-class>
   </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.DBWithPythonOperatorSignature</signature-class>
+  </plugin>
 </alpine-plugins>
