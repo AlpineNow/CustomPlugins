@@ -12,6 +12,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
+//NOTE: In 5.8 These are made available as UTILS
 trait SparkContextTest extends BeforeAndAfterAll {
   self: org.scalatest.Suite  =>
   @transient var sc: SparkContext = _

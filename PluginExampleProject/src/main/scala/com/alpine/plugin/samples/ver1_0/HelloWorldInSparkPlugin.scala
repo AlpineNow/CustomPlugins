@@ -33,7 +33,7 @@ class HelloWorldInSparkSignature extends OperatorSignature[
   HelloWorldInSparkRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Sample - HelloWorldInSpark",
+      name = "Sample - Hello World In Spark",
       category = "Plugin Sample - Spark",
       author = "Sung Chung",
       version = 1,
