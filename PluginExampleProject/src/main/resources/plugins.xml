@@ -4,9 +4,6 @@
     <signature-class>com.alpine.plugin.samples.ver1_0.NumericFeatureTransformerSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.ExampleClassificationModelSignature</signature-class>
-  </plugin>
-  <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.DBNumericFeatureTransformerSignature</signature-class>
   </plugin>
   <plugin>
@@ -48,4 +45,9 @@
   <plugin>
     <signature-class>com.alpine.plugin.samples.advanced.DBWithPythonOperatorSignature</signature-class>
   </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.SparkRandomDatasetGeneratorSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.KMeansTrainerSignature</signature-class></plugin>
 </alpine-plugins>
