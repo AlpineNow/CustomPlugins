@@ -11,10 +11,9 @@ import com.alpine.plugin.core.utils.DBParameterUtils
 /**
   * WARNING : Will only work on GreenPlum databases.
   *
-  * Given a numeric column of seeds, creates a one column table with a random number generated based
+  * Given a numeric column of seeds, creates a one column table with a random number
   * generated based on the seed.
-  * Uses pyhon to generate the random number.
-  *
+  * Uses Pyhon to generate the random number.
   */
 class DBWithPythonOperatorSignature extends OperatorSignature[
   DBWithPythonGUINode,
@@ -31,7 +30,7 @@ class DBWithPythonOperatorSignature extends OperatorSignature[
   }
 }
 
-object DBWithPythonContansts{
+object DBWithPythonConstants{
   //the name of the new column that we are returning as output
   val outputColumnName = "random_column"
   val outputSchema =  TabularSchema(
@@ -52,14 +51,14 @@ class DBWithPythonGUINode extends OperatorGUINode[
                            operatorDataSourceManager: OperatorDataSourceManager,
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addTabularDatasetColumnDropdownBox(
-      DBWithPythonContansts.randomSeedColParamId ,
+      DBWithPythonConstants.randomSeedColParamId ,
       "Random Seed",
       ColumnFilter.All,
       "main"
     )
 
     operatorDialog.addStringBox(
-      id = DBWithPythonContansts.functionNameParamId,
+      id = DBWithPythonConstants.functionNameParamId,
       label = "Name of Random Function",
       defaultValue = "random_func",
       //this is a regex that insures that the function name starts with a letter and doesn't contain illegal characters
@@ -79,7 +78,7 @@ class DBWithPythonGUINode extends OperatorGUINode[
   private def updateOutputSchema(inputSchemas: Map[String, TabularSchema],
                                  params: OperatorParameters,
                                  operatorSchemaManager: OperatorSchemaManager): Unit = {
-     operatorSchemaManager.setOutputSchema(DBWithPythonContansts.outputSchema)
+     operatorSchemaManager.setOutputSchema(DBWithPythonConstants.outputSchema)
   }
 
   override def onInputOrParameterChange(inputSchemas: Map[String, TabularSchema],
@@ -110,7 +109,7 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
     val connectionInfo = context.getDBConnectionInfo
 
     //check if there is a table  or with the same name as the output table and drop according to the
-    // "overwrite"
+    // "overwrite" parameter
     val overwrite = DBParameterUtils.getOverwriteParameterValue(params)
     val fullOutputName = getQuotedSchemaTableName(outputSchema, outputName)
 
@@ -118,8 +117,8 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
 
     if (overwrite) {
       //First see if a table of that name exists.
-      // This will throw an exception if there is a view with the output name,
-      // we will catch the exception and delete the view in the next block of code.
+      //This will throw an exception if there is a view with the output name,
+      //we will catch the exception and delete the view in the next block of code.
 
       try {
         listener.notifyMessage("Dropping table if it exists")
@@ -138,11 +137,11 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
       stmt.execute(dropViewStatementBuilder.toString())
     }
 
-    val functionName = params.getStringValue(DBWithPythonContansts.functionNameParamId)
+    val functionName = params.getStringValue(DBWithPythonConstants.functionNameParamId)
     //create a sql query with the Python code to generate the random number inside it
     val createFunctionSQL =
     //if overwrite then override the name space of the new function otherwise will fail is a function
-    //on the database is alredy registered under that name
+    //on the database is already registered under that name
       s"""CREATE ${if (overwrite) "OR REPLACE" else ""} FUNCTION $functionName(seed numeric) """ +
       """RETURNS numeric AS $$
          |    if 'random' not in GD:
@@ -153,7 +152,7 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
          |$$ LANGUAGE plpythonu;""".stripMargin
 
     val seedColumnName =
-      params.getTabularDatasetSelectedColumn(DBWithPythonContansts.randomSeedColParamId)._2
+      params.getTabularDatasetSelectedColumn(DBWithPythonConstants.randomSeedColParamId)._2
 
     val sqlStatementBuilder = new StringBuilder()
     if (isView) {
@@ -164,7 +163,7 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
 
     sqlStatementBuilder ++= "SELECT "
     sqlStatementBuilder ++= functionName + "(" + quoteName(seedColumnName) + ") AS " +
-      DBWithPythonContansts.outputColumnName
+      DBWithPythonConstants.outputColumnName
     sqlStatementBuilder ++= " FROM " + getQuotedSchemaTableName(input.schemaName, input.tableName) + ");"
 
     try {
@@ -177,7 +176,7 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
     }
 
     //create the output schema
-    val outputTabularSchema = DBWithPythonContansts.outputSchema
+    val outputTabularSchema = DBWithPythonConstants.outputSchema
 
     //return the alpine IOBase type with the meta data about the new database output
     DBTableDefault(
@@ -201,5 +200,4 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
   def quoteName(colName: String): String = {
     "\"" + colName + "\""
   }
-
 }
