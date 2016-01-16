@@ -4,24 +4,20 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SQLContext, DataFrame, Column}
-import org.apache.spark.sql.ExperimentalSqlTools // This is slightly evil
-import org.apache.spark.sql.catalyst.expressions._
-
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.spark.templates.{InferredSparkDataFrameJob,
-  InferredSparkDataFrameGUINode, SparkDataFrameRuntime}
+import com.alpine.plugin.core.spark.templates.{InferredSparkDataFrameGUINode, InferredSparkDataFrameJob, SparkDataFrameRuntime}
+import org.apache.spark.sql.catalyst.expressions._
+import org.apache.spark.sql.{Column, DataFrame, ExperimentalSqlTools}
 
 class InternalNormalizationSignature extends OperatorSignature[
   InternalNormalizationGUINode,
   InternalNormalizationRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "InternalNormalization",
+      name = "Internal Normalization",
       category = "Transformation",
       author = "Holden Karau",
       version = 1,
@@ -43,7 +39,6 @@ class InternalNormalizationJob extends InferredSparkDataFrameJob {
       InternalNormalizationTransformations.withName(operatorParameters.getStringValue("transformation"))
     transformation match {
       case DivideByAverage => divideByAverage(columns, input)
-//      case Proportion => proportion(columns, input)
       case Range => range(columns, input)
       case Z => zScore(columns, input)
       case _ => throw new Exception("Un-implemented transformation")

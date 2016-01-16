@@ -145,6 +145,11 @@ SparkIOTypedPluginJob[
 
 object RegressionEvaluatorUtil {
 
+  /**
+   * Given the transformer from the model, and the independent and dependent columns
+   * from the input data. Returns a tuple with the predicted value (generated from the  transformer)
+   * and the actual value. (The dependent column).
+   */
   def calculatePredictionTuple(independentColumnIndices: Array[Int],
                                dependentColumnIndex: Int,
                                transformer: RegressionTransformer)(row: sql.Row): (Double, Double) = {
@@ -154,6 +159,9 @@ object RegressionEvaluatorUtil {
     (predictedValue, observedValue)
   }
 
+  /**
+   * Converts from the Spark SQL row in the input data frame to an array of the input features.
+   */
   def getInputRowForModel(independentColumnIndices: Array[Int], row: sql.Row): Array[Any] = {
     val inputRow = Array.ofDim[Any](independentColumnIndices.length)
     var i = 0
@@ -175,6 +183,11 @@ object RegressionEvaluatorUtil {
     sql.Row.fromTuple(values)
   }
 
+  /**
+   * Use the model to predict on the data, then compute the regression evaluation
+   * metrics against the known value of the dependent column in the input data.
+   * Return a DataFrame with the results of each metric.
+   */
   def calculateResultDataFrame(sparkContext: SparkContext,
                                schemaFixedColumns: Seq[ColumnDef],
                                dataFrame: DataFrame,
@@ -240,6 +253,9 @@ object RegressionEvaluatorUtil {
     resultDataFrame
   }
 
+  /**
+   * Uses the spark utils class to save the result dataFrame to HDFS.
+   */
   def saveOutput(sparkContext: SparkContext,
                  operatorParameters: OperatorParameters,
                  listener: OperatorListener,
