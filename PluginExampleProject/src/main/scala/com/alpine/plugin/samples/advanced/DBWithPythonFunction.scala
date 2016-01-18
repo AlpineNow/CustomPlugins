@@ -13,7 +13,7 @@ import com.alpine.plugin.core.utils.DBParameterUtils
   *
   * Given a numeric column of seeds, creates a one column table with a random number
   * generated based on the seed.
-  * Uses Pyhon to generate the random number.
+  * Uses Python to generate the random number.
   */
 class DBWithPythonOperatorSignature extends OperatorSignature[
   DBWithPythonGUINode,
@@ -119,7 +119,6 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
       //First see if a table of that name exists.
       //This will throw an exception if there is a view with the output name,
       //we will catch the exception and delete the view in the next block of code.
-
       try {
         listener.notifyMessage("Dropping table if it exists")
         val dropTableStatementBuilder = new StringBuilder()
@@ -140,7 +139,7 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
     val functionName = params.getStringValue(DBWithPythonConstants.functionNameParamId)
     //create a sql query with the Python code to generate the random number inside it
     val createFunctionSQL =
-    //if overwrite then override the name space of the new function otherwise will fail is a function
+    //if overwrite then override the name space of the new function otherwise will fail if a function
     //on the database is already registered under that name
       s"""CREATE ${if (overwrite) "OR REPLACE" else ""} FUNCTION $functionName(seed numeric) """ +
       """RETURNS numeric AS $$

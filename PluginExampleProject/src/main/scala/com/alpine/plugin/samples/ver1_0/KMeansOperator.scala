@@ -149,7 +149,7 @@ class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, Cluster
     /**
       * Allows the user to inject her own style tag into the html table's td elements.
       * The table will be built with <td style = \" + styleTag + \" > " for each of the cells.
-      * NOTE: This is availible as a util function in 5.8
+      * NOTE: This is available as a util function in 5.8
       * @param table a sequence of rows in the table, where each row is a sequence of strings.
       * @param styleTag an css style element. The default to string method uses "padding-right:10px;"
       * @return the html string representation of the table
