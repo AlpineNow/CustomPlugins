@@ -73,7 +73,7 @@ class DBWithPythonGUINode extends OperatorGUINode[
   }
 
   /**
-    *Update the schema to include one extra column, with a random number
+    *Update the schema to a table with one column, a random number
     */
   private def updateOutputSchema(inputSchemas: Map[String, TabularSchema],
                                  params: OperatorParameters,
@@ -106,6 +106,8 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
     val outputSchema = DBParameterUtils.getDBOutputSchemaParam(params)
     val isView = DBParameterUtils.getIsViewParam(params)
     val outputName = DBParameterUtils.getResultTableName(params)
+
+    //get the connection info from the execution context so that we can execute a querry
     val connectionInfo = context.getDBConnectionInfo
 
     //check if there is a table  or with the same name as the output table and drop according to the
@@ -139,7 +141,7 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
     val functionName = params.getStringValue(DBWithPythonConstants.functionNameParamId)
     //create a sql query with the Python code to generate the random number inside it
     val createFunctionSQL =
-    //if overwrite then override the name space of the new function otherwise will fail if a function
+    //if overwrite then override the namespace of the new function otherwise will fail if a function
     //on the database is already registered under that name
       s"""CREATE ${if (overwrite) "OR REPLACE" else ""} FUNCTION $functionName(seed numeric) """ +
       """RETURNS numeric AS $$
@@ -177,7 +179,7 @@ class DBWithPythonRuntime extends DBRuntime[DBTable, DBTable] {
     //create the output schema
     val outputTabularSchema = DBWithPythonConstants.outputSchema
 
-    //return the alpine IOBase type with the meta data about the new database output
+    //return the alpine IOBase type with the meta data about the new database table/view
     DBTableDefault(
       outputSchema,
       outputName,

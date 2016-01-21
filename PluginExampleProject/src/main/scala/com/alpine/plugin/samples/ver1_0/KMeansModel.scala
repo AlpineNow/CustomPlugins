@@ -9,9 +9,7 @@ import com.alpine.transformer.{CategoricalTransformer, ClusteringTransformer}
 
 /**
  * Defines the Clustering model, extends the Alpine ClusteringRowModel class.
- * Note: I have designed this class so that it takes some parameters
- * (which we get from the parameters of the Operator and from the from the MLLib Model)
- * but the uer may design the class so that it takes any parameter that are convenient).
+ *
  *
  * NOTE: We have an existing K Means Model and transformer included in the Model SDK. They
  * are called KMeansModel and KMeansModelTransformer. However this sample is intended to show how
@@ -23,6 +21,9 @@ import com.alpine.transformer.{CategoricalTransformer, ClusteringTransformer}
  * @param inputFeatures A sequence of Alpine Column Definitions for the columns that were used as
  *                      input features in training the model. Prediction will require a dataset that
  *                      has these input features present.
+ *                       * NOTE: I have designed this class so that it takes some parameters
+ *                       (which we get from the parameters of the Operator and from the from the MLLib Model)
+ *                       but the user may design the class so that it takes any parameter that are convenient).
  *
  * @param clusters An array of Dense vectors representing the cluster centers trained by the model.
  *                 In this example these come from the MLLib KMeans model, but there is no restriction on
@@ -37,7 +38,7 @@ class ExampleKMeansClusteringModel(val inputFeatures : Seq[ColumnDef], clusters 
    * The 'transformer for this model' which is the class which has methods to score each row.
    * In this case I have used a custom transformer defined in the 'KMeansTransformer' class below.
    */
-  def transformer: CategoricalTransformer[_ <: ClusteringResult] =
+  def transformer: CategoricalTransformer[ClusteringResult] =
     new ExampleKMeansTransformer(clusters, classLabels)
 }
 
@@ -74,7 +75,7 @@ class ExampleKMeansTransformer( clusters : Array[Array[Double]],
    */
   private def distanceWithoutSpark(row: Array[Double], cluster: Array[Double]): Double = {
     val dim = row.length
-    var d = 0d
+    var d = 0,0
     var i = 0
     while(i < dim) {
       val diff = row(i) - cluster(i)

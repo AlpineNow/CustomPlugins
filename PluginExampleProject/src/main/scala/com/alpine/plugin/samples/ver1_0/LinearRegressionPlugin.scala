@@ -126,11 +126,14 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
     })
 
     //find the index fo the dependent column
-    val dependentColumnIndex = schemaFixedColumns
-      .indexWhere(columnDef => columnDef.columnName == dependentColumn)
+    val dependentColumnIndex = schemaFixedColumns.indexWhere(
+      columnDef => columnDef.columnName == dependentColumn
+    )
 
     val inputDataFrame = sparkUtils.getDataFrame(input)
-    val labeledPoints = inputDataFrame.map(MLlibUtils.toLabeledPoint(dependentColumnIndex, independentColumnIndices))
+    val labeledPoints = inputDataFrame.map(
+      MLlibUtils.toLabeledPoint(dependentColumnIndex, independentColumnIndices)
+    )
       //.persist(StorageLevel.MEMORY_AND_DISK) // Could perform caching here.
 
     // This is different to the internal Alpine implementation of Linear Regression, which uses OWLQN,
@@ -144,6 +147,7 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
 
     val mLlibCoefficients: Array[Double] = mlLibModel.weights.toArray
     val independentColumnDefs: Array[ColumnDef] =  independentColumnNames.map(f => ColumnDef(f, ColumnType.Double))
+    //constructor for the LinearRegressionModelin the model pack
     val alpineLinearRegressionModel: LinearRegressionModel =
       LinearRegressionModel.make(
       mLlibCoefficients , independentColumnDefs,
@@ -152,10 +156,10 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
 
     //return a RegressionModelWrapper containing the alpineLinearRegressionModel
     new RegressionModelWrapper(
-      "Simple Linear Regression Model",
-      alpineLinearRegressionModel,
-      Some(operatorParameters.operatorInfo)
+      modelName = "Simple Linear Regression Model",
+      model = alpineLinearRegressionModel,
+      sourceOperatorInfo = Some(operatorParameters.operatorInfo)
     )
-  }
+
 
 }
