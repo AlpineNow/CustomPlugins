@@ -75,7 +75,7 @@ class ExampleKMeansTransformer( clusters : Array[Array[Double]],
    */
   private def distanceWithoutSpark(row: Array[Double], cluster: Array[Double]): Double = {
     val dim = row.length
-    var d = 0,0
+    var d = 0.0
     var i = 0
     while(i < dim) {
       val diff = row(i) - cluster(i)
