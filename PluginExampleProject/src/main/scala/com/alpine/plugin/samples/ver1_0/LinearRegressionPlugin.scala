@@ -107,10 +107,10 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
   HdfsTabularDataset,
   RegressionModelWrapper] {
   override def onExecution(sparkContext: SparkContext,
-                           appConf: mutable.Map[String, String],
-                           input: HdfsTabularDataset,
-                           operatorParameters: OperatorParameters,
-                           listener: OperatorListener): RegressionModelWrapper = {
+    appConf: mutable.Map[String, String],
+    input: HdfsTabularDataset,
+    operatorParameters: OperatorParameters,
+    listener: OperatorListener): RegressionModelWrapper = {
     val sparkUtils = new SparkRuntimeUtils(sparkContext)
 
     val dependentColumn = operatorParameters.getTabularDatasetSelectedColumn("dependentColumn")._2
@@ -134,7 +134,7 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
     val labeledPoints = inputDataFrame.map(
       MLlibUtils.toLabeledPoint(dependentColumnIndex, independentColumnIndices)
     )
-      //.persist(StorageLevel.MEMORY_AND_DISK) // Could perform caching here.
+    //.persist(StorageLevel.MEMORY_AND_DISK) // Could perform caching here.
 
     // This is different to the internal Alpine implementation of Linear Regression, which uses OWLQN,
     // but it is also simpler to read.
@@ -146,13 +146,13 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
 
 
     val mLlibCoefficients: Array[Double] = mlLibModel.weights.toArray
-    val independentColumnDefs: Array[ColumnDef] =  independentColumnNames.map(f => ColumnDef(f, ColumnType.Double))
+    val independentColumnDefs: Array[ColumnDef] = independentColumnNames.map(f => ColumnDef(f, ColumnType.Double))
     //constructor for the LinearRegressionModelin the model pack
     val alpineLinearRegressionModel: LinearRegressionModel =
       LinearRegressionModel.make(
-      mLlibCoefficients , independentColumnDefs,
-      mlLibModel.intercept,  dependentColumn
-    )
+        mLlibCoefficients, independentColumnDefs,
+        mlLibModel.intercept, dependentColumn
+      )
 
     //return a RegressionModelWrapper containing the alpineLinearRegressionModel
     new RegressionModelWrapper(
@@ -160,6 +160,5 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
       model = alpineLinearRegressionModel,
       sourceOperatorInfo = Some(operatorParameters.operatorInfo)
     )
-
-
+  }
 }
