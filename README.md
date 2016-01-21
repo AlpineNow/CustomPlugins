@@ -15,11 +15,11 @@ As a result, an entire team can share pre-existing libraries of analytics and ha
 
 There are different versions of the Custom Operator Framework that map to different versions of the Alpine software. For more information, see the page here: [How to Update Custom Operators With New SDK Changes](https://alpine.atlassian.net/wiki/display/KB/How+to+Update+Custom+Operators+With+New+SDK+Changes)
 
-Alpine Version | Custom Operator SDK Version | Spark Version | SDK Scaladoc
--------------- | --------------------------- | ------------- | ------------
-5.6.1          | 1.0                         | 1.3.1         | http://alpinenow.github.io/PluginSDK/1.0/api/
-5.7.1          | 1.3                         | 1.5.1         | http://alpinenow.github.io/PluginSDK/1.3/api/
-5.8            | 1.4.2                       | 1.5.1         | http://alpinenow.github.io/PluginSDK/1.4/api/
+Alpine Version | Custom Operator SDK | Spark Version 
+-------------- | --------------------------- | -------------
+5.6.1          | Version 1.0, [Scaladoc](http://alpinenow.github.io/PluginSDK/1.0/api/), [Source](https://github.com/AlpineNow/PluginSDK/tree/release-1.0)   | 1.3.1 
+5.7.1          | Version 1.3, [Scaladoc](http://alpinenow.github.io/PluginSDK/1.3/api/), [Source](https://github.com/AlpineNow/PluginSDK/tree/v1.3)  | 1.5.1
+5.8            | Version 1.4.2, [Scaladoc](http://alpinenow.github.io/PluginSDK/1.4/api/), [Source](https://github.com/AlpineNow/PluginSDK/tree/v1.4)  | 1.5.1  
 
 ## Resources
 
