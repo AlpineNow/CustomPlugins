@@ -10,23 +10,22 @@ import com.alpine.transformer.{CategoricalTransformer, ClusteringTransformer}
 /**
  * Defines the Clustering model, extends the Alpine ClusteringRowModel class.
  * Note: I have designed this class so that it takes some parameters
- * (which we get from the parameters of the Operator and from the from the MLLib Model)
- * but the uer may design the class so that it takes any parameter that are convenient).
+ * (which we get from the parameters of the Operator and from the from the MLlib Model)
+ * but the user may design the class so that it takes any parameter that are convenient).
  *
- * NOTE: We have an existing K Means Model and transformer included in the Model SDK. They
- * are called KMeansModel and KMeansModelTransformer. However this sample is intended to show how
+ * NOTE: We have an existing K-Means model and transformer included in the Model SDK. They
+ * are called KMeansModel and KMeansModelTransformer. However, this sample is intended to show how
  * one could write more custom code in a transformation model.
  *
- * NOTE: In order to use these models with the existing Alpine Predictor, this class CANNOT contain any Spark Dependencies.
- * The reason is the the Alpine Spark Predictors are used with Map Reduce
+ * NOTE: In order to use these models with the existing Alpine Predictor, this class CANNOT contain any Spark dependencies.
+ * This is because the Alpine Spark predictors are used with MapReduce.
  *
- * @param inputFeatures A sequence of Alpine Column Definitions for the columns that were used as
+ * @param inputFeatures A sequence of Alpine column definitions for the columns that were used as
  *                      input features in training the model. Prediction will require a dataset that
  *                      has these input features present.
- *
- * @param clusters An array of Dense vectors representing the cluster centers trained by the model.
- *                 In this example these come from the MLLib KMeans model, but there is no restriction on
- *                 how the centers are defined. In fact in this instance they are only used by the Transformer
+ * @param clusters An array of dense vectors representing the cluster centers trained by the model.
+ *                 In this example these come from the MLlib K-Means model, but there is no restriction on
+ *                 how the centers are defined. In fact, in this instance they are only used by the transformer
  *                 which uses them to score each row.
  * @param classLabels - the names of the clusters
  */
@@ -46,7 +45,8 @@ class ExampleKMeansClusteringModel(val inputFeatures : Seq[ColumnDef], clusters 
  * a discrete category.
  *
  * NOTE: In order to use this with the existing Alpine Predictor, this class CANNOT contain any Spark Dependencies.
- * The reason is the the Alpine Spark Predictors are used with Map Reduce
+ * The reason is the the Alpine Spark predictors are used with MapReduce.
+ * 
  * @param clusters Passed from the parameters in the Example KMeansClusteringModel, these represent
  *                 the cluster centers derived from the training model.
  * @param classLabels - the names of the clusters
@@ -69,8 +69,8 @@ class ExampleKMeansTransformer( clusters : Array[Array[Double]],
 
   /**
    * This function computes the square distance between two vectors.
-   * If we didn't care about using Alpine's Map-Reduce Predictors we could keep the clusters as
-   * dense vectors an use Vectors.sqdist(cluster, vector)
+   * If we didn't care about using Alpine's MapReduce predictors we could keep the clusters as
+   * dense vectors and use Vectors.sqdist(cluster, vector)
    */
   private def distanceWithoutSpark(row: Array[Double], cluster: Array[Double]): Double = {
     val dim = row.length
