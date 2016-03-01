@@ -1,7 +1,7 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.test.mock.OperatorParametersMock
-import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
@@ -12,7 +12,7 @@ import org.scalatest.junit.JUnitRunner
 //this also means that this test will be run automatically with mvn package
 @RunWith(classOf[JUnitRunner])
 class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
-  import com.alpine.plugin.core.spark.utils.TestSparkContexts._
+  import TestSparkContexts._
   test("Col Filter"){
     //create the input data frame
     val inputRows = List(
@@ -35,11 +35,11 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
     val parametersMock = new OperatorParametersMock(colFilterName, uuid)
 
     //add the columns to keep param
-    ParameterMockUtil.addTabularColumns(
+    OperatorParameterMockUtil.addTabularColumns(
       params = parametersMock,
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY , "name")
     //add the HDFS storage parameters
-    ParameterMockUtil.addHdfsParams(parametersMock, "ColumnFilterTestResults")
+    OperatorParameterMockUtil.addHdfsParams(parametersMock, "ColumnFilterTestResults")
 
     val (result , _)  = runDataFrameThroughDFTemplate(
       dataFrame = dataFrameInput,

@@ -1,13 +1,15 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.test.mock.OperatorParametersMock
-import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{TestSparkContexts, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class NumericFeatureTransformerJobTest extends SimpleAbstractSparkJobSuite {
-  import com.alpine.plugin.core.spark.utils.TestSparkContexts._
+
+  //we need to import this in order to have a local Spark context to work with
+  import TestSparkContexts._
 
   test("Test addendum and schema"){
     val path = "src/test/resources/irisDataSet"
@@ -16,15 +18,14 @@ class NumericFeatureTransformerJobTest extends SimpleAbstractSparkJobSuite {
 
     val parametersMock = new OperatorParametersMock("TestNFT", "123")
     //add columnsToTransform
-    ParameterMockUtil.addTabularColumns(parametersMock,
+    OperatorParameterMockUtil.addTabularColumns(parametersMock,
       NumericFeatureTransformerUtil.columnsToTransformKey,
       "sepalLength", "sepalWidth")
 
     parametersMock.setValue(NumericFeatureTransformerUtil.transformationTypeKey,
       NumericFeatureTransformerUtil.pow2)
 
-    ParameterMockUtil.addHdfsParams(operatorParametersMock = parametersMock,
-    outputName = "NumericTransformerTest")
+    OperatorParameterMockUtil.addHdfsParams(parametersMock, "NumericTransformerTest")
 
     val nftSparkJobClass = new NumericFeatureTransformerJob
 
