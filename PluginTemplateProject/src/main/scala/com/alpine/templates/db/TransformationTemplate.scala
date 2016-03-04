@@ -20,16 +20,16 @@ import com.alpine.plugin.core.utils.DBParameterUtils
  * - DBTransformationTemplateRuntime: extends DBRuntime and defines the runtime behavior of the operator.
  */
 
-//todo - rename Signature, GUINode and Runtime classes to refer to your operator
-//todo - update plugins.xml to include your new Signature name
+//TODO - rename Signature, GUINode and Runtime classes to refer to your operator
+//TODO - update plugins.xml to include your new Signature name
 class DBTransformationTemplateSignature extends OperatorSignature[
   DBTransformationTemplateGUINode,
   DBTransformationTemplateRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Operator Name",   //todo - name your operator with your name
-      category = "",            //todo - put a category here
-      author = "",              //todo - put your name here
+      name = "Operator Name",   //TODO - name your operator with your name
+      category = "",            //TODO - put a category here
+      author = "",              //TODO - put your name here
       version = 1,
       helpURL = "",
       iconNamePrefix = ""
@@ -41,7 +41,7 @@ class DBTransformationTemplateSignature extends OperatorSignature[
  * Util with the constants for the plugin that will be used in multiple classes.
  */
 object DBTransformationTemplateConstants {
-  //todo - keep parameter value keys in here for access across multiple classes
+  //TODO - keep parameter value keys in here for access across multiple classes
 }
 
 /**
@@ -72,7 +72,7 @@ class DBTransformationTemplateGUINode extends OperatorGUINode[
       params,
       operatorSchemaManager
     )
-    //todo - add any validation code, if necessary
+    //TODO - add any validation code, if necessary
     OperatorStatus(isValid = true, msg = None)
   }
 
@@ -81,8 +81,8 @@ class DBTransformationTemplateGUINode extends OperatorGUINode[
                                  params: OperatorParameters,
                                  operatorSchemaManager: OperatorSchemaManager): Unit = {
 
-    //todo - create an output TabularSchema "outputSchema"
-    //todo - set the output schema of the operatorSchemaManager to "outputSchema"
+    //TODO - create an output TabularSchema "outputSchema"
+    //TODO - set the output schema of the operatorSchemaManager to "outputSchema"
     //NOTE - for now, output schema = input schema
     if (inputSchemas.nonEmpty) {
       val inputSchema = inputSchemas.values.iterator.next()
@@ -97,6 +97,8 @@ class DBTransformationTemplateGUINode extends OperatorGUINode[
 
 /**
  * The DBTransformationTemplateRuntime defines the runtime behavior of the operator.
+ * WARNING:  All execution code is written for GPDB / PostreSQL.  This will not necessarily
+ * work on other databases.
  */
 class DBTransformationTemplateRuntime extends DBRuntime[DBTable, DBTable] {
 
@@ -142,10 +144,10 @@ class DBTransformationTemplateRuntime extends DBRuntime[DBTable, DBTable] {
       stmtView.close()
     }
 
-    //todo - pull out values from custom parameters
+    //TODO - pull out values from custom parameters
 
 
-    //todo - create the sql statement that will be executed using the parameters
+    //TODO - create the sql statement that will be executed using the parameters
     val sqlStatement = s"""
       CREATE $tableOrView $fullOutputName AS (
         SELECT *
@@ -160,7 +162,7 @@ class DBTransformationTemplateRuntime extends DBRuntime[DBTable, DBTable] {
     stmt.execute(sqlStatement)
     stmt.close()
 
-    //todo - create the output schema (set to input schema for now)
+    //TODO - create the output schema (set to input schema for now)
     val outputTabularSchema = input.tabularSchema
 
     //
