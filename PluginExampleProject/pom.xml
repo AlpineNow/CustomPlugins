@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-example</artifactId>
-    <version>1.4.2</version>
+    <version>1.5</version>
 
     <repositories>
         <repository>
@@ -32,7 +32,7 @@
         </repository>
     </repositories>
     <properties>
-        <alpine.version>1.5-beta-1</alpine.version>
+        <alpine.version>1.5</alpine.version>
     </properties>
     <dependencies>
 
