@@ -36,7 +36,7 @@ class ExampleKMeansClusteringModel(val inputFeatures : Seq[ColumnDef], clusters 
    * The 'transformer for this model' which is the class which has methods to score each row.
    * In this case I have used a custom transformer defined in the 'KMeansTransformer' class below.
    */
-  def transformer: CategoricalTransformer[_ <: ClusteringResult] =
+  def transformer  =
     new ExampleKMeansTransformer(clusters, classLabels)
 }
 

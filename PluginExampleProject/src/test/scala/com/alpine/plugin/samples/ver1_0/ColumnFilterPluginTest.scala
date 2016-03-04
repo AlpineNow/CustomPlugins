@@ -1,7 +1,10 @@
 package com.alpine.plugin.samples.ver1_0
 
-import com.alpine.plugin.test.mock.OperatorParametersMock
-import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.core.io.TSVAttributes
+import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
+import com.alpine.plugin.core.utils.{HdfsStorageFormat, HdfsParameterUtils}
+import com.alpine.plugin.test.mock._
+import com.alpine.plugin.test.utils.{GolfData, OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
@@ -12,8 +15,8 @@ import org.scalatest.junit.JUnitRunner
 //this also means that this test will be run automatically with mvn package
 @RunWith(classOf[JUnitRunner])
 class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
-  import com.alpine.plugin.core.spark.utils.TestSparkContexts._
-  test("Col Filter"){
+  import TestSparkContexts._
+  test("Col Filter Spark Job"){
     //create the input data frame
     val inputRows = List(
       Row("Masha", 22),
@@ -35,11 +38,11 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
     val parametersMock = new OperatorParametersMock(colFilterName, uuid)
 
     //add the columns to keep param
-    ParameterMockUtil.addTabularColumns(
+    OperatorParameterMockUtil.addTabularColumns(
       params = parametersMock,
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY , "name")
     //add the HDFS storage parameters
-    ParameterMockUtil.addHdfsParams(parametersMock, "ColumnFilterTestResults")
+    OperatorParameterMockUtil.addHdfsParams(parametersMock, "ColumnFilterTestResults")
 
     val (result , _)  = runDataFrameThroughDFTemplate(
       dataFrame = dataFrameInput,
@@ -54,6 +57,38 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
 
     assert(!result.schema.fieldNames.contains("age"))
     assert(result.collect().sameElements(expectedRows))
+  }
+
+  /**
+    * This test makes sure that the parameter IDs used in the GUI node and Spark Job match and that
+    * the parameters are added correctly.
+    */
+  test("Test Col Filter GUI and Spark Job using Provided Golf Dataset"){
+
+    //The Golf data object is provided in our test utils class.
+    val dataFrameInput = GolfData.createGolfDF(sc)
+    val operatorGUI = new ColumnFilterGUINode
+
+    val inputParameters = new OperatorParametersMock("2", "TestFullColumnFilter")
+    OperatorParameterMockUtil.addTabularColumns(inputParameters, ColumnFilterUtil.COLUMNS_TO_KEEP_KEY, "outlook", "play")
+    OperatorParameterMockUtil.addHdfsParams(inputParameters, "FullColumnFilterTestResults")
+
+    val inputHdfs = HdfsDelimitedTabularDatasetDefault(
+      "target/testResults", sparkUtils.convertSparkSQLSchemaToTabularSchema(dataFrameInput.schema),
+      TSVAttributes.default, None)
+
+    val defaultParams = getNewParametersFromDataFrameGui(operatorGUI, inputHdfs, inputParameters)
+
+    assert(defaultParams.contains(ColumnFilterUtil.COLUMNS_TO_KEEP_KEY))
+
+    //the default storage format is TSV. Check that that value was added to the parameters in the GUI
+    assert(HdfsParameterUtils.getHdfsStorageFormat(defaultParams).equals(HdfsStorageFormat.TSV))
+
+    val (outputDF, _) = runDataFrameThroughEntireDFTemplate(operatorGUI,
+    operatorJob = new ColumnFilterJob, inputParams = inputParameters, dataFrameInput = dataFrameInput )
+
+    assert(outputDF.schema.fieldNames.toSet.equals(Set("outlook", "play")),
+      "The output schema is incorrect.")
   }
 
 }

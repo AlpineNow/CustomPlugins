@@ -4,7 +4,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.Tuple2Default
 import com.alpine.plugin.model.RegressionModelWrapper
 import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMock}
-import com.alpine.plugin.test.utils.{ParameterMockUtil, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.junit.runner.RunWith
@@ -21,7 +21,7 @@ import org.scalatest.junit.JUnitRunner
  */
 @RunWith(classOf[JUnitRunner])
 class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
-  import com.alpine.plugin.core.spark.utils.TestSparkContexts._
+  import TestSparkContexts._
   //values which we can use in both tests
   val outputDirectory = "target/testResults/regression"
   val listener = new SimpleOperatorListener
@@ -56,11 +56,11 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
 
     //create the mock parameters object
     val params = new OperatorParametersMock("123", "RegressionTest")
-    ParameterMockUtil.addHdfsParams(params, "regressionOutput",
+    OperatorParameterMockUtil.addHdfsParams(params, "regressionOutput",
       outputDirectory = outputDirectory)
-    ParameterMockUtil.addTabularColumn(params, "dependentColumn",
+    OperatorParameterMockUtil.addTabularColumn(params, "dependentColumn",
       dependantVar)
-    ParameterMockUtil.addTabularColumns(params, "independentColumns",
+    OperatorParameterMockUtil.addTabularColumns(params, "independentColumns",
       independentVar1, independentVar2 )
 
     val regressionOperator = new LinearRegressionTrainingJob
@@ -79,10 +79,9 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
 
   test("Test Regression Evaluator on Manufactured Data"){
 
-
     val operatorInfo = OperatorInfo("12345", "RegressionEvaluatorTest")
     val params = new OperatorParametersMock(operatorInfo.name, operatorInfo.uuid)
-    ParameterMockUtil.addHdfsParams(params, "RegressionEvaluatorTestOutput")
+    OperatorParameterMockUtil.addHdfsParams(params, "RegressionEvaluatorTestOutput")
 
     val regEvalOperator = new RegressionEvaluatorJob
 
@@ -97,7 +96,6 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
 
     val resultDataFrame = sparkUtils.getDataFrame(result)
     assert(resultDataFrame.collect().length == 1)
-
   }
 
 }

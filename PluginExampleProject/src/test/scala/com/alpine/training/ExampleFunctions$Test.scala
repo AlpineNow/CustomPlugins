@@ -1,7 +1,7 @@
 package com.alpine.training
 
 
-import com.alpine.plugin.samples.ver1_0.IrisFlowerPrediction
+import com.alpine.plugin.test.utils.IrisFlowerPrediction
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SQLContext}
@@ -68,7 +68,6 @@ class ExampleFunctions$Test extends FunSuite with BeforeAndAfterAll{
 
     val inputDF = sqlContext.createDataFrame(inputRowRDD, inputSchema)
     val clusteredDf = ExampleFunctions.kMeans(inputDF, 4, 10)
-    val t = clusteredDf.collect()
     assert(clusteredDf.schema.containsSlice(inputDF.schema))
     assert(clusteredDf.count() == inputDF.count())
   }
@@ -78,7 +77,6 @@ class ExampleFunctions$Test extends FunSuite with BeforeAndAfterAll{
     val irisData = sc.textFile(path )
     val irisDF = IrisFlowerPrediction.convertIrisRDDtoDF(irisData, sqlContext)
     val clusteredDf = ExampleFunctions.kMeans(irisDF, 4, 10)
-    val t = clusteredDf.collect()
     assert(clusteredDf.schema.containsSlice(irisDF.schema))
     assert(clusteredDf.count() == irisData.count())
   }
