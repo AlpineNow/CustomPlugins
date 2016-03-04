@@ -48,4 +48,7 @@
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.BadDataReportingPluginSignature</signature-class>
   </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.DBConfusionMatrixSignature</signature-class>
+  </plugin>
 </alpine-plugins>
