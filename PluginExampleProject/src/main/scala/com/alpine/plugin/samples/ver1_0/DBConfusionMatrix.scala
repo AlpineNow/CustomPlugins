@@ -1,5 +1,6 @@
 package com.alpine.plugin.samples.ver1_0
 
+import com.alpine.model.ClassificationRowModel
 import com.alpine.model.pack.UnitModel
 import com.alpine.model.pack.multiple.CombinerModel
 import com.alpine.plugin.core._
@@ -19,13 +20,15 @@ import com.alpine.util.SQLUtility
   * This takes in a Classification model (e.g. Logistic Regression) and a database table.
   * It calculates the confusion matrix of the model using the table as the test data.
   *
+  * WARNING: Due to the DROP TABLE SQL, it will only work on PostgreSQL / Greenplum / HAWQ.
+  *
   * This is a non-terminal operator (it can be connected to subsequent operators).
   * The output table is the matrix in sparse format.
   * e.g.
   * --------------------------------
   * Observed | Predicted | N (count)
   * --------------------------------
-  * no       | no        |	4
+  * no       | no        | 4
   * no       | yes       | 1
   * yes      | no        | 2
   * yes      | yes       | 7
@@ -103,7 +106,7 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
         stmtTable.execute(dropTableStatementBuilder.toString())
       }
       catch {
-        case (e: Exception) => listener.notifyMessage("A view of the name " + fullOutputName + "exists");
+        case (e: Exception) => listener.notifyMessage("A view of the name " + fullOutputName + " exists");
       }
       finally {
         stmtTable.close()
@@ -137,8 +140,8 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
   def getCreateTableSQL(input: Tuple2[_ <: ClassificationModelWrapper, _ <: DBTable],
                         isView: Boolean,
                         fullOutputName: String): String = {
-    val inputDataset = input._2
-    val inputModel = input._1.model
+    val inputDataset: DBTable = input._2
+    val inputModel: ClassificationRowModel = input._1.model
 
     /**
       * TODO: Will expose official SQLGenerators to the onExecution method in the future.
@@ -156,63 +159,72 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
     val sqlTransformerOption = inputModel.sqlTransformer(sqlGenerator)
 
     if (sqlTransformerOption.isEmpty) {
-      val errorMessage: String = "The input model does not have a SQL Transformer, so it cannot be scored against a DB table."
-      throw new RuntimeException(errorMessage)
+      throw new RuntimeException(
+        "The input model does not have a SQL Transformer, so it cannot be scored against a DB table."
+      )
     }
 
-    val datasetColumnNames = inputDataset.tabularSchema.definedColumns.map(_.columnName).toSet
+    verifyColumns(inputModel, inputDataset)
+
     val dependentColumn = inputModel.dependentFeature
-    val missingColumns = inputModel.inputFeatures.filterNot(column => datasetColumnNames.contains(column.columnName)).map(_.columnName) ++ {
-      if (datasetColumnNames.contains(dependentColumn.columnName)) {
+    val unitModel = new UnitModel(Seq(dependentColumn))
+    val combinedModel = CombinerModel.make(Seq(unitModel, inputModel))
+    val classificationSQL = combinedModel.sqlTransformer(sqlGenerator).get.getSQL
+
+    val quotedFullTableName: String = getQuotedSchemaTableName(inputDataset.schemaName, inputDataset.tableName)
+
+    val aliasGenerator: AliasGenerator = new AliasGenerator
+
+    val innerSelectStatement = SQLUtility.getSelectStatement(
+      sql = classificationSQL,
+      inputTableName = quotedFullTableName,
+      aliasGenerator = aliasGenerator,
+      sqlGenerator = sqlGenerator
+    )
+    val predictedColumnName: ColumnName = classificationSQL.layers.last.last._2
+
+    val observedColumnNameEscaped: String = sqlGenerator.escapeColumnName(dependentColumn.columnName)
+    val predictedColumnNameEscaped: String = predictedColumnName.escape(sqlGenerator)
+    val selectSqlStatement =
+      s"""SELECT
+          | $observedColumnNameEscaped AS ${sqlGenerator.escapeColumnName(ConfusionMatrixUtils.observedColumnName)},
+          | $predictedColumnNameEscaped AS ${sqlGenerator.escapeColumnName(ConfusionMatrixUtils.predictedColumnName)},
+          | COUNT(*) AS "N"
+          | FROM ($innerSelectStatement) AS ${aliasGenerator.getNextAlias}
+          | GROUP BY $observedColumnNameEscaped, $predictedColumnNameEscaped""".stripMargin
+
+    val sqlStatementBuilder = new StringBuilder()
+    if (isView) {
+      sqlStatementBuilder ++= "CREATE VIEW " + fullOutputName + " AS ("
+    } else {
+      sqlStatementBuilder ++= "CREATE TABLE " + fullOutputName + " AS ("
+    }
+    sqlStatementBuilder ++= selectSqlStatement + ");"
+    sqlStatementBuilder.toString
+  }
+
+  /**
+    * Verifies that the columns needed for the model evaluation are present in the input dataset.
+    * Throws an exception otherwise.
+    */
+  @throws(classOf[RuntimeException])
+  def verifyColumns(inputModel: ClassificationRowModel, inputDataset: DBTable): Unit = {
+    val datasetColumnNames = inputDataset.tabularSchema.definedColumns.map(_.columnName).toSet
+    val dependentColumnName = inputModel.dependentFeature.columnName
+    val missingDependentColumn: List[String] = {
+      if (datasetColumnNames.contains(dependentColumnName)) {
         Nil
       } else {
-        List(dependentColumn.columnName)
+        List(dependentColumnName)
       }
     }
+    val missingIndependentColumns: Seq[String] = inputModel.inputFeatures.map(_.columnName).filterNot(name => datasetColumnNames.contains(name))
+    val missingColumns = missingIndependentColumns ++ missingDependentColumn
     if (missingColumns.nonEmpty) {
       throw new RuntimeException(
         "The input dataset is missing the columns " + missingColumns + " needed for evaluating the model."
       )
     }
-
-    val createTableSQL: String = {
-
-      val unitModel = new UnitModel(Seq(dependentColumn))
-      val combinedModel = CombinerModel.make(Seq(unitModel, inputModel))
-      val classificationSQL = combinedModel.sqlTransformer(sqlGenerator).get.getSQL
-
-      val quotedFullTableName: String = getQuotedSchemaTableName(inputDataset.schemaName, inputDataset.tableName)
-
-      val aliasGenerator: AliasGenerator = new AliasGenerator
-
-      val innerSelectStatement = SQLUtility.getSelectStatement(
-        sql = classificationSQL,
-        inputTableName = quotedFullTableName,
-        aliasGenerator = aliasGenerator,
-        sqlGenerator = sqlGenerator
-      )
-      val predictedColumnName: ColumnName = classificationSQL.layers.last.last._2
-
-      val observedColumnNameEscaped: String = sqlGenerator.escapeColumnName(dependentColumn.columnName)
-      val predictedColumnNameEscaped: String = predictedColumnName.escape(sqlGenerator)
-      val selectSqlStatement =
-        s"""SELECT
-            | $observedColumnNameEscaped AS ${sqlGenerator.escapeColumnName(ConfusionMatrixUtils.observedColumnName)},
-            | $predictedColumnNameEscaped AS ${sqlGenerator.escapeColumnName(ConfusionMatrixUtils.predictedColumnName)},
-            | COUNT(*) AS "N"
-            | FROM ($innerSelectStatement) AS ${aliasGenerator.getNextAlias}
-            | GROUP BY $observedColumnNameEscaped, $predictedColumnNameEscaped""".stripMargin
-
-      val sqlStatementBuilder = new StringBuilder()
-      if (isView) {
-        sqlStatementBuilder ++= "CREATE VIEW " + fullOutputName + " AS ("
-      } else {
-        sqlStatementBuilder ++= "CREATE TABLE " + fullOutputName + " AS ("
-      }
-      sqlStatementBuilder ++= selectSqlStatement + ");"
-      sqlStatementBuilder.toString
-    }
-    createTableSQL
   }
 
   def getQuotedSchemaTableName(schemaName: String, tableName: String): String = {
