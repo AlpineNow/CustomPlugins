@@ -79,7 +79,6 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
 
   test("Test Regression Evaluator on Manufactured Data"){
 
-
     val operatorInfo = OperatorInfo("12345", "RegressionEvaluatorTest")
     val params = new OperatorParametersMock(operatorInfo.name, operatorInfo.uuid)
     OperatorParameterMockUtil.addHdfsParams(params, "RegressionEvaluatorTestOutput")
@@ -97,7 +96,6 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
 
     val resultDataFrame = sparkUtils.getDataFrame(result)
     assert(resultDataFrame.collect().length == 1)
-
   }
 
 }

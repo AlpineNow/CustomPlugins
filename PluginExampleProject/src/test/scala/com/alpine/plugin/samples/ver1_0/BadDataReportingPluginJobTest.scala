@@ -2,7 +2,7 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.test.mock.OperatorParametersMock
-import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{GolfData, OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -16,7 +16,8 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
     val operator = new BadDataReportingPluginJob
     val dataFrameInput = GolfData.createGolfDFWithNullRows(sc)
     val parameters =new OperatorParametersMock("TestBadData", "golf")
-    parameters.setValue(HdfsParameterUtils.badDataReportParameterID, HdfsParameterUtils.badDataReportNO)
+    parameters.setValue(HdfsParameterUtils.badDataReportParameterID,
+      HdfsParameterUtils.badDataReportNO)
     parameters.setValue(BadDataConstants.badDataTypeParamId, BadDataConstants.ALL_NULL)
     parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
 
@@ -36,7 +37,8 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
     val operator = new BadDataReportingPluginJob
     val dataFrameInput = GolfData.createGolfDFWithNullAndZeroRows(sc)
     val parameters =new OperatorParametersMock("TestBadData", "golf")
-    parameters.setValue(HdfsParameterUtils.badDataReportParameterID, HdfsParameterUtils.badDataReportNO)
+    parameters.setValue(HdfsParameterUtils.badDataReportParameterID,
+      HdfsParameterUtils.badDataReportNO)
     parameters.setValue(BadDataConstants.badDataTypeParamId, BadDataConstants.NULL_AND_ZERO)
     parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
 

@@ -1,7 +1,7 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.test.mock.OperatorParametersMock
-import com.alpine.plugin.test.utils.{TestSparkContexts, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{IrisFlowerPrediction, TestSparkContexts, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

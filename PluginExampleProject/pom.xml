@@ -32,7 +32,7 @@
         </repository>
     </repositories>
     <properties>
-        <alpine.version>1.5-beta</alpine.version>
+        <alpine.version>1.5-beta-1</alpine.version>
     </properties>
     <dependencies>
 
