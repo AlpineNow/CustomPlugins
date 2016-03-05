@@ -157,7 +157,7 @@
                 </executions>
             </plugin>
 
-            <!-- Run "mvn gplus:execute compile" to execute this. It generates the plugins.xml file.-->
+            <!-- Run "mvn compile gplus:execute" to execute this. It generates the plugins.xml file.-->
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>
                 <artifactId>gmavenplus-plugin</artifactId>
