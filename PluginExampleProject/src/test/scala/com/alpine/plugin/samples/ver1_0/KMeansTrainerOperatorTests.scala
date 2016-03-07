@@ -93,7 +93,8 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
       new VisualModelFactoryMock)
     //cast to the html model so we can see what the text looks like.
     val visualizationText = visualModels.asInstanceOf[HtmlVisualModel].text
-    println(visualizationText)
+    assert(visualizationText.contains("<table ><tr><td style = \"padding-right:10px;\" >"))
+
   }
 
 }
