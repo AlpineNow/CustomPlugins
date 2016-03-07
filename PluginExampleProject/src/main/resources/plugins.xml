@@ -1,19 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <alpine-plugins>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.NumericFeatureTransformerSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.JavaDBTransformer.JavaDBTransformerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.AdvancedColumnFilterSignature</signature-class>
   </plugin>
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.DBNumericFeatureTransformerSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.DBTableInfoViewerSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.JavaCountPlugin.CountByGroupSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HelloWorldSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.LinearRegressionSignature</signature-class>
   </plugin>
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.RegressionEvaluatorSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.LinearRegressionSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.BadDataReportingPluginSignature</signature-class>
   </plugin>
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.KMeansTrainerSignature</signature-class>
@@ -22,33 +31,27 @@
     <signature-class>com.alpine.plugin.samples.ver1_0.AggregationSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.HelloWorldSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.SparkRandomDatasetGeneratorSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.HelloWorldInSparkSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.DBTableInfoViewerSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.ColumnFilterSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.DBConfusionMatrixSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.IOListSampleSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.NumericFeatureTransformerSignature</signature-class>
   </plugin>
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.Tuple4SampleSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.JavaCountPlugin.CountByGroupSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HelloWorldInSparkSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.JavaDBTransformer.JavaDBTransformerSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.IOListSampleSignature</signature-class>
   </plugin>
   <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.SparkRandomDatasetGeneratorSignature</signature-class>
-  </plugin>
-  <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.BadDataReportingPluginSignature</signature-class>
-  </plugin>
-  <plugin>
-    <signature-class>com.alpine.plugin.samples.ver1_0.DBConfusionMatrixSignature</signature-class>
+    <signature-class>com.alpine.plugin.samples.ver1_0.ColumnFilterSignature</signature-class>
   </plugin>
 </alpine-plugins>
