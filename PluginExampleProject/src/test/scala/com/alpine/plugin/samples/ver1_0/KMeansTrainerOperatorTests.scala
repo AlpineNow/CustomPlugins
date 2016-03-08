@@ -47,7 +47,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
 
     val inputParameters = new OperatorParametersMock("2", "K Means Trainer Job")
     OperatorParameterMockUtil.addTabularColumns(inputParameters, KMeansConstants.featuresParamId,
-      "sepalLength", "sepalWidth", "petaLlength", "petalWidth")
+      "sepalLength", "sepalWidth", "petalLength", "petalWidth")
     OperatorParameterMockUtil.addHdfsParams(inputParameters, "KMeansFullOperatorTestResult")
     //the result of the parameters will be assigned their default values.
 
@@ -71,13 +71,13 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
 
   }
 
-  test("K Means Visualizaton"){
+  test("K Means Visualization"){
     val guiNode = new KMeansTrainerGUINode
     val job = new KMeansTrainerJob
 
     val inputParameters = new OperatorParametersMock("2", "K Means Trainer Job")
     OperatorParameterMockUtil.addTabularColumns(inputParameters, KMeansConstants.featuresParamId,
-      "sepalLength", "sepalWidth", "petaLlength", "petalWidth")
+      "sepalLength", "sepalWidth", "petalLength", "petalWidth")
     OperatorParameterMockUtil.addHdfsParams(inputParameters, "KMeansFullOperatorTestResult")
     //the resut of the parameters will be assigned their default values.
     //run the onPlacement method, which will add parameters to the mock operator default
