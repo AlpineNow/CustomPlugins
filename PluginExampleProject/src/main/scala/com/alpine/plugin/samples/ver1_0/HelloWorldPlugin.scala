@@ -28,7 +28,7 @@ class HelloWorldSignature extends OperatorSignature[
   HelloWorldRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
-      name = "Sample - HelloWorld",
+      name = "Sample - Hello World",
       category = "Plugin Sample - Local",
       author = "Sung Chung",
       version = 1,
