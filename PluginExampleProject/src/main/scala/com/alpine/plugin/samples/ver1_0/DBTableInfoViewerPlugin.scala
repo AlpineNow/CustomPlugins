@@ -26,7 +26,7 @@ import com.alpine.plugin.core.io.defaults.IOStringDefault
 
 class DBTableInfoViewerSignature extends OperatorSignature[
   DBTableInfoViewerGUINode,
-  DBTableInfoViewerRuntime]{
+  DBTableInfoViewerRuntime] {
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
       name = "Sample - DB Table Info Viewer",
@@ -62,7 +62,7 @@ class DBTableInfoViewerGUINode extends OperatorGUINode[
       label = "Database Table",
       defaultTable = ""
     )
- }
+  }
 }
 
 class DBTableInfoViewerRuntime extends DBRuntime[IONone, IOString] {

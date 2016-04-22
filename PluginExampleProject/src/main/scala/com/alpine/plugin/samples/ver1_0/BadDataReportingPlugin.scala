@@ -13,18 +13,18 @@ import org.apache.spark.sql.{DataFrame, Row}
 import scala.util.Try
 
 /**
- * A Custom Operator which demonstrates how to use our built in features for filtering and reporting
- * bad data, and displaying html formatted results.
- * The Custom Operator takes in some data, filters out the bad data, and prints the bad
- * data to a file. Has two parameters besides the default storage parameters:
- * 1) weather to write bad data to a file or not (uses the parameter defined in Hdfs tabular dataset to
- * do this
- * 2) A custom style tag to use in the "fancy" html table.
- * Additionally the Custom operator creates a visualization of three items:
- * 1) The good data
- * 2) An html table (with default styling) of a report about the bad data which was removed
- * 3) A "fancy" html table with custom styling determined by the value of the input parameter
- */
+  * A Custom Operator which demonstrates how to use our built in features for filtering and reporting
+  * bad data, and displaying html formatted results.
+  * The Custom Operator takes in some data, filters out the bad data, and prints the bad
+  * data to a file. Has two parameters besides the default storage parameters:
+  * 1) weather to write bad data to a file or not (uses the parameter defined in Hdfs tabular dataset to
+  * do this
+  * 2) A custom style tag to use in the "fancy" html table.
+  * Additionally the Custom operator creates a visualization of three items:
+  * 1) The good data
+  * 2) An html table (with default styling) of a report about the bad data which was removed
+  * 3) A "fancy" html table with custom styling determined by the value of the input parameter
+  */
 class BadDataReportingPluginSignature extends OperatorSignature[
   BadDataReportingPluginGUINode,
   BadDataReportingPluginRuntime] {

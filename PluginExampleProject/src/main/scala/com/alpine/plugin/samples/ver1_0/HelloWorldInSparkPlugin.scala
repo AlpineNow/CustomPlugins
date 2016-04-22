@@ -46,10 +46,9 @@ class HelloWorldInSparkSignature extends OperatorSignature[
 class HelloWorldInSparkGUINode extends OperatorGUINode[
   IONone,
   HdfsDelimitedTabularDataset] {
-  override def onPlacement(
-    operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onPlacement(operatorDialog: OperatorDialog,
+                           operatorDataSourceManager: OperatorDataSourceManager,
+                           operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
@@ -67,15 +66,12 @@ class HelloWorldInSparkRuntime extends SparkRuntimeWithIOTypedJob[
 class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
   IONone,
   HdfsDelimitedTabularDataset] {
-  override def onExecution(
-    sparkContext: SparkContext,
-    appConf: mutable.Map[String, String],
-    input: IONone,
-    operatorParameters: OperatorParameters,
-    listener: OperatorListener): HdfsDelimitedTabularDataset = {
-    val sparkUtils = new SparkRuntimeUtils(
-      sparkContext
-    )
+  override def onExecution(sparkContext: SparkContext,
+                           appConf: mutable.Map[String, String],
+                           input: IONone,
+                           operatorParameters: OperatorParameters,
+                           listener: OperatorListener): HdfsDelimitedTabularDataset = {
+    val sparkUtils = new SparkRuntimeUtils(sparkContext)
 
     val outputPathStr =
       HdfsParameterUtils.getOutputPath(operatorParameters)

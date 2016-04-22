@@ -29,9 +29,9 @@ import org.apache.spark.sql.types.StructType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CountPluginSparkJob extends SparkDataFrameJob {
+class CountPluginSparkJob extends SparkDataFrameJob {
 
-    public static final String GroupByParamKey = "groupBy";
+    static final String GroupByParamKey = "groupBy";
 
     public DataFrame transform(OperatorParameters params, DataFrame inputDataFrame,
                                SparkRuntimeUtils sparkUtils, OperatorListener listener) {

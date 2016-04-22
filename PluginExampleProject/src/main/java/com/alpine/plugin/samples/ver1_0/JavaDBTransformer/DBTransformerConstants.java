@@ -24,17 +24,17 @@ import scala.collection.Seq;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DBTransformerConstants {
+class DBTransformerConstants {
 
-    public static final String COLUMNS_TO_TRANSFORM_PARAM = "cols_to_transform";
-    public static final String TRANSFORMATION_TYPE_PARAM = "transformation_type";
+    static final String COLUMNS_TO_TRANSFORM_PARAM = "cols_to_transform";
+    static final String TRANSFORMATION_TYPE_PARAM = "transformation_type";
 
-    public static final String TRANSFORMATION_TYPE_POW2 = "Pow2";
-    public static final String TRANSFORMATION_TYPE_POW3 = "Pow3";
+    static final String TRANSFORMATION_TYPE_POW2 = "Pow2";
+    static final String TRANSFORMATION_TYPE_POW3 = "Pow3";
 
-    public static TabularSchema transformSchema(TabularSchema inputSchema,
-                                                String[] columnsToTransform,
-                                                String transformationType) {
+    static TabularSchema transformSchema(TabularSchema inputSchema,
+                                         String[] columnsToTransform,
+                                         String transformationType) {
 
         Seq<ColumnDef> inputCols = inputSchema.getDefinedColumns();
         List<ColumnDef> outputColumnDefs = new ArrayList<ColumnDef>(inputCols.size() + columnsToTransform.length);

@@ -50,23 +50,25 @@ object SparkRandomDatasetGeneratorConstants {
   val stringColumnsParam = "numStringColumns"
   val numRowsParam = "numRows"
 
-  def defineOutputSchema(numDoubleCols : Int ,
-  numIntCols : Int, numStringCols : Int, tabularFormatAttributes: TabularFormatAttributes) = {
-        TabularSchema(
-          (1 to numDoubleCols).map(i => ColumnDef("DoubleCol" + i.toString, ColumnType.Double)).toSeq ++
-            (1 to numIntCols).map(i => ColumnDef("IntCol" + i.toString, ColumnType.Int)).toSeq ++
-            (1 to numStringCols).map(i => ColumnDef("StringCol" + i.toString, ColumnType.String)).toSeq,
-        tabularFormatAttributes )
+  def defineOutputSchema(numDoubleCols: Int,
+                         numIntCols: Int,
+                         numStringCols: Int,
+                         tabularFormatAttributes: TabularFormatAttributes) = {
+    TabularSchema(
+      (1 to numDoubleCols).map(i => ColumnDef("DoubleCol" + i.toString, ColumnType.Double)) ++
+        (1 to numIntCols).map(i => ColumnDef("IntCol" + i.toString, ColumnType.Int)) ++
+        (1 to numStringCols).map(i => ColumnDef("StringCol" + i.toString, ColumnType.String)),
+      tabularFormatAttributes
+    )
 
   }
 }
 
 class SparkRandomDatasetGeneratorGUINode
   extends OperatorGUINode[IONone, HdfsTabularDataset] {
-  override def onPlacement(
-    operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onPlacement(operatorDialog: OperatorDialog,
+                           operatorDataSourceManager: OperatorDataSourceManager,
+                           operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addIntegerBox(
       SparkRandomDatasetGeneratorConstants.doubleColumnsParam,
       "Number of double columns to generate.",
@@ -122,10 +124,9 @@ class SparkRandomDatasetGeneratorGUINode
     )
   }
 
-  override def onInputOrParameterChange(
-    inputSchemas: Map[String, TabularSchema],
-    params: OperatorParameters,
-    operatorSchemaManager: OperatorSchemaManager): OperatorStatus = {
+  override def onInputOrParameterChange(inputSchemas: Map[String, TabularSchema],
+                                        params: OperatorParameters,
+                                        operatorSchemaManager: OperatorSchemaManager): OperatorStatus = {
     val numDoubleCols = params.getIntValue(SparkRandomDatasetGeneratorConstants.doubleColumnsParam)
     val numIntCols = params.getIntValue(SparkRandomDatasetGeneratorConstants.intColumnsParam)
     val numStringCols = params.getIntValue(SparkRandomDatasetGeneratorConstants.stringColumnsParam)
@@ -138,7 +139,7 @@ class SparkRandomDatasetGeneratorGUINode
       // potentially selecting different output formats.
       val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(HdfsParameterUtils.getHdfsStorageFormat(params))
       val outputSchema = SparkRandomDatasetGeneratorConstants.defineOutputSchema(numDoubleCols,
-      numIntCols, numStringCols, tabularFormatAttributes)
+        numIntCols, numStringCols, tabularFormatAttributes)
       operatorSchemaManager.setOutputSchema(outputSchema)
 
       OperatorStatus(isValid = true)
@@ -150,12 +151,11 @@ class SparkRandomDatasetGeneratorRuntime
   extends SparkRuntimeWithIOTypedJob[RandomDatasetGeneratorJob, IONone, HdfsTabularDataset] {}
 
 class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabularDataset] {
-  override def onExecution(
-    sparkContext: SparkContext,
-    appConf: mutable.Map[String, String],
-    input: IONone,
-    params: OperatorParameters,
-    listener: OperatorListener): HdfsTabularDataset = {
+  override def onExecution(sparkContext: SparkContext,
+                           appConf: mutable.Map[String, String],
+                           input: IONone,
+                           params: OperatorParameters,
+                           listener: OperatorListener): HdfsTabularDataset = {
 
     val sparkUtils = new SparkRuntimeUtils(sparkContext)
     val numDoubleCols = params.getIntValue("numDoubleColumns")
@@ -170,18 +170,16 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
         (1 to numRowsPerPartition).map(
           _ =>
             org.apache.spark.sql.Row.fromSeq(
-              (1 to numDoubleCols).map(_ => rng.nextDouble()).toSeq ++
-              (1 to numIntCols).map(_ => rng.nextInt()).toSeq ++
-              (1 to numStringCols).map(
-                _ =>
-                  (
+              (1 to numDoubleCols).map(_ => rng.nextDouble()) ++
+                (1 to numIntCols).map(_ => rng.nextInt()) ++
+                (1 to numStringCols).map(
+                  _ =>
                     rng.nextPrintableChar().toString +
                       rng.nextPrintableChar().toString +
                       rng.nextPrintableChar().toString +
                       rng.nextPrintableChar().toString +
                       rng.nextPrintableChar().toString
-                  )
-              ).toSeq
+                )
             )
         ).iterator
       }

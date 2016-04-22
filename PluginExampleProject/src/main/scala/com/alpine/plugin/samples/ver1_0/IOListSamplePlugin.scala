@@ -25,8 +25,8 @@ import com.alpine.plugin.core.spark._
 import com.alpine.plugin.core.io.defaults.IOStringDefault
 
 /**
- * Demonstrates using IOList as an input.
- */
+  * Demonstrates using IOList as an input.
+  */
 class IOListSampleSignature extends OperatorSignature[
   IOListSampleGUINode,
   IOListSampleRuntime] {
@@ -45,10 +45,9 @@ class IOListSampleSignature extends OperatorSignature[
 class IOListSampleGUINode extends OperatorGUINode[
   IOList[HdfsTabularDataset],
   IOString] {
-  override def onPlacement(
-    operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onPlacement(operatorDialog: OperatorDialog,
+                           operatorDataSourceManager: OperatorDataSourceManager,
+                           operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addParentOperatorDropdownBox(
       id = "dataset1",
       label = "Number One Dataset"
@@ -62,19 +61,18 @@ class IOListSampleGUINode extends OperatorGUINode[
 }
 
 /**
- * As with the Tuple4 SamplePlugin, we don't launch a Spark Job
- * since we are not ever using the data stored on HDFS. Instead this plugin
- * simply returns a string object with a message about the paths to the datasets
- * selected as the number one and number two dataset.
- */
+  * As with the Tuple4 SamplePlugin, we don't launch a Spark Job
+  * since we are not ever using the data stored on HDFS. Instead this plugin
+  * simply returns a string object with a message about the paths to the datasets
+  * selected as the number one and number two dataset.
+  */
 class IOListSampleRuntime extends SparkRuntime[
   IOList[HdfsTabularDataset],
   IOString] {
-  override def onExecution(
-    context: SparkExecutionContext,
-    input: IOList[HdfsTabularDataset],
-    params: OperatorParameters,
-    listener: OperatorListener): IOString = {
+  override def onExecution(context: SparkExecutionContext,
+                           input: IOList[HdfsTabularDataset],
+                           params: OperatorParameters,
+                           listener: OperatorListener): IOString = {
     val dataset1UUID = params.getStringValue("dataset1")
     val dataset2UUID = params.getStringValue("dataset2")
     var dataset1Path: String = ""
@@ -96,17 +94,16 @@ class IOListSampleRuntime extends SparkRuntime[
         dataset2Type = dataset.getClass.getCanonicalName
       }
     }
- //return the IOString default object
+    //return the IOString default object
     new IOStringDefault(
       "The number one dataset has the path '" + dataset1Path +
         "' and is of the type '" + dataset1Type + "'\n" +
-      "The number two dataset has the path '" + dataset2Path +
+        "The number two dataset has the path '" + dataset2Path +
         "' and is of the type '" + dataset2Type + "'\n",
       Some(params.operatorInfo)
     )
   }
 
-  override def onStop(
-    context: SparkExecutionContext,
-    listener: OperatorListener): Unit = {}
+  override def onStop(context: SparkExecutionContext,
+                      listener: OperatorListener): Unit = {}
 }

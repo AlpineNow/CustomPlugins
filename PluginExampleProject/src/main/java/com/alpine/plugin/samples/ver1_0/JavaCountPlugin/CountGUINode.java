@@ -16,7 +16,6 @@
  */
 package com.alpine.plugin.samples.ver1_0.JavaCountPlugin;
 
-import com.alpine.JavaPluginUtils.ScalaConversionUtils;
 import com.alpine.plugin.core.OperatorParameters;
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager;
 import com.alpine.plugin.core.dialog.ColumnFilter;
@@ -26,13 +25,16 @@ import com.alpine.plugin.core.io.ColumnType;
 import com.alpine.plugin.core.io.OperatorSchemaManager;
 import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.spark.templates.SparkDataFrameGUINode;
+import com.alpine.plugin.util.JavaConversionUtils;
 import scala.collection.Seq;
+
+import java.util.Arrays;
 
 /**
  * Design time behavior for the Count Plugin. Defines the parameters and
  * output schema.
  */
-public class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob> {
+class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob> {
 
     public void onPlacement(OperatorDialog operatorDialog,
                             OperatorDataSourceManager operatorDataSourceManager,
@@ -55,7 +57,7 @@ public class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob> {
                                                     OperatorParameters params) {
         String groupByVar = params.getTabularDatasetSelectedColumn(
                 CountPluginSparkJob.GroupByParamKey)._2();
-        return ScalaConversionUtils.scalaSeq(new ColumnDef(groupByVar, ColumnType.String()),
-                new ColumnDef("GroupCounts", ColumnType.Long()));
+        return JavaConversionUtils.toSeq(Arrays.asList(new ColumnDef(groupByVar, ColumnType.String()),
+                new ColumnDef("GroupCounts", ColumnType.Long())));
     }
 }
