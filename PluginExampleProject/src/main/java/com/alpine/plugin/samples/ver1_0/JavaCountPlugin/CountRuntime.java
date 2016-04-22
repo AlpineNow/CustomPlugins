@@ -22,7 +22,4 @@ import com.alpine.plugin.core.spark.templates.SparkDataFrameRuntime;
 /**
  * Runtime behavior of the Count by Group plugin. Launches the Spark Job.
  */
-public class CountRuntime extends SparkDataFrameRuntime<CountPluginSparkJob> {
-}
-
-
+class CountRuntime extends SparkDataFrameRuntime<CountPluginSparkJob> {}

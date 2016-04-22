@@ -17,21 +17,25 @@
 package com.alpine.plugin.samples.ver1_0.JavaDBTransformer;
 
 
-import com.alpine.JavaPluginUtils.ScalaConversionUtils;
 import com.alpine.plugin.core.OperatorGUINode;
 import com.alpine.plugin.core.OperatorParameters;
 import com.alpine.plugin.core.OperatorStatus;
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager;
 import com.alpine.plugin.core.dialog.ColumnFilter;
 import com.alpine.plugin.core.dialog.OperatorDialog;
-import com.alpine.plugin.core.io.*;
+import com.alpine.plugin.core.io.DBTable;
+import com.alpine.plugin.core.io.OperatorSchemaManager;
+import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.utils.DBParameterUtils;
+import com.alpine.plugin.util.JavaConversionUtils;
 import scala.Option;
 import scala.collection.immutable.Map;
 
-public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DBTable> {
+import java.util.Arrays;
 
-    public static final String SELECTION_GROUP_ID_MAIN = "main";
+class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DBTable> {
+
+    private static final String SELECTION_GROUP_ID_MAIN = "main";
 
     public void onPlacement(OperatorDialog operatorDialog,
                             OperatorDataSourceManager operatorDataSourceManager,
@@ -49,9 +53,9 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
             );
             //the operator dialog methods require scala collection types.
             //use the ScalaConversionUtils class to generate those in Java.
-            scala.collection.Seq<String> transformationTypes = ScalaConversionUtils.scalaSeq(
+            scala.collection.Seq<String> transformationTypes = JavaConversionUtils.toSeq(Arrays.asList(
                     DBTransformerConstants.TRANSFORMATION_TYPE_POW2,
-                    DBTransformerConstants.TRANSFORMATION_TYPE_POW3);
+                    DBTransformerConstants.TRANSFORMATION_TYPE_POW3));
             operatorDialog.addDropdownBox(
                     DBTransformerConstants.TRANSFORMATION_TYPE_PARAM,
                     "Transformation Type",

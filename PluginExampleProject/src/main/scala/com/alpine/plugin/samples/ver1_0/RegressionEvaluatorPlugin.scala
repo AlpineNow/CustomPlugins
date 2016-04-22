@@ -36,16 +36,16 @@ import org.apache.spark.sql.{SQLContext, DataFrame}
 import scala.collection.mutable
 
 /**
- * This is the design-time code for the Regression evaluator operator.
- * It takes an input dataset and a Regression model to create a set of metrics
- * evaluating the quality of the model on the dataset.
- *
- * The result is a dataset containing one row, where each statistic is in a separate column.
- *
- * N.B. The "explainedVariance" statistic may be inconsistent with the usual definition.
- * See https://issues.apache.org/jira/browse/SPARK-9005
- * (fixed in Spark 1.5.0, but we are currently using Spark 1.3.1).
- */
+  * This is the design-time code for the Regression evaluator operator.
+  * It takes an input dataset and a Regression model to create a set of metrics
+  * evaluating the quality of the model on the dataset.
+  *
+  * The result is a dataset containing one row, where each statistic is in a separate column.
+  *
+  * N.B. The "explainedVariance" statistic may be inconsistent with the usual definition.
+  * See https://issues.apache.org/jira/browse/SPARK-9005
+  * (fixed in Spark 1.5.0, but we are currently using Spark 1.3.1).
+  */
 class RegressionEvaluatorSignature extends OperatorSignature[
   RegressionEvaluatorGUINode,
   RegressionEvaluatorRuntime] {
@@ -90,14 +90,14 @@ class RegressionEvaluatorGUINode extends OperatorGUINode[
 
 
 /**
- * This is the runtime code for the Regression evaluator operator.
- * It takes an input dataset and a Regression model to create a RDD[(Double, Double)],
- * of predicted and observed values.
- * It then calls RegressionMetrics from MLLib to create a set of metrics
- * evaluating the quality of the model on the dataset.
- *
- * It returns an RDD containing one row, where each statistic is in a separate column.
- */
+  * This is the runtime code for the Regression evaluator operator.
+  * It takes an input dataset and a Regression model to create a RDD[(Double, Double)],
+  * of predicted and observed values.
+  * It then calls RegressionMetrics from MLLib to create a set of metrics
+  * evaluating the quality of the model on the dataset.
+  *
+  * It returns an RDD containing one row, where each statistic is in a separate column.
+  */
 class RegressionEvaluatorRuntime extends SparkRuntimeWithIOTypedJob[
   RegressionEvaluatorJob,
   Tuple2[HdfsTabularDataset, RegressionModelWrapper],
@@ -105,10 +105,10 @@ class RegressionEvaluatorRuntime extends SparkRuntimeWithIOTypedJob[
   ]
 
 class RegressionEvaluatorJob extends
-SparkIOTypedPluginJob[
-  Tuple2[HdfsTabularDataset, RegressionModelWrapper],
-  HdfsTabularDataset
-  ] {
+  SparkIOTypedPluginJob[
+    Tuple2[HdfsTabularDataset, RegressionModelWrapper],
+    HdfsTabularDataset
+    ] {
   override def onExecution(sparkContext: SparkContext,
                            appConf: mutable.Map[String, String],
                            input: Tuple2[HdfsTabularDataset, RegressionModelWrapper],
@@ -146,10 +146,10 @@ SparkIOTypedPluginJob[
 object RegressionEvaluatorUtil {
 
   /**
-   * Given the transformer from the model, and the independent and dependent columns
-   * from the input data. Returns a tuple with the predicted value (generated from the  transformer)
-   * and the actual value. (The dependent column).
-   */
+    * Given the transformer from the model, and the independent and dependent columns
+    * from the input data. Returns a tuple with the predicted value (generated from the  transformer)
+    * and the actual value. (The dependent column).
+    */
   def calculatePredictionTuple(independentColumnIndices: Array[Int],
                                dependentColumnIndex: Int,
                                transformer: RegressionTransformer)(row: sql.Row): (Double, Double) = {
@@ -160,8 +160,8 @@ object RegressionEvaluatorUtil {
   }
 
   /**
-   * Converts from the Spark SQL row in the input data frame to an array of the input features.
-   */
+    * Converts from the Spark SQL row in the input data frame to an array of the input features.
+    */
   def getInputRowForModel(independentColumnIndices: Array[Int], row: sql.Row): Array[Any] = {
     val inputRow = Array.ofDim[Any](independentColumnIndices.length)
     var i = 0
@@ -184,10 +184,10 @@ object RegressionEvaluatorUtil {
   }
 
   /**
-   * Use the model to predict on the data, then compute the regression evaluation
-   * metrics against the known value of the dependent column in the input data.
-   * Return a DataFrame with the results of each metric.
-   */
+    * Use the model to predict on the data, then compute the regression evaluation
+    * metrics against the known value of the dependent column in the input data.
+    * Return a DataFrame with the results of each metric.
+    */
   def calculateResultDataFrame(sparkContext: SparkContext,
                                schemaFixedColumns: Seq[ColumnDef],
                                dataFrame: DataFrame,
@@ -196,19 +196,19 @@ object RegressionEvaluatorUtil {
     val inputFeatures = model.inputFeatures
 
     /**
-     * Build a map from the column names in the input dataset to their corresponding indices in that dataset.
-     */
+      * Build a map from the column names in the input dataset to their corresponding indices in that dataset.
+      */
     val nameToIndexMap: Map[String, Int] = schemaFixedColumns.zipWithIndex.map(t => (t._1.columnName, t._2)).toMap
     /**
-     * We match only on the name and not the whole ColumnDef to allow leniency in the types.
-     * e.g. A Linear Regression takes Double input columns, but the data-frame has Long types.
-     */
+      * We match only on the name and not the whole ColumnDef to allow leniency in the types.
+      * e.g. A Linear Regression takes Double input columns, but the data-frame has Long types.
+      */
     val independentColumnIndices = inputFeatures.map(feature => {
       val index: Option[Int] = nameToIndexMap.get(feature.columnName)
       if (index.isEmpty) {
         val errorMessage =
           s"""Cannot find the column with name
-             |${feature.columnName}
+              |${feature.columnName}
               | needed for prediction in the input dataset.""".stripMargin
         listener.notifyError(errorMessage)
         throw new IllegalArgumentException(errorMessage)
@@ -221,7 +221,7 @@ object RegressionEvaluatorUtil {
     if (dependentColumnIndex == -1) {
       val errorMessage =
         s"""Cannot find the column with name
-           |${model.dependentFeature.columnName}
+            |${model.dependentFeature.columnName}
             | (the dependent column of the model) in the input dataset.""".stripMargin
       listener.notifyError(errorMessage)
       throw new IllegalArgumentException(errorMessage)
@@ -254,8 +254,8 @@ object RegressionEvaluatorUtil {
   }
 
   /**
-   * Uses the spark utils class to save the result dataFrame to HDFS.
-   */
+    * Uses the spark utils class to save the result dataFrame to HDFS.
+    */
   def saveOutput(sparkContext: SparkContext,
                  operatorParameters: OperatorParameters,
                  listener: OperatorListener,

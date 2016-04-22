@@ -22,7 +22,7 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
     parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
 
     OperatorParameterMockUtil.addHdfsParams(parameters, "BadDataReportingTest")
-    val (r, a) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
+    val (r, _) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
     val justGoodData = GolfData.createGolfDF(sc)
 
     //using Subtraction in this way is a solution to test rdd equality
@@ -43,7 +43,7 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
     parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
 
     OperatorParameterMockUtil.addHdfsParams(parameters, "BadDataReportingTest")
-    val (r, a) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
+    val (r, _) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
     val justGoodData = GolfData.createGolfDF(sc)
 
     //using Subtraction in this way is a solution to test rdd equality

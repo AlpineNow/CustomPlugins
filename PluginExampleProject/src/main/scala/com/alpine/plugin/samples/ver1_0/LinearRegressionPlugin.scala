@@ -32,16 +32,16 @@ import org.apache.spark.mllib.regression.LassoWithSGD
 import scala.collection.mutable
 
 /**
- * This is an example plugin showing how to use MLlib to train a basic Linear Regression Model.
- * The output of this operator can be connected to the "Regression Evaluator" plugin,
- * or Alpine's "Predictor" operator.
- *
- * In this example we show how to use one of Alpine's predefined Model types,
- * the LinearRegressionModel. See the ExampleClassificationModel for an example of creating
- * a new model type.
- *
- * N.B. The algorithm used works best on normalized input data.
- */
+  * This is an example plugin showing how to use MLlib to train a basic Linear Regression Model.
+  * The output of this operator can be connected to the "Regression Evaluator" plugin,
+  * or Alpine's "Predictor" operator.
+  *
+  * In this example we show how to use one of Alpine's predefined Model types,
+  * the LinearRegressionModel. See the ExampleClassificationModel for an example of creating
+  * a new model type.
+  *
+  * N.B. The algorithm used works best on normalized input data.
+  */
 class LinearRegressionSignature extends OperatorSignature[
   LinearRegressionPluginGUINode,
   LinearRegressionPluginRuntime] {
@@ -131,7 +131,7 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
 
     val inputDataFrame = sparkUtils.getDataFrame(input)
     val labeledPoints = inputDataFrame.map(MLlibUtils.toLabeledPoint(dependentColumnIndex, independentColumnIndices))
-      //.persist(StorageLevel.MEMORY_AND_DISK) // Could perform caching here.
+    //.persist(StorageLevel.MEMORY_AND_DISK) // Could perform caching here.
 
     // This is different to the internal Alpine implementation of Linear Regression, which uses OWLQN,
     // but it is also simpler to read.
@@ -143,12 +143,12 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
 
 
     val mLlibCoefficients: Array[Double] = mlLibModel.weights.toArray
-    val independentColumnDefs: Array[ColumnDef] =  independentColumnNames.map(f => ColumnDef(f, ColumnType.Double))
+    val independentColumnDefs: Array[ColumnDef] = independentColumnNames.map(f => ColumnDef(f, ColumnType.Double))
     val alpineLinearRegressionModel: LinearRegressionModel =
       LinearRegressionModel.make(
-      mLlibCoefficients , independentColumnDefs,
-      mlLibModel.intercept,  dependentColumn
-    )
+        mLlibCoefficients, independentColumnDefs,
+        mlLibModel.intercept, dependentColumn
+      )
 
     //return a RegressionModelWrapper containing the alpineLinearRegressionModel
     new RegressionModelWrapper(

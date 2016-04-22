@@ -27,29 +27,29 @@ import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Row}
 
 /**
- * An example of a very simple plugin that take a  group by parameter and a a few numeric
- * features and computers the product of each column by group.
- *
- * Class to define:
- * 1. SIGNATURE CLASS (AggregationPluginSignature)  which has the type of the GUI-NODE CLASS
- * (AggregationGuiNode) and the RUNTIME CLASS (AggregationRuntime):
- * Defines some metadata about the operator in particular its name,
- * author and optionally, version.
- *
- * 2. GUINODE Class(AggregationGUINode) defines the gui box for when the user clicks on the operator.
- * ***The onPlacement( ... ) method defines the parameters that will appear
- * when you place the operator
- * ***The getSparkOutputSchema( ... )  defines the schema for the output (in this case as a scala
- * StuctType used to defined DataFrame schemas.
- *
- * 3. RUNTIME CLASS (AggregationRuntime) which takes the SPARKJOB (AggregationPluginSparkJob) as a
- * type parameter: Defines the run time behavior. It is in this class where the Spark environment
- * is set up. To customize the Spark settings override the getSparkJobConfiguration class.
- *
- * 4. PLUGIN SPARK JOB CLASS (AggregationPluginSparkJob) This is the logic of the Spark job,
- * which should be contained in the "transform" method which takes in the input dataset
- * as a DataFrame and produces the output as a dataFrame.
- */
+  * An example of a very simple plugin that take a  group by parameter and a a few numeric
+  * features and computers the product of each column by group.
+  *
+  * Class to define:
+  * 1. SIGNATURE CLASS (AggregationPluginSignature)  which has the type of the GUI-NODE CLASS
+  * (AggregationGuiNode) and the RUNTIME CLASS (AggregationRuntime):
+  * Defines some metadata about the operator in particular its name,
+  * author and optionally, version.
+  *
+  * 2. GUINODE Class(AggregationGUINode) defines the gui box for when the user clicks on the operator.
+  * ***The onPlacement( ... ) method defines the parameters that will appear
+  * when you place the operator
+  * ***The getSparkOutputSchema( ... )  defines the schema for the output (in this case as a scala
+  * StuctType used to defined DataFrame schemas.
+  *
+  * 3. RUNTIME CLASS (AggregationRuntime) which takes the SPARK JOB (AggregationPluginSparkJob) as a
+  * type parameter: Defines the run time behavior. It is in this class where the Spark environment
+  * is set up. To customize the Spark settings override the getSparkJobConfiguration class.
+  *
+  * 4. PLUGIN SPARK JOB CLASS (AggregationPluginSparkJob) This is the logic of the Spark job,
+  * which should be contained in the "transform" method which takes in the input dataset
+  * as a DataFrame and produces the output as a dataFrame.
+  */
 
 class AggregationSignature extends OperatorSignature[
   AggregationGUINode,
@@ -71,19 +71,19 @@ object AggregationConstants {
 }
 
 /**
- * Static object which defines the Alpine Output Schema so that it can be  reused in the GUI
- * (for the design time schema) and to define the actual runtime output schema.
- */
+  * Static object which defines the Alpine Output Schema so that it can be  reused in the GUI
+  * (for the design time schema) and to define the actual runtime output schema.
+  */
 
 object AggregationOutputSchema {
   /**
-   *  A method that defines the columnDefs for the output schema so they can be used in the
-   *  GUI Node and spark job.
-   */
-  def getAlpineSchema(operatorParameters: OperatorParameters): TabularSchema =  {
+    * A method that defines the columnDefs for the output schema so they can be used in the
+    * GUI Node and spark job.
+    */
+  def getAlpineSchema(operatorParameters: OperatorParameters): TabularSchema = {
     //get the storage format i.e. Avro, Parquet, delimited ,
     val storageFormatParam = HdfsParameterUtils.getHdfsStorageFormat(operatorParameters)
-    //create an object with all the information about the tabular structure such as delimieter and
+    //create an object with all the information about the tabular structure such as delimiter and
     //escape character
     val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(storageFormatParam)
     val (_, aggregationCols) =
@@ -129,7 +129,7 @@ class AggregationGUINode extends SparkDataFrameGUINode[AggregationPluginSparkJob
   }
 
   override def defineEntireOutputSchema(
-    inputSchema: TabularSchema, params: OperatorParameters): TabularSchema =
+                                         inputSchema: TabularSchema, params: OperatorParameters): TabularSchema =
     AggregationOutputSchema.getAlpineSchema(params)
 }
 
@@ -138,7 +138,7 @@ class AggregationRuntime extends SparkDataFrameRuntime[AggregationPluginSparkJob
 class AggregationPluginSparkJob extends SparkDataFrameJob {
 
   override def transform(operatorParameters: OperatorParameters, inputDataFrame: DataFrame,
-                sparkUtils: SparkRuntimeUtils, listener: OperatorListener): DataFrame = {
+                         sparkUtils: SparkRuntimeUtils, listener: OperatorListener): DataFrame = {
     //get parameters
     val (_, groupByCol) =
       operatorParameters.getTabularDatasetSelectedColumn(AggregationConstants.GROUP_BY_PARAM_KEY)
@@ -155,7 +155,8 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
     val keyValueData = selectedData.map(row => {
       val key = row.getString(0)
       val rest = Range(1, row.length).map(i => row.get(i).toString.toDouble).toList
-      (key, rest)})
+      (key, rest)
+    })
     //use reduce by key to compute the product
     val groupedData = keyValueData.reduceByKey((rowA, rowB) => rowA.zip(rowB).map { case (a, b) => a * b })
 
@@ -172,6 +173,6 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
   //convert column definitions used at design time to DataFrame schema.
   def getSchema(operatorParameters: OperatorParameters, sparkUtils: SparkRuntimeUtils): StructType = {
     val alpineSchema = AggregationOutputSchema.getAlpineSchema(operatorParameters)
-     sparkUtils.convertTabularSchemaToSparkSQLSchema(alpineSchema)
+    sparkUtils.convertTabularSchemaToSparkSQLSchema(alpineSchema)
   }
 }

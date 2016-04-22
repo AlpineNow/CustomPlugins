@@ -41,25 +41,22 @@ class HelloWorldSignature extends OperatorSignature[
 class HelloWorldGUINode extends OperatorGUINode[
   IONone,
   IOString] {
-  override def onPlacement(
-    operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onPlacement(operatorDialog: OperatorDialog,
+                           operatorDataSourceManager: OperatorDataSourceManager,
+                           operatorSchemaManager: OperatorSchemaManager): Unit = {
   }
 }
 
 class HelloWorldRuntime extends SparkRuntime[
   IONone,
   IOString] {
-  override def onExecution(
-    context: SparkExecutionContext,
-    input: IONone,
-    params: OperatorParameters,
-    listener: OperatorListener): IOString = {
+  override def onExecution(context: SparkExecutionContext,
+                           input: IONone,
+                           params: OperatorParameters,
+                           listener: OperatorListener): IOString = {
     new IOStringDefault("Hello World", Some(params.operatorInfo))
   }
 
-  override def onStop(
-    context: SparkExecutionContext,
-    listener: OperatorListener): Unit = {}
+  override def onStop(context: SparkExecutionContext,
+                      listener: OperatorListener): Unit = {}
 }

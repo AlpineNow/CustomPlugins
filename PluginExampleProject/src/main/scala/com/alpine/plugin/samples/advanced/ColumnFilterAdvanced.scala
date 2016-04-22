@@ -29,8 +29,8 @@ import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
 import org.apache.spark.sql.DataFrame
 
 /**
- The column filter plugin with the addition of some advanced features
- */
+  * The column filter plugin with the addition of some advanced features
+  */
 class AdvancedColumnFilterSignature extends OperatorSignature[
   AdvancedColumnFilterGUINode,
   AdvancedColumnFilterRuntime] {
@@ -48,39 +48,39 @@ class AdvancedColumnFilterSignature extends OperatorSignature[
 }
 
 /**
- * Util with the constants for the plugin that will be used in multiple classes.
- */
+  * Util with the constants for the plugin that will be used in multiple classes.
+  */
 object ColumnFilterUtil {
   /**
-   * Key for the column selection parameter.
-   */
+    * Key for the column selection parameter.
+    */
   val COLUMNS_TO_KEEP_KEY = "columnsToKeep"
 
   val MESSAGE_STRING_KEY = "message"
   val HTML_MESSAGE_KEY = "htmlMessage"
 
   /**
-   * Returns the value of the columnsToKeep parameter, a list of the columns which will be in
-   * the output.
-   */
+    * Returns the value of the columnsToKeep parameter, a list of the columns which will be in
+    * the output.
+    */
   def getColumnsToKeep(parameters: OperatorParameters): Seq[String] = {
     parameters.getTabularDatasetSelectedColumns(ColumnFilterUtil.COLUMNS_TO_KEEP_KEY)._2
   }
 }
 
 /**
- * The ColumnFilterGUINode defines the design time behavior of the plugin. It extends
- * the template GUI class "SparkDataFrameGUINode" which takes the spark job as a type parameter.
- * It is in this class that we define the parameters which the user will see when they click on the
- * operator and the design time output schema.
- */
+  * The ColumnFilterGUINode defines the design time behavior of the plugin. It extends
+  * the template GUI class "SparkDataFrameGUINode" which takes the spark job as a type parameter.
+  * It is in this class that we define the parameters which the user will see when they click on the
+  * operator and the design time output schema.
+  */
 class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFilterJob] {
   /**
-   * We are now adding the advanced Spark parameters
-   */
+    * We are now adding the advanced Spark parameters
+    */
   override def onPlacement(operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+                           operatorDataSourceManager: OperatorDataSourceManager,
+                           operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     operatorDialog.addTabularDatasetColumnCheckboxes(
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY, //key so we can access this parameter in the Spark job
@@ -94,8 +94,8 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
      */
 
     /**
-     *    Advanced Exercise 1:  use the utility function to add the standard spark parameters function
-     */
+      * Advanced Exercise 1:  use the utility function to add the standard spark parameters function
+      */
 
     SparkParameterUtils.addStandardSparkOptions(
       operatorDialog,
@@ -109,16 +109,16 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
   }
 
   /**
-   * A method provided by the template which lets us define the output Tabular schema by
-   * specifying the columns that the output schema will include. By using this method, we are
-   * defining a schema which has the type (TSV, Avro, Parquet) that the user selected. In this
-   * case we define the output schema as containing only the columns that the user selected in
-   * the "Columns to keep" parameter.
-   *
-   * See the documentation of the SparkDataFrameGUINode for more information.
-   */
+    * A method provided by the template which lets us define the output Tabular schema by
+    * specifying the columns that the output schema will include. By using this method, we are
+    * defining a schema which has the type (TSV, Avro, Parquet) that the user selected. In this
+    * case we define the output schema as containing only the columns that the user selected in
+    * the "Columns to keep" parameter.
+    *
+    * See the documentation of the SparkDataFrameGUINode for more information.
+    */
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
-    parameters: OperatorParameters): Seq[ColumnDef] = {
+                                         parameters: OperatorParameters): Seq[ColumnDef] = {
     //get the value of the columns to keep parameter using the util. This is a list of names.
     val columnsToKeep = ColumnFilterUtil.getColumnsToKeep(parameters).toSet
 
@@ -129,47 +129,44 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
   }
 
   /**
-   * Exercise 3: Requiring that more than two columns are selected to keep
-   * @group internals
-   */
-  override def onInputOrParameterChange(
-    inputSchemas: Map[String, TabularSchema],
-    params: OperatorParameters,
-    operatorSchemaManager: OperatorSchemaManager): OperatorStatus = {
+    * Exercise 3: Requiring that more than two columns are selected to keep
+    *
+    * @group internals
+    */
+  override def onInputOrParameterChange(inputSchemas: Map[String, TabularSchema],
+                                        params: OperatorParameters,
+                                        operatorSchemaManager: OperatorSchemaManager): OperatorStatus = {
     this.updateOutputSchema(
       inputSchemas,
       params,
       operatorSchemaManager
     )
-    val (_ , colsSelected) = params.getTabularDatasetSelectedColumns(
+    val (_, colsSelected) = params.getTabularDatasetSelectedColumns(
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY)
-    if( colsSelected.length < 2){
-      OperatorStatus(false, Some("You need to select at least two columns"))
+    if (colsSelected.length < 2) {
+      OperatorStatus(isValid = false, Some("You need to select at least two columns"))
     }
-    else {
-      OperatorStatus(true , None)
-    }
+    else OperatorStatus(isValid = true)
   }
 
-  override def onOutputVisualization(
-    params: OperatorParameters,
-    output: HdfsTabularDataset,
-    visualFactory: VisualModelFactory): VisualModel = {
+  override def onOutputVisualization(params: OperatorParameters,
+                                     output: HdfsTabularDataset,
+                                     visualFactory: VisualModelFactory): VisualModel = {
     //create the standard visualization of the output data
     val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
       visualFactory.createTextVisualization(
         /**
-         * Get the key from the addendum
-         * We have to get it, since get returns an option type and convert to String since
-         * it is of type AnyRef
-         */
+          * Get the key from the addendum
+          * We have to get it, since get returns an option type and convert to String since
+          * it is of type AnyRef
+          */
         addendum.get(ColumnFilterUtil.MESSAGE_STRING_KEY).get.toString
       )
 
     val htmlVisualModel = visualFactory.createHtmlTextVisualization(
-       addendum.get(ColumnFilterUtil.HTML_MESSAGE_KEY).get.toString
+      addendum.get(ColumnFilterUtil.HTML_MESSAGE_KEY).get.toString
     )
     val compositeVisualModel = visualFactory.createCompositeVisualModel()
     compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
@@ -181,16 +178,16 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
 }
 
 /**
- * What happens when the alpine user clicks the "run button". In this case the base class,
- * SparkDataFrameRuntime, handles launching the spark job and serializing/de-serializing the inputs
- * The class takes one type parameter: ColumnFilterJob, which extends SparkDataFrameJob and
- * defines the Spark Job.
- */
+  * What happens when the alpine user clicks the "run button". In this case the base class,
+  * SparkDataFrameRuntime, handles launching the spark job and serializing/de-serializing the inputs
+  * The class takes one type parameter: ColumnFilterJob, which extends SparkDataFrameJob and
+  * defines the Spark Job.
+  */
 class AdvancedColumnFilterRuntime extends SparkDataFrameRuntime[AdvancedColumnFilterJob] {
   override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
     /**
-     * Exercise 2: adding max resultSize
-     */
+      * Exercise 2: adding max resultSize
+      */
     val config = super.getSparkJobConfiguration(parameters, input)
     config.additionalParameters += ("spark.driver.maxResultSize" -> "1g")
     config
@@ -198,34 +195,34 @@ class AdvancedColumnFilterRuntime extends SparkDataFrameRuntime[AdvancedColumnFi
 }
 
 /**
- * The logic of the SparkJob launched in the runtime class. Since we are using the template,
- * and don't need any custom visualization the only part of the Spark job we have to define
- * is the DataFrame transformation as the template handles all the reading, saving, and parsing.
- */
+  * The logic of the SparkJob launched in the runtime class. Since we are using the template,
+  * and don't need any custom visualization the only part of the Spark job we have to define
+  * is the DataFrame transformation as the template handles all the reading, saving, and parsing.
+  */
 class AdvancedColumnFilterJob extends SparkDataFrameJob {
 
   override def transformWithAddendum(parameters: OperatorParameters,
-    dataFrame: DataFrame,
-    sparkUtils: SparkRuntimeUtils,
-    listener: OperatorListener): (DataFrame , Map[String, AnyRef]) = {
+                                     dataFrame: DataFrame,
+                                     sparkUtils: SparkRuntimeUtils,
+                                     listener: OperatorListener): (DataFrame, Map[String, AnyRef]) = {
     //get the value of the columnsToKeep parameter
     val columnNamesToKeep = ColumnFilterUtil.getColumnsToKeep(parameters)
     // map the list of column names to DataFrame column definitions.
     val columnsToKeep = columnNamesToKeep.map(name => dataFrame.col(name))
     // Use the select function on the DataFrame to select all the columns to keep.
     /**
-     * Exercise 3: Add addendum with the number of rows in the output
-     */
+      * Exercise 3: Add addendum with the number of rows in the output
+      */
     val messageString = "Number of rows in the output " + dataFrame.count()
 
     /**
-     * Exercise 4: Add a visualization which lists the parameters and bolds the header to
-     * the output
-     */
+      * Exercise 4: Add a visualization which lists the parameters and bolds the header to
+      * the output
+      */
     val htmlMessageString = "<b>Columns Selected </b> <br>" + columnNamesToKeep.mkString("<br>")
     (dataFrame.select(columnsToKeep: _*),
       Map(ColumnFilterUtil.MESSAGE_STRING_KEY -> messageString,
-          ColumnFilterUtil.HTML_MESSAGE_KEY -> htmlMessageString)  )
+        ColumnFilterUtil.HTML_MESSAGE_KEY -> htmlMessageString))
   }
 
 }

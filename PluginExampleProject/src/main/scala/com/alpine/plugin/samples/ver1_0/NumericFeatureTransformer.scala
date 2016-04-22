@@ -44,14 +44,13 @@ class NumericFeatureTransformerSignature extends OperatorSignature[
 
 class NumericFeatureTransformerGUINode
   extends SparkDataFrameGUINode[NumericFeatureTransformerJob] {
-  override def onPlacement(
-    operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onPlacement(operatorDialog: OperatorDialog,
+                           operatorDataSourceManager: OperatorDataSourceManager,
+                           operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     import NumericFeatureTransformerUtil._
 
- //add a checkbox so the user can select the columns to transform
+    //add a checkbox so the user can select the columns to transform
     operatorDialog.addTabularDatasetColumnCheckboxes(
       columnsToTransformKey,
       "Columns to transform",
@@ -82,14 +81,14 @@ class NumericFeatureTransformerGUINode
   }
 
   /**
-   * Define the columns in the output schema.
-   * The resulting dataset will have all the same columns as the input dataset, but with the
-   * addition of each column to selected to transform named with the original column name,
-   * underscore, the transformation type.
-   * I.e. If the user selected columns 'ColB' and 'ColC' from a dataset with columns
-   * 'ColA', 'ColB', 'ColC' and the 'pow2' transformation type, the result dataset would have
-   * columns: 'ColA', 'ColB', 'ColC', 'ColB_pow2', 'ColC_pow2'
-   */
+    * Define the columns in the output schema.
+    * The resulting dataset will have all the same columns as the input dataset, but with the
+    * addition of each column to selected to transform named with the original column name,
+    * underscore, the transformation type.
+    * I.e. If the user selected columns 'ColB' and 'ColC' from a dataset with columns
+    * 'ColA', 'ColB', 'ColC' and the 'pow2' transformation type, the result dataset would have
+    * columns: 'ColA', 'ColB', 'ColC', 'ColB_pow2', 'ColC_pow2'
+    */
   override def defineOutputSchemaColumns(inputSchema: TabularSchema,
                                          parameters: OperatorParameters): Seq[ColumnDef] = {
 
@@ -105,19 +104,18 @@ class NumericFeatureTransformerGUINode
       })
   }
 
-  override def onOutputVisualization(
-    params: OperatorParameters,
-    output: HdfsTabularDataset,
-    visualFactory: VisualModelFactory): VisualModel = {
+  override def onOutputVisualization(params: OperatorParameters,
+                                     output: HdfsTabularDataset,
+                                     visualFactory: VisualModelFactory): VisualModel = {
     //create the standard visualization of the output data
     val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
       visualFactory.createTextVisualization(
-      //the output contains the map of the visual information returned by the dataFrameJob
+        //the output contains the map of the visual information returned by the dataFrameJob
         "Data transformation type completed:  " + addendum(
           NumericFeatureTransformerUtil.transformationTypeVisualKey).toString + " .\n" +
-        "The resulting data has " + addendum(
+          "The resulting data has " + addendum(
           NumericFeatureTransformerUtil.dataFrameLengthVisualKey).toString + " rows."
       )
     val compositeVisualModel = visualFactory.createCompositeVisualModel()
@@ -137,18 +135,19 @@ class NumericFeatureTransformerRuntime
   }
 
 }
+
 class NumericFeatureTransformerJob extends SparkDataFrameJob {
   /**
-   * Returns a tuple with the transformed dataFrame and a map containing two
-   * additional pieces of information: the type of data transformation completed,
-   * and the number of rows in the resulting DataFrame. That extra information is used to create a
-   * second visualization for the plugin (in addition to a preview of the result dataset)
-   * in the GUI node with the addendum information.
-   */
+    * Returns a tuple with the transformed dataFrame and a map containing two
+    * additional pieces of information: the type of data transformation completed,
+    * and the number of rows in the resulting DataFrame. That extra information is used to create a
+    * second visualization for the plugin (in addition to a preview of the result dataset)
+    * in the GUI node with the addendum information.
+    */
   override def transformWithAddendum(operatorParameters: OperatorParameters,
-                         dataFrame: DataFrame,
-                         sparkUtils: SparkRuntimeUtils,
-                         listener: OperatorListener): (DataFrame , Map[String, AnyRef]) = {
+                                     dataFrame: DataFrame,
+                                     sparkUtils: SparkRuntimeUtils,
+                                     listener: OperatorListener): (DataFrame, Map[String, AnyRef]) = {
 
     val columnsToTransform = NumericFeatureTransformerUtil.getColumnsToTransform(operatorParameters)
     val transformationType = NumericFeatureTransformerUtil.getTransformationType(operatorParameters)
@@ -176,16 +175,16 @@ class NumericFeatureTransformerJob extends SparkDataFrameJob {
     val dataFrameSize = transformedDataFrame.count.toString
     val addendum = Map(
       NumericFeatureTransformerUtil.transformationTypeVisualKey -> transformationType,
-    NumericFeatureTransformerUtil.dataFrameLengthVisualKey -> new Integer(dataFrameSize))
+      NumericFeatureTransformerUtil.dataFrameLengthVisualKey -> new Integer(dataFrameSize))
     (transformedDataFrame, addendum)
   }
 
 }
 
 /**
- * This is a utility object to keep track of things that need to be used across the plugin classes.
- * e.g. The String keys for parameters.
- */
+  * This is a utility object to keep track of things that need to be used across the plugin classes.
+  * e.g. The String keys for parameters.
+  */
 object NumericFeatureTransformerUtil {
   val columnsToTransformKey = "columnsToTransform"
   val transformationTypeKey = "transformationType"
@@ -194,6 +193,7 @@ object NumericFeatureTransformerUtil {
 
   val dataFrameLengthVisualKey = "dataFrameLength"
   val transformationTypeVisualKey = "transformationType"
+
   def getTransformationType(parameters: OperatorParameters): String = {
     parameters.getStringValue(transformationTypeKey)
   }

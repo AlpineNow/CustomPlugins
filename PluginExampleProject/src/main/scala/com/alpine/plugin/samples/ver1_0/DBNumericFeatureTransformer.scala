@@ -108,8 +108,8 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
 
 object SchemaTransformer {
   /**
-   * Transform the database schema to the alpine output schema.
-   */
+    * Transform the database schema to the alpine output schema.
+    */
   def transform(inputSchema: TabularSchema,
                 columnsToTransform: Array[String],
                 transformationType: String): TabularSchema = {
