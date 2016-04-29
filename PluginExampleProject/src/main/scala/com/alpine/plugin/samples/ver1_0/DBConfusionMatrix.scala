@@ -11,8 +11,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.DBTableDefault
 import com.alpine.plugin.core.utils.DBParameterUtils
 import com.alpine.plugin.model.ClassificationModelWrapper
-import com.alpine.sql.DatabaseType.TypeValue
-import com.alpine.sql.{AliasGenerator, DatabaseType, SQLGenerator}
+import com.alpine.sql.{AliasGenerator, SQLGenerator}
 import com.alpine.transformer.sql.ColumnName
 import com.alpine.util.SQLUtility
 
@@ -120,7 +119,7 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
       stmtView.close()
     }
 
-    val createTableSQL: String = getCreateTableSQL(context, input, isView, fullOutputName)
+    val createTableSQL: String = getCreateTableSQL(context.getSQLGenerator, input, isView, fullOutputName)
 
     val stmt = connectionInfo.connection.createStatement()
     stmt.execute(createTableSQL)
@@ -137,17 +136,12 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
     )
   }
 
-  def getCreateTableSQL(context: DBExecutionContext,
+  def getCreateTableSQL(sqlGenerator: SQLGenerator,
                         input: Tuple2[_ <: ClassificationModelWrapper, _ <: DBTable],
                         isView: Boolean,
                         fullOutputName: String): String = {
     val inputDataset: DBTable = input._2
     val inputModel: ClassificationRowModel = input._1.model
-
-    /**
-      * TODO: Will expose official SQLGenerators to the onExecution method in the future.
-      */
-    val sqlGenerator: SQLGenerator = context.getSQLGenerator
 
     val sqlTransformerOption = inputModel.sqlTransformer(sqlGenerator)
 

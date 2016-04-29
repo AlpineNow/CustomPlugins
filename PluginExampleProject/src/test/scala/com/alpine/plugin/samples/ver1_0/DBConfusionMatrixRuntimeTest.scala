@@ -1,8 +1,6 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.model.pack.ml.{MultiLogisticRegressionModel, SingleLogisticRegression}
-import com.alpine.plugin.core.ChorusUserInfo
-import com.alpine.plugin.core.db.{DBConnectionInfo, DBExecutionContext}
 import com.alpine.plugin.core.io.defaults.{DBTableDefault, Tuple2Default}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, TabularSchema}
 import com.alpine.plugin.model.ClassificationModelWrapper
@@ -26,33 +24,27 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
 
     val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper("dummy name", lor, None)
 
-    val mockContext = new DBExecutionContext {
-      override def getDBConnectionInfo: DBConnectionInfo = ???
+    val mockSQLGenerator = new SQLGenerator {
+      override def useAliasForSelectSubQueries: Boolean = true
 
-      override def getSQLGenerator: SQLGenerator = new SQLGenerator {
-        override def useAliasForSelectSubQueries: Boolean = true
+      override def getStandardDeviationFunctionName: String = ???
 
-        override def getStandardDeviationFunctionName: String = ???
+      override def quoteObjectName(schemaName: String, objectName: String): String = ???
 
-        override def quoteObjectName(schemaName: String, objectName: String): String = ???
+      override def getCreateTableAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, whereClause: String): String = ???
 
-        override def getCreateTableAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, whereClause: String): String = ???
+      override def quoteChar: String = ???
 
-        override def quoteChar: String = ???
+      override def getVarianceFunctionName: String = ???
 
-        override def getVarianceFunctionName: String = ???
+      @scala.deprecated("Please use quoteIdentifier instead [Paul]")
+      override def escapeColumnName(s: String): String = quoteIdentifier(s)
 
-        @scala.deprecated("Please use quoteIdentifier instead [Paul]")
-        override def escapeColumnName(s: String): String = quoteIdentifier(s)
+      override def dbType: TypeValue = ???
 
-        override def dbType: TypeValue = ???
+      override def getModuloExpression(dividend: String, divisor: String): String = ???
 
-        override def getModuloExpression(dividend: String, divisor: String): String = ???
-
-        override def quoteIdentifier(s: String): String = s""""$s""""
-      }
-
-      override def chorusUserInfo: ChorusUserInfo = ???
+      override def quoteIdentifier(s: String): String = s""""$s""""
     }
 
     it("Should work with good input") {
@@ -80,7 +72,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
       )
 
       val actualSQL = (new DBConfusionMatrixRuntime).getCreateTableSQL(
-        mockContext,
+        mockSQLGenerator,
         input, isView = false,
         fullOutputName = "\"output_schema\".\"output_table\""
       )
@@ -126,7 +118,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
         */
       intercept[RuntimeException] {
         (new DBConfusionMatrixRuntime).getCreateTableSQL(
-          mockContext, input, isView = false,
+          mockSQLGenerator, input, isView = false,
           "\"output_schema\".\"output_table\""
         )
       }
