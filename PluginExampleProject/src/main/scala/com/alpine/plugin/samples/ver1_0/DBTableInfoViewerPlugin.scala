@@ -18,10 +18,10 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core._
-import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
-import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.db.{DBExecutionContext, DBRuntime}
+import com.alpine.plugin.core.dialog.OperatorDialog
+import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.IOStringDefault
 
 class DBTableInfoViewerSignature extends OperatorSignature[

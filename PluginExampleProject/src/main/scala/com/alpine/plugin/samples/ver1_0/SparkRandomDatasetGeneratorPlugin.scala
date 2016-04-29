@@ -17,17 +17,17 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import scala.collection.mutable
-
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import com.alpine.plugin.core.utils.{HdfsStorageFormat, HdfsParameterUtils, SparkParameterUtils}
+import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.utils.{HdfsParameterUtils, HdfsStorageFormat, SparkParameterUtils}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
+
+import scala.collection.mutable
 
 class SparkRandomDatasetGeneratorSignature extends OperatorSignature[
   SparkRandomDatasetGeneratorGUINode,

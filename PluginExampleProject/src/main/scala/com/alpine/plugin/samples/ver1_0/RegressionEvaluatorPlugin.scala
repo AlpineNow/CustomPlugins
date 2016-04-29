@@ -26,12 +26,12 @@ import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTy
 import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.model.RegressionModelWrapper
 import com.alpine.transformer.RegressionTransformer
-import org.apache.hadoop.fs.{Path, FileSystem}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.mllib.evaluation.RegressionMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.apache.spark.{sql, SparkContext}
-import org.apache.spark.sql.{SQLContext, DataFrame}
+import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.{SparkContext, sql}
 
 import scala.collection.mutable
 

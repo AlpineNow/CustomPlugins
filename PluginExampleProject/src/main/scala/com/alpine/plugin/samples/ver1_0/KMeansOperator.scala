@@ -1,17 +1,17 @@
 package com.alpine.plugin.samples.ver1_0
 
+import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
-import com.alpine.plugin.core.io.{ColumnDef, OperatorSchemaManager, HdfsTabularDataset}
+import com.alpine.plugin.core.io.{ColumnDef, HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HtmlTabulator
 import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
-import com.alpine.plugin.core._
 import com.alpine.plugin.model.ClusteringModelWrapper
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
-import org.apache.spark.mllib.linalg.{DenseVector, Vectors, Vector}
+import org.apache.spark.mllib.linalg.{DenseVector, Vector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 

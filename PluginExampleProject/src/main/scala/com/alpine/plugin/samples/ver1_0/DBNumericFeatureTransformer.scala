@@ -17,8 +17,6 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import scala.collection.mutable
-
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.db.{DBExecutionContext, DBRuntime}
@@ -26,6 +24,8 @@ import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.DBTableDefault
 import com.alpine.plugin.core.utils.DBParameterUtils
+
+import scala.collection.mutable
 
 class DBNumericFeatureTransformerSignature extends OperatorSignature[
   DBNumericFeatureTransformerGUINode,

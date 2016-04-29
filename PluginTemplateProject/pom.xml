@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>1.6-alpha-2</version>
+    <version>1.6-beta</version>
 
     <repositories>
         <repository>
@@ -18,7 +18,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <!-- Incase there is a sync delay -->
+        <!-- In case there is a sync delay -->
         <repository>
             <id>sonatype-releases</id>
             <name>Sonatype Repository</name>
@@ -32,7 +32,7 @@
         </repository>
     </repositories>
     <properties>
-        <alpine.version>1.6-alpha-2</alpine.version>
+        <alpine.version>1.6-beta</alpine.version>
     </properties>
     <dependencies>
 
@@ -112,6 +112,7 @@
             <!-- Useful for testing -->
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
                 <configuration>
                     <argLine>-Xmx2048m -XX:MaxPermSize=1024m</argLine>
                 </configuration>
@@ -121,11 +122,6 @@
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <version>2.15.2</version>
-                <configuration>
-                    <excludes>
-                        <exclude>com/alpine/templates/db/*</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -160,6 +156,45 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Run "mvn compile gplus:execute" to execute this. It generates the plugins.xml file.-->
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scripts>
+                        <script>file:///${project.basedir}/src/main/groovy/signature-metadata-generator.groovy</script>
+                    </scripts>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.reflections</groupId>
+                        <artifactId>reflections</artifactId>
+                        <!-- use latest version of Reflections -->
+                        <version>0.9.10</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <!-- any version of Groovy \>= 1.5.0 should work here -->
+                        <version>2.1.6</version>
+                        <scope>runtime</scope>
+                    </dependency>
+                    <dependency>
+                        <groupId>dom4j</groupId>
+                        <artifactId>dom4j</artifactId>
+                        <version>1.6.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
         </plugins>

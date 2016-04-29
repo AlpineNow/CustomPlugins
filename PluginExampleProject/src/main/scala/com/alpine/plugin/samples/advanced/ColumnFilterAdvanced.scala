@@ -17,14 +17,14 @@ package com.alpine.plugin.samples.advanced
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.alpine.plugin.core.spark.SparkJobConfiguration
-import com.alpine.plugin.core.utils.SparkParameterUtils
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
-import com.alpine.plugin.core.io.{HdfsTabularDataset, ColumnDef, OperatorSchemaManager, TabularSchema}
+import com.alpine.plugin.core.io.{ColumnDef, HdfsTabularDataset, OperatorSchemaManager, TabularSchema}
+import com.alpine.plugin.core.spark.SparkJobConfiguration
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
+import com.alpine.plugin.core.utils.SparkParameterUtils
 import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
 import org.apache.spark.sql.DataFrame
 
@@ -174,7 +174,6 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
     compositeVisualModel.addVisualModel("Columns Selected", htmlVisualModel)
     compositeVisualModel
   }
-
 }
 
 /**

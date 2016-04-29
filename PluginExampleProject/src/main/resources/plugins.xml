@@ -54,4 +54,10 @@
   <plugin>
     <signature-class>com.alpine.plugin.samples.ver1_0.ColumnFilterSignature</signature-class>
   </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.ver1_0.HiveColumnFilterSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.DateTypeTranslatorSignature</signature-class>
+  </plugin>
 </alpine-plugins>

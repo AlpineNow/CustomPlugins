@@ -5,7 +5,7 @@ import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io.{HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.{BadDataReportingUtils, SparkRuntimeUtils}
-import com.alpine.plugin.core.utils.{Timer, HdfsParameterUtils, HtmlTabulator}
+import com.alpine.plugin.core.utils.{HdfsParameterUtils, HtmlTabulator, Timer}
 import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.sql.{DataFrame, Row}

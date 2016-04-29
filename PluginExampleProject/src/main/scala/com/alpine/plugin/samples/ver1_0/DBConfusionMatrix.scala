@@ -120,7 +120,7 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
       stmtView.close()
     }
 
-    val createTableSQL: String = getCreateTableSQL(input, isView, fullOutputName)
+    val createTableSQL: String = getCreateTableSQL(context, input, isView, fullOutputName)
 
     val stmt = connectionInfo.connection.createStatement()
     stmt.execute(createTableSQL)
@@ -137,7 +137,8 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
     )
   }
 
-  def getCreateTableSQL(input: Tuple2[_ <: ClassificationModelWrapper, _ <: DBTable],
+  def getCreateTableSQL(context: DBExecutionContext,
+                        input: Tuple2[_ <: ClassificationModelWrapper, _ <: DBTable],
                         isView: Boolean,
                         fullOutputName: String): String = {
     val inputDataset: DBTable = input._2
@@ -146,15 +147,7 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
     /**
       * TODO: Will expose official SQLGenerators to the onExecution method in the future.
       */
-    val sqlGenerator: SQLGenerator = new SQLGenerator {
-      override def useAliasForSelectSubQueries: Boolean = true
-
-      override def quoteChar: Char = '"'
-
-      override def escapeColumnName(s: String): String = "\"" + s + "\""
-
-      override def dbType: TypeValue = DatabaseType.greenplum
-    }
+    val sqlGenerator: SQLGenerator = context.getSQLGenerator
 
     val sqlTransformerOption = inputModel.sqlTransformer(sqlGenerator)
 

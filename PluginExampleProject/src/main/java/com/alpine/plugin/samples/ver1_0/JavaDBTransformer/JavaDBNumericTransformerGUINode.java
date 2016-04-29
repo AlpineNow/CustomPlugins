@@ -62,8 +62,7 @@ class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DBTable> 
                     transformationTypes,
                     DBTransformerConstants.TRANSFORMATION_TYPE_POW2
             );
-            DBParameterUtils.addStandardDatabaseOutputParameters(operatorDialog,
-                    operatorDataSourceManager, "");
+            DBParameterUtils.addStandardDBOutputParameters(operatorDialog, DBParameterUtils.operatorNameUUIDVariable());
         } catch (Exception e) {
             //print a message if the dialog element couldn't be added
             System.out.println("Dialog element failed due to exception: " +
