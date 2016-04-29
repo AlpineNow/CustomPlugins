@@ -29,7 +29,8 @@ import org.apache.spark.sql.types.StructType;
 import java.util.ArrayList;
 import java.util.List;
 
-class CountPluginSparkJob extends SparkDataFrameJob {
+@SuppressWarnings("WeakerAccess")
+public class CountPluginSparkJob extends SparkDataFrameJob {
 
     static final String GroupByParamKey = "groupBy";
 

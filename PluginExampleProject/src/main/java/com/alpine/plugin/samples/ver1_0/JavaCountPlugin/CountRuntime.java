@@ -22,4 +22,5 @@ import com.alpine.plugin.core.spark.templates.SparkDataFrameRuntime;
 /**
  * Runtime behavior of the Count by Group plugin. Launches the Spark Job.
  */
-class CountRuntime extends SparkDataFrameRuntime<CountPluginSparkJob> {}
+@SuppressWarnings("WeakerAccess")
+public class CountRuntime extends SparkDataFrameRuntime<CountPluginSparkJob> {}

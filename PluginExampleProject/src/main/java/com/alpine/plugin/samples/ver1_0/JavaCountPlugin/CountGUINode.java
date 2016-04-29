@@ -34,7 +34,8 @@ import java.util.Arrays;
  * Design time behavior for the Count Plugin. Defines the parameters and
  * output schema.
  */
-class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob> {
+@SuppressWarnings("WeakerAccess")
+public class CountGUINode extends SparkDataFrameGUINode<CountPluginSparkJob> {
 
     public void onPlacement(OperatorDialog operatorDialog,
                             OperatorDataSourceManager operatorDataSourceManager,

@@ -40,7 +40,8 @@ import java.util.List;
  * or cube of some user selected columns.
  * Note: Will only work on GreenPlum and Postgres databases.
  */
-class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
+@SuppressWarnings("WeakerAccess")
+public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
 
     public DBTable onExecution(DBExecutionContext context, DBTable input,
                                OperatorParameters params, OperatorListener listener) {

@@ -33,7 +33,8 @@ import scala.collection.immutable.Map;
 
 import java.util.Arrays;
 
-class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DBTable> {
+@SuppressWarnings("WeakerAccess")
+public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DBTable> {
 
     private static final String SELECTION_GROUP_ID_MAIN = "main";
 
