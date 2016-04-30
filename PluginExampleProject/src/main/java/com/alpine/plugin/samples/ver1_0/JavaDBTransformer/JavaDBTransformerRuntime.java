@@ -27,6 +27,8 @@ import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.io.defaults.DBTableDefault;
 import com.alpine.plugin.core.utils.DBParameterUtils;
 import com.alpine.plugin.util.JavaConversionUtils;
+import com.alpine.sql.SQLGenerator;
+
 import scala.Option;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
@@ -36,65 +38,61 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * The runtime behavior of a database transformation. Will compute the square
- * or cube of some user selected columns.
- * Note: Will only work on GreenPlum and Postgres databases.
+ * The runtime behavior of a database transformation. Will compute the square or cube of some user selected columns. Note: Will only work on
+ * GreenPlum and Postgres databases.
  */
 @SuppressWarnings("WeakerAccess")
 public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
 
-    public DBTable onExecution(DBExecutionContext context, DBTable input,
-                               OperatorParameters params, OperatorListener listener) {
-        String[] cols2transform = params.getTabularDatasetSelectedColumns(
-                DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM)._2();
-        String transformationType = params.getStringValue(
-                DBTransformerConstants.TRANSFORMATION_TYPE_PARAM);
+    public DBTable onExecution(
+        DBExecutionContext context,
+        DBTable input,
+        OperatorParameters params,
+        OperatorListener listener
+    ) {
+        String[] cols2transform = params.getTabularDatasetSelectedColumns(DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM)._2();
+        String transformationType = params.getStringValue(DBTransformerConstants.TRANSFORMATION_TYPE_PARAM);
+        SQLGenerator generator = context.getSQLGenerator();
         try {
             //get parameter values using the DBParameterUtils class
             String outputSchemaName = DBParameterUtils.getDBOutputSchemaParam(params);
             String tableName = DBParameterUtils.getResultTableName(params);
             Boolean isView = DBParameterUtils.getIsViewParam(params);
-            Boolean overwrite = DBParameterUtils.getOverwriteParameterValue(params);
+            Boolean dropIfExists = DBParameterUtils.getDropIfExistsParameterValue(params);
             DBConnectionInfo connectionInfo = context.getDBConnectionInfo();
-            String fullOutputName = getQuotedSchemaTableName(outputSchemaName, tableName);
+
+            String fullOutputName = generator.quoteObjectName(outputSchemaName, tableName);
             //Create an sql statement object and build the statement according to the values
             //of the parameters and the input data.
-            Statement stmtTable = connectionInfo.connection().createStatement();
-            if (overwrite) {
+
+            if (dropIfExists) {
                 //drop the table if it already exists
-                try {
+                try (Statement stmtTable = connectionInfo.connection().createStatement()) {
                     listener.notifyMessage("Dropping table if it exists.");
                     stmtTable.execute(("DROP TABLE IF EXISTS " + fullOutputName + " CASCADE;"));
                 } catch (Exception e) {
                     listener.notifyMessage("A view of the name " + fullOutputName + "exists");
-                } finally {
-                    stmtTable.close();
                 }
 
-                Statement stmtView = connectionInfo.connection().createStatement();
-                stmtView.execute(("DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"));
-                stmtView.close();
+                //drop the view if it already exists
+                try (Statement stmtView = connectionInfo.connection().createStatement()) {
+                    listener.notifyMessage("Dropping view if it exists.");
+                    stmtView.execute(("DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"));
+                } catch (Exception e) {
+                    listener.notifyMessage("A view of the name " + fullOutputName + "exists");
+                }
             } //end if
 
-            StringBuilder createTableStatement = new StringBuilder();
             //use a string builder to create a the sql statement
+            StringBuilder columnSQL = new StringBuilder();
 
-            //create a new table/view according to the database output parameters.
-            if (isView) {
-                createTableStatement.append("CREATE VIEW " + fullOutputName + " AS (");
-            } else {
-                createTableStatement.append("CREATE TABLE " + fullOutputName + " AS (");
-            }
-            //Generate the select stable
-            createTableStatement.append("SELECT ");
             TabularSchema inputSchemaOutline = input.tabularSchema();
             Seq<ColumnDef> inputColSeq = inputSchemaOutline.getDefinedColumns().toSeq();
             List<ColumnDef> inputCols = JavaConversions.asJavaList(inputColSeq);
 
             //select all of the input Columns (append them to the select statement)
             for (ColumnDef inputCol : inputCols) {
-                String columnName = quoteName(inputCol.columnName());
-                createTableStatement.append(columnName + ", ");
+                columnSQL.append(generator.quoteIdentifier(inputCol.columnName())).append(", ");
             }
 
             String power;
@@ -107,22 +105,43 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             //parameter and the columns to transform parameter
             for (int i = 0; i < cols2transform.length - 1; i++) {
                 String columnName = cols2transform[i];
-                createTableStatement.append("POWER(" + quoteName(columnName) + ", " + power + ") AS ");
-                createTableStatement.append(columnName + "_pow" + power);
-
-                createTableStatement.append(", ");
+                columnSQL
+                    .append("POWER(").append(generator.quoteIdentifier(columnName)).append(", ").append(power)
+                    .append(") AS ")
+                    .append(columnName + "_pow" + power)
+                    .append(", ");
             }
             //add the last column
             String columnName = cols2transform[cols2transform.length - 1];
-            createTableStatement.append("POWER(" + quoteName(columnName) + ", " + power + ") AS ");
-            createTableStatement.append(columnName + "_pow" + power);
+            columnSQL
+                .append("POWER(").append(generator.quoteIdentifier(columnName)).append(", ").append(power)
+                .append(") AS ")
+                .append(columnName + "_pow" + power);
 
-            createTableStatement.append(" FROM " + getQuotedSchemaTableName(input.schemaName(),
-                    input.tableName()) + ");");
+            //create a new table/view according to the database output parameters.
+            StringBuilder createTableStatement = new StringBuilder();
+            if (isView) {
+                createTableStatement
+                    .append("CREATE VIEW ").append(fullOutputName).append(" AS (")
+                    .append("SELECT ")
+                    .append(columnSQL)
+                    .append(" FROM ")
+                    .append(generator.quoteObjectName(input.schemaName(), input.tableName()))
+                    .append(");");
+            } else {
+                createTableStatement.append(
+                    generator.getCreateTableAsSelectSQL(
+                        columnSQL.toString(),
+                        generator.quoteObjectName(input.schemaName(), input.tableName()),
+                        fullOutputName,
+                        null // null safe
+                    )
+                );
+            }
+
             //execute the statement
             Statement stmt = connectionInfo.connection().createStatement();
-            listener.notifyMessage("Executing the sql statement \n"
-                    + createTableStatement.toString());
+            listener.notifyMessage("Executing the sql statement \n" + createTableStatement.toString());
             stmt.execute(createTableStatement.toString());
             stmt.close();
 
@@ -130,25 +149,25 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             //Use the "transformSchema" method defined in the DBTransformerConstants class so that
             //the runtime schema will be consistent with the one defined in the GUI node.
             TabularSchema outputTabularSchema = DBTransformerConstants
-                    .transformSchema(
-                            input.tabularSchema(),
-                            cols2transform,
-                            transformationType
-                    );
+                .transformSchema(
+                    input.tabularSchema(),
+                    cols2transform,
+                    transformationType
+                );
 
             //create an empty addendum object
-            HashMap<String, Object> addendum = new HashMap<String, Object>();
-
-            //add a dummy value to the addendum object
-            addendum.put("TestValue1", 1);
+            HashMap<String, Object> addendum = new HashMap<>();
 
             //create the DBTable object
             return new DBTableDefault(
-                    outputSchemaName, tableName,
-                    outputTabularSchema, isView,
-                    connectionInfo.name(), connectionInfo.url(),
-                    Option.apply(params.operatorInfo()),
-                    JavaConversionUtils.toImmutableMap(addendum)
+                outputSchemaName,
+                tableName,
+                outputTabularSchema,
+                isView,
+                connectionInfo.name(),
+                connectionInfo.url(),
+                Option.apply(params.operatorInfo()),
+                JavaConversionUtils.toImmutableMap(addendum)
             );
         } catch (Exception sqlException) {
             //report Exception to the progress bar, but handle it since this method is not
@@ -156,20 +175,5 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             listener.notifyError("Failed due to exception. " + sqlException.getMessage());
             return null;
         }
-    }
-
-    /**
-     * Create the output table/view as "schemaName"."tableName".
-     */
-    private String getQuotedSchemaTableName(String schemaName, String tableName) {
-        return quoteName(schemaName) + "." + quoteName(tableName);
-    }
-
-    /**
-     * Wrap a string in double quotes (used to wrap table, schema, variable names, so that
-     * the SQL query will not fail if it contains capitals).
-     */
-    private String quoteName(String colName) {
-        return "\"" + colName + "\"";
     }
 }

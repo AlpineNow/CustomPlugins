@@ -24,7 +24,7 @@ import scala.collection.Seq;
 import java.util.ArrayList;
 import java.util.List;
 
-class DBTransformerConstants {
+public class DBTransformerConstants {
 
     static final String COLUMNS_TO_TRANSFORM_PARAM = "cols_to_transform";
     static final String TRANSFORMATION_TYPE_PARAM = "transformation_type";
