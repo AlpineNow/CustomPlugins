@@ -162,7 +162,7 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
     val numIntCols = params.getIntValue("numIntColumns")
     val numStringCols = params.getIntValue("numStringColumns")
     val numRows = params.getIntValue("numRows")
-    val numExecutors = params.getIntValue(SparkParameterUtils.sparkNumExecutorsElementId)
+    val numExecutors = sparkContext.getExecutorMemoryStatus.size
     val numRowsPerPartition = math.ceil(numRows.toDouble / numExecutors.toDouble).toInt
     val randomDataRdd = sparkContext.parallelize(Seq[Int](), numExecutors).mapPartitionsWithIndex {
       (partitionId, _) => {
