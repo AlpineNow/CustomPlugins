@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>1.6-beta</version>
+    <version>1.6-beta-1</version>
 
     <repositories>
         <repository>
@@ -32,7 +32,7 @@
         </repository>
     </repositories>
     <properties>
-        <alpine.version>1.6-beta</alpine.version>
+        <alpine.version>1.6-beta-1</alpine.version>
     </properties>
     <dependencies>
 
@@ -104,8 +104,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
 
