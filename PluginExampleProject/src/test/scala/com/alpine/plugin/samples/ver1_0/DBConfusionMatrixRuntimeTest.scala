@@ -25,7 +25,12 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
     val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper("dummy name", lor, None)
 
     val mockSQLGenerator = new SQLGenerator {
+
+      override def quoteIdentifier(s: String): String = s""""$s""""
       override def useAliasForSelectSubQueries: Boolean = true
+      override def escapeColumnName(s: String): String = quoteIdentifier(s)
+
+      override def dbType: TypeValue = ???
 
       override def getStandardDeviationFunctionName: String = ???
 
@@ -33,18 +38,25 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
 
       override def getCreateTableAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, whereClause: String): String = ???
 
+      override def getCreateTableAsSelectSQL(columns: String, sourceTable: String, destinationTable: String): String = ???
+
+      override def getDropTableIfExistsSQL(tableName: String, cascade: Boolean): String = ???
+
+      override def getCreateViewAsSelectSQL(columns: String, sourceTable: String, destinationView: String, whereClause: String): String = ???
+
+      override def getCreateViewAsSelectSQL(columns: String, sourceTable: String, destinationView: String): String = ???
+
+      override def getCreateTableOrViewAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, whereClause: String, isView: Boolean): String = ???
+
+      override def getCreateTableOrViewAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, isView: Boolean): String = ???
+
       override def quoteChar: String = ???
 
       override def getVarianceFunctionName: String = ???
 
-      @scala.deprecated("Please use quoteIdentifier instead [Paul]")
-      override def escapeColumnName(s: String): String = quoteIdentifier(s)
-
-      override def dbType: TypeValue = ???
+      override def getDropViewIfExistsSQL(viewName: String, cascade: Boolean): String = ???
 
       override def getModuloExpression(dividend: String, divisor: String): String = ???
-
-      override def quoteIdentifier(s: String): String = s""""$s""""
     }
 
     it("Should work with good input") {
