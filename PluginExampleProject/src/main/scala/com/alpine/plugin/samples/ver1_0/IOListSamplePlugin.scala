@@ -30,14 +30,18 @@ import com.alpine.plugin.core.spark._
 class IOListSampleSignature extends OperatorSignature[
   IOListSampleGUINode,
   IOListSampleRuntime] {
+
   def getMetadata(): OperatorMetadata = {
     new OperatorMetadata(
       name = "Sample - IOList Input Viewer",
       category = "Plugin Sample - Local",
-      author = "Sung Chung",
+      author = Some("Rachel Warren"),
       version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
+      helpURL = None,
+      icon = None,
+      toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+        "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+        " of the operator and are no more than fifty words.")
     )
   }
 }

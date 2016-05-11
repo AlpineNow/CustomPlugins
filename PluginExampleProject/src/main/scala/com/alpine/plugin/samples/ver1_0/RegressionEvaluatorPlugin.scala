@@ -49,16 +49,19 @@ import scala.collection.mutable
 class RegressionEvaluatorSignature extends OperatorSignature[
   RegressionEvaluatorGUINode,
   RegressionEvaluatorRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - Regression Evaluator",
-      category = "Plugin Sample - Spark",
-      author = "Jenny Thompson",
-      version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - Regression Evaluator",
+    category = "Plugin Sample - Spark",
+    author = Some("Jenny Thompson"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
+
 }
 
 class RegressionEvaluatorGUINode extends OperatorGUINode[

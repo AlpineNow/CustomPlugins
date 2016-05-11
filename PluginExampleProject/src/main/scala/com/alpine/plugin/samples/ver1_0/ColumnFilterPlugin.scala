@@ -50,17 +50,18 @@ import org.apache.spark.sql.{Column, DataFrame}
 class ColumnFilterSignature extends OperatorSignature[
   ColumnFilterGUINode,
   ColumnFilterRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - Spark Column Filter", //display name of plugin
-      category = "Plugin Sample - Spark", //category for the plugin in the left-hand GUI bar
-      author = "Egor Pakhomov",
-      version = 1, //version of the plugin
-      helpURL = "", //a link to documentation
-      iconNamePrefix = "" //reference to a file with an icon for the plugin.
-      // An empty string will result in the default icon.
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - Spark Column Filter",
+    category = "Plugin Sample - Spark",
+    author = Some("Rachel Warren"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 /**

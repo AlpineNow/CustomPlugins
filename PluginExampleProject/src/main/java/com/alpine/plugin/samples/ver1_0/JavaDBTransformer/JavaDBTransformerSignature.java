@@ -18,6 +18,10 @@ package com.alpine.plugin.samples.ver1_0.JavaDBTransformer;
 
 import com.alpine.plugin.core.OperatorMetadata;
 import com.alpine.plugin.core.OperatorSignature;
+import com.alpine.plugin.core.icon.IconShape;
+import com.alpine.plugin.core.icon.OperatorIcon;
+import com.alpine.plugin.core.icon.StarBurst$;
+import scala.Option;
 
 /**
  * A java version of the DBNumericFeatureTransformer plugin written in scala.
@@ -25,10 +29,19 @@ import com.alpine.plugin.core.OperatorSignature;
 public class JavaDBTransformerSignature extends
         OperatorSignature<JavaDBNumericTransformerGUINode,JavaDBTransformerRuntime>  {
     public OperatorMetadata getMetadata(){
+        IconShape starBurst = StarBurst$.MODULE$; //access the icon shape which is defined in scala
+
         return new OperatorMetadata(
                 "Sample - Java DB Transform",
                 "Plugin Sample - DB",
-                "Rachel Warren", 1, "", ""
+                Option.apply("Rachel Warren"),
+                1,
+                Option.<String>empty(), //The help link
+                Option.apply(OperatorIcon.apply("test", starBurst)), //A custom Icon
+                Option.apply(
+                        "Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+                                "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+                                " of the operator and are no more than fifty words.")
         );
     }
 }

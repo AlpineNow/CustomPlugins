@@ -22,10 +22,13 @@ class KMeansTrainerSignature extends OperatorSignature[KMeansTrainerGUINode, KMe
     new OperatorMetadata(
       name = "Sample - K Means Trainer",
       category = "Plugin Sample - Spark",
-      author = "Rachel Warren",
+      author = Some("Rachel Warren"),
       version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
+      helpURL = None,
+      icon = None,
+      toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+        "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+        " of the operator and are no more than fifty words.")
     )
   }
 }

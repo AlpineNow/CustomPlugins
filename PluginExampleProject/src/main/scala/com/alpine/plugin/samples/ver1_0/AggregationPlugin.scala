@@ -54,15 +54,19 @@ import org.apache.spark.sql.{DataFrame, Row}
 class AggregationSignature extends OperatorSignature[
   AggregationGUINode,
   AggregationRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - Aggregate By Product",
-      author = "Rachel Warren",
-      version = 1,
-      category = "Plugin Sample - Spark",
-      helpURL = "",
-      iconNamePrefix = "")
-  }
+
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - Aggregate By Product",
+    category = "Plugin Sample - Spark",
+    author = Some("Rachel Warren"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 object AggregationConstants {
@@ -82,7 +86,7 @@ object AggregationOutputSchema {
     */
   def getAlpineSchema(operatorParameters: OperatorParameters): TabularSchema = {
     //get the storage format i.e. Avro, Parquet, delimited ,
-    val storageFormatParam = HdfsParameterUtils.getHdfsStorageFormat(operatorParameters)
+    val storageFormatParam = HdfsParameterUtils.getHdfsStorageFormatType(operatorParameters)
     //create an object with all the information about the tabular structure such as delimiter and
     //escape character
     val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(storageFormatParam)

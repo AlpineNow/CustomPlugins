@@ -23,7 +23,7 @@ import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.{HdfsParameterUtils, HdfsStorageFormat, SparkParameterUtils}
+import com.alpine.plugin.core.utils.{HdfsStorageFormatType, HdfsParameterUtils, SparkParameterUtils}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
 
@@ -32,16 +32,18 @@ import scala.collection.mutable
 class SparkRandomDatasetGeneratorSignature extends OperatorSignature[
   SparkRandomDatasetGeneratorGUINode,
   SparkRandomDatasetGeneratorRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - Random Data Generator",
-      category = "Plugin Sample - Spark",
-      author = "Sung Chung",
-      version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - Random Data Generator",
+    category = "Plugin Sample - Spark",
+    author = Some("Jenny Thompson"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 object SparkRandomDatasetGeneratorConstants {
@@ -101,7 +103,7 @@ class SparkRandomDatasetGeneratorGUINode
       1000
     )
 
-    HdfsParameterUtils.addHdfsStorageFormatParameter(operatorDialog, HdfsStorageFormat.TSV)
+    HdfsParameterUtils.addHdfsStorageFormatParameter(operatorDialog, HdfsStorageFormatType.TSV)
     HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
     SparkParameterUtils.addStandardSparkOptions(
@@ -137,7 +139,7 @@ class SparkRandomDatasetGeneratorGUINode
       // We have to re-define the output schema based on the number of column
       // parameters. Additionally, we have to take into account the user
       // potentially selecting different output formats.
-      val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(HdfsParameterUtils.getHdfsStorageFormat(params))
+      val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(HdfsParameterUtils.getHdfsStorageFormatType(params))
       val outputSchema = SparkRandomDatasetGeneratorConstants.defineOutputSchema(numDoubleCols,
         numIntCols, numStringCols, tabularFormatAttributes)
       operatorSchemaManager.setOutputSchema(outputSchema)
@@ -187,7 +189,7 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
 
     val outputPath = HdfsParameterUtils.getOutputPath(params)
     val overwrite = HdfsParameterUtils.getOverwriteParameterValue(params)
-    val storageFormat = HdfsParameterUtils.getHdfsStorageFormat(params)
+    val storageFormat = HdfsParameterUtils.getHdfsStorageFormatType(params)
 
     val tabularFormatAttributes =
       HdfsParameterUtils.getTabularFormatAttributes(storageFormat)
@@ -207,7 +209,9 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
       outputDF,
       storageFormat,
       overwrite,
-      Some(params.operatorInfo)
+      Some(params.operatorInfo),
+      Map[String, AnyRef](),
+      TSVAttributes.default //the default is a tab delimited file. But you may specify different delimiters or escape characters with this parameter
     )
   }
 }

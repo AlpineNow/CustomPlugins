@@ -19,6 +19,8 @@ package com.alpine.plugin.samples.ver1_0.JavaCountPlugin;
 
 import com.alpine.plugin.core.OperatorMetadata;
 import com.alpine.plugin.core.OperatorSignature;
+import com.alpine.plugin.core.icon.OperatorIcon;
+import scala.Option;
 
 /**
  * The signature of a simple plugin which groups by a single column and
@@ -29,6 +31,15 @@ public class CountByGroupSignature extends OperatorSignature<CountGUINode, Count
         return new OperatorMetadata(
                 "Sample - Java Count By Group",
                 "Plugin Sample - Spark",
-                "Rachel Warren",1, "", "");
+                Option.apply("Rachel Warren"),
+                1,
+                Option.<String>empty(), //The help link
+                Option.<OperatorIcon>empty(), //A custom Icon
+                Option.apply(
+                        "Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+                                "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+                                " of the operator and are no more than fifty words.")
+
+        );
     }
 }

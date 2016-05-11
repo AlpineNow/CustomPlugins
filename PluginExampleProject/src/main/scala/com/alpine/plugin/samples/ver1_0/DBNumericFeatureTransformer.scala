@@ -27,19 +27,25 @@ import com.alpine.plugin.core.utils.DBParameterUtils
 
 import scala.collection.mutable
 
+/**
+  * Ths operator has the same behavior as the Numeric Feature Transformer but works with Database input
+  * rather than hadoop.
+  */
 class DBNumericFeatureTransformerSignature extends OperatorSignature[
   DBNumericFeatureTransformerGUINode,
   DBNumericFeatureTransformerRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - DB Transform",
-      category = "Plugin Sample - DB",
-      author = "Sung Chung",
-      version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - DB Transform",
+    category = "Plugin Sample - DB",
+    author = Some("Sung Chung"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
@@ -65,7 +71,7 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     )
 
     //add parameters to let the user determine how the output table will be written
-    DBParameterUtils.addStandardDatabaseOutputParameters(operatorDialog, operatorDataSourceManager)
+    DBParameterUtils.addStandardDBOutputParameters(operatorDialog)
 
   }
 

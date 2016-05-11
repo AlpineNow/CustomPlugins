@@ -36,16 +36,18 @@ import com.alpine.util.SQLUtility
 class DBConfusionMatrixSignature extends OperatorSignature[
   DBConfusionMatrixGUINode,
   DBConfusionMatrixRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - DB Confusion Matrix",
-      category = "Plugin Sample - DB",
-      author = "Jenny Thompson",
-      version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - DB Confusion Matrix",
+    category = "Plugin Sample - DB",
+    author = Some("Jenny Thompson"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 class DBConfusionMatrixGUINode extends OperatorGUINode[
@@ -55,7 +57,7 @@ class DBConfusionMatrixGUINode extends OperatorGUINode[
                            operatorDataSourceManager: OperatorDataSourceManager,
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
     //add parameters to let the user determine how the output table will be written
-    DBParameterUtils.addStandardDatabaseOutputParameters(operatorDialog, operatorDataSourceManager)
+    DBParameterUtils.addStandardDBOutputParameters(operatorDialog)
     operatorSchemaManager.setOutputSchema(ConfusionMatrixUtils.outputTabularSchema)
   }
 
@@ -170,12 +172,12 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
     )
     val predictedColumnName: ColumnName = classificationSQL.layers.last.last._2
 
-    val observedColumnNameEscaped: String = sqlGenerator.escapeColumnName(dependentColumn.columnName)
+    val observedColumnNameEscaped: String = sqlGenerator.quoteIdentifier(dependentColumn.columnName)
     val predictedColumnNameEscaped: String = predictedColumnName.escape(sqlGenerator)
     val selectSqlStatement =
       s"""SELECT
-          | $observedColumnNameEscaped AS ${sqlGenerator.escapeColumnName(ConfusionMatrixUtils.observedColumnName)},
-          | $predictedColumnNameEscaped AS ${sqlGenerator.escapeColumnName(ConfusionMatrixUtils.predictedColumnName)},
+          | $observedColumnNameEscaped AS ${sqlGenerator.quoteIdentifier(ConfusionMatrixUtils.observedColumnName)},
+          | $predictedColumnNameEscaped AS ${sqlGenerator.quoteIdentifier(ConfusionMatrixUtils.predictedColumnName)},
           | COUNT(*) AS "N"
           | FROM ($innerSelectStatement) AS ${aliasGenerator.getNextAlias}
           | GROUP BY $observedColumnNameEscaped, $predictedColumnNameEscaped""".stripMargin

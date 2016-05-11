@@ -36,16 +36,18 @@ import com.alpine.plugin.model.ClassificationModelWrapper
 class Tuple4SampleSignature extends OperatorSignature[
   Tuple4SampleGUINode,
   Tuple4SampleRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - Tuple4 Input Viewer",
-      category = "Plugin Sample - Local",
-      author = "Sung Chung",
-      version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - Tuple4 Input Viewer",
+    category = "Plugin Sample - Local",
+    author = Some("Sung Chung"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 class Tuple4SampleGUINode extends OperatorGUINode[

@@ -27,16 +27,18 @@ import com.alpine.plugin.core.io.defaults.IOStringDefault
 class DBTableInfoViewerSignature extends OperatorSignature[
   DBTableInfoViewerGUINode,
   DBTableInfoViewerRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - DB Table Info Viewer",
-      category = "Plugin Sample - DB",
-      author = "Sung Chung",
-      version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - DB Table Info Viewer",
+    category = "Plugin Sample - DB",
+    author = Some("Sung Chung"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 class DBTableInfoViewerGUINode extends OperatorGUINode[

@@ -38,13 +38,18 @@ import scala.collection.mutable
 class HiveColumnFilterSignature extends OperatorSignature[
   HiveColumnFilterGUINode,
   HiveColumnFilterRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - Hive Column Filter",
-      category = "Plugin Sample - Spark",
-      version = 1
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - Hive Column Filter",
+    category = "Plugin Sample - Spark",
+    author = None,
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 class HiveColumnFilterGUINode extends OperatorGUINode[HiveTable, HiveTable] {

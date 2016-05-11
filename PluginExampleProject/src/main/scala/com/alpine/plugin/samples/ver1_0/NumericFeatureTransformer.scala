@@ -18,6 +18,7 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
+import com.alpine.plugin.core.icon.{StarBurst, OperatorIcon}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.SparkJobConfiguration
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
@@ -30,16 +31,19 @@ import org.apache.spark.sql.DataFrame
 class NumericFeatureTransformerSignature extends OperatorSignature[
   NumericFeatureTransformerGUINode,
   NumericFeatureTransformerRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
+
+  def getMetadata: OperatorMetadata = new OperatorMetadata(
       name = "Sample - Numeric Feature Transformer",
       category = "Plugin Sample - Spark",
-      author = "Sung Chung",
+    author = Some("Sung Chung"),
       version = 1,
-      helpURL = "http://alpinenow.com",
-      iconNamePrefix = "test"
+    helpURL = Some("http://alpinenow.com"),
+    icon = Some(OperatorIcon("test", StarBurst)),
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
     )
-  }
+
 }
 
 class NumericFeatureTransformerGUINode

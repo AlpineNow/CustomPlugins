@@ -45,10 +45,13 @@ class WordDictionaryBuilderSignature extends OperatorSignature[
     new OperatorMetadata(
       name = "Text Mining - Dictionary Builder",
       category = "Text Mining",
-      author = "Sung Chung",
+      author = Some("Sung Chung"),
       version = 1,
-      helpURL = "",
-      iconNamePrefix = "test"
+      helpURL = None,
+      icon = None,
+      toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+        "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+        " of the operator and are no more than fifty words.")
     )
   }
 }

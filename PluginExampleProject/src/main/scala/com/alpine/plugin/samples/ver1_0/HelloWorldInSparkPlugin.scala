@@ -31,16 +31,18 @@ import scala.collection.mutable
 class HelloWorldInSparkSignature extends OperatorSignature[
   HelloWorldInSparkGUINode,
   HelloWorldInSparkRuntime] {
-  def getMetadata(): OperatorMetadata = {
-    new OperatorMetadata(
-      name = "Sample - Hello World In Spark",
-      category = "Plugin Sample - Spark",
-      author = "Sung Chung",
-      version = 1,
-      helpURL = "",
-      iconNamePrefix = ""
-    )
-  }
+
+  override def getMetadata: OperatorMetadata = new OperatorMetadata(
+    name = "Sample - Hello World In Spark",
+    category = "Plugin Sample - Spark",
+    author = Some("Sung Chung"),
+    version = 1,
+    helpURL = None,
+    icon = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
+      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
+      " of the operator and are no more than fifty words.")
+  )
 }
 
 class HelloWorldInSparkGUINode extends OperatorGUINode[
