@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>1.6-beta-1</version>
+    <version>1.6-beta-2</version>
 
     <repositories>
         <repository>
