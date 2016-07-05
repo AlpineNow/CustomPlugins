@@ -153,7 +153,7 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
 
     //check if there is a table  or with the same name as the output table and drop according to the
     // "overwrite"
-    val overwrite = DBParameterUtils.getOverwriteParameterValue(params)
+    val overwrite = DBParameterUtils.getDropIfExistsParameterValue(params)
     val fullOutputName = getQuotedSchemaTableName(outputSchema, outputName)
     if (overwrite) {
       val stmtTable = connectionInfo.connection.createStatement()
