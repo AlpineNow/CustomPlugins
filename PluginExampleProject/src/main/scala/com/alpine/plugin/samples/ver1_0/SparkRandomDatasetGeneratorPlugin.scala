@@ -54,13 +54,12 @@ object SparkRandomDatasetGeneratorConstants {
 
   def defineOutputSchema(numDoubleCols: Int,
                          numIntCols: Int,
-                         numStringCols: Int,
-                         tabularFormatAttributes: TabularFormatAttributes) = {
+                         numStringCols: Int
+                        ) = {
     TabularSchema(
       (1 to numDoubleCols).map(i => ColumnDef("DoubleCol" + i.toString, ColumnType.Double)) ++
         (1 to numIntCols).map(i => ColumnDef("IntCol" + i.toString, ColumnType.Int)) ++
-        (1 to numStringCols).map(i => ColumnDef("StringCol" + i.toString, ColumnType.String)),
-      tabularFormatAttributes
+        (1 to numStringCols).map(i => ColumnDef("StringCol" + i.toString, ColumnType.String))
     )
 
   }
@@ -103,7 +102,7 @@ class SparkRandomDatasetGeneratorGUINode
       1000
     )
 
-    HdfsParameterUtils.addHdfsStorageFormatParameter(operatorDialog, HdfsStorageFormatType.TSV)
+    HdfsParameterUtils.addHdfsStorageFormatParameter(operatorDialog, HdfsStorageFormatType.CSV)
     HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
     SparkParameterUtils.addStandardSparkOptions(
@@ -115,7 +114,6 @@ class SparkRandomDatasetGeneratorGUINode
     )
 
     operatorSchemaManager.setOutputSchema(
-      // Not defining the attribute argument means we're defaulting to TSV.
       TabularSchema(
         Seq(
           ColumnDef("DoubleCol1", ColumnType.Double),
@@ -139,9 +137,8 @@ class SparkRandomDatasetGeneratorGUINode
       // We have to re-define the output schema based on the number of column
       // parameters. Additionally, we have to take into account the user
       // potentially selecting different output formats.
-      val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(HdfsParameterUtils.getHdfsStorageFormatType(params))
       val outputSchema = SparkRandomDatasetGeneratorConstants.defineOutputSchema(numDoubleCols,
-        numIntCols, numStringCols, tabularFormatAttributes)
+        numIntCols, numStringCols)
       operatorSchemaManager.setOutputSchema(outputSchema)
 
       OperatorStatus(isValid = true)
@@ -191,13 +188,10 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
     val overwrite = HdfsParameterUtils.getOverwriteParameterValue(params)
     val storageFormat = HdfsParameterUtils.getHdfsStorageFormatType(params)
 
-    val tabularFormatAttributes =
-      HdfsParameterUtils.getTabularFormatAttributes(storageFormat)
-
     //use our utils object to get the AlpineOutputSchema which we can then convert to Spark SQL with the
     //the SparkRuntimeUtils class.
     val outputSchema = SparkRandomDatasetGeneratorConstants.defineOutputSchema(numDoubleCols,
-      numIntCols, numStringCols, tabularFormatAttributes)
+      numIntCols, numStringCols)
 
     val sqlContext = new SQLContext(sparkContext)
     val outputDF =
@@ -211,7 +205,7 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
       overwrite,
       Some(params.operatorInfo),
       Map[String, AnyRef](),
-      TSVAttributes.default //the default is a tab delimited file. But you may specify different delimiters or escape characters with this parameter
+      TSVAttributes.defaultCSV //the default is a comma delimited file. But you may specify different delimiters or escape characters with this parameter
     )
   }
 }

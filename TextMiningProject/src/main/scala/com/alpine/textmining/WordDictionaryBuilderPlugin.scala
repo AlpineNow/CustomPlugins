@@ -20,7 +20,6 @@ package com.alpine.textmining
 import com.alpine.plugin.core.io.defaults.AbstractHdfsDelimitedTabularDataset
 
 import scala.collection.mutable
-
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
@@ -28,7 +27,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HdfsParameterUtils
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{CompositeVisualModel, TextVisualModel, VisualModel, VisualModelFactory}
 import opennlp.tools.tokenize.{Tokenizer, TokenizerME, TokenizerModel}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -41,7 +40,7 @@ import org.apache.spark.SparkContext
 class WordDictionaryBuilderSignature extends OperatorSignature[
   WordDictionaryBuilderGUINode,
   WordDictionaryBuilderRuntime] {
-  def getMetadata(): OperatorMetadata = {
+  def getMetadata: OperatorMetadata = {
     new OperatorMetadata(
       name = "Text Mining - Dictionary Builder",
       category = "Text Mining",
@@ -82,9 +81,8 @@ case class WordDictionaryFile(
   corpusDocCount: Long,
   corpusWordCount: Long,
   lowerCased: Boolean,
-  override val path: String,
-  override val sourceOperatorInfo: Option[OperatorInfo])
-  extends AbstractHdfsDelimitedTabularDataset(path, WordDictionarySchema.createSchema, TSVAttributes.default, sourceOperatorInfo, Map[String, AnyRef]()) {
+  override val path: String)
+  extends AbstractHdfsDelimitedTabularDataset(path, WordDictionarySchema.createSchema, TSVAttributes.default, Map[String, AnyRef]()) {
   def getCorpusPath: String = corpusPath
   def getCorpusDocCount: Long = corpusDocCount
   def getCorpusWordCount: Long = corpusWordCount
@@ -127,11 +125,11 @@ class WordDictionaryBuilderGUINode extends
     params: OperatorParameters,
     output: WordDictionaryFile,
     visualFactory: VisualModelFactory): VisualModel = {
-    val composite = visualFactory.createCompositeVisualModel()
+    val composite = new CompositeVisualModel
     val dataVisualization =
       visualFactory.createTabularDatasetVisualization(output)
     val statsSummary =
-      visualFactory.createTextVisualization(
+      TextVisualModel(
         "Corpus Statistics\n" +
         "=================\n" +
         "Corpus path : " + output.getCorpusPath + "\n" +
@@ -254,9 +252,10 @@ class WordDictionaryBuilderJob extends
         mapPartitions(wordStatsFunc).
         reduceByKey((ts1, ts2) => TokenStats(ts1.count + ts2.count, ts1.docCount + ts2.docCount))
 
-    if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
-      new SparkRuntimeUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
-    }
+    new SparkRuntimeUtils(sparkContext).deleteOrFailIfExists(
+      path = outputPathStr,
+      overwrite = HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
+    )
 
     outputRdd.map(
       t => t._1 + "\t" + t._2.count + "\t" + t._2.docCount
@@ -269,13 +268,12 @@ class WordDictionaryBuilderJob extends
       )
     val numDocs = corpusRdd.partitions.length
 
-    new WordDictionaryFile(
+    WordDictionaryFile(
       corpusPath,
       numDocs,
       totalTokenCount,
       useLowerCase,
-      outputPathStr,
-      Some(operatorParameters.operatorInfo)
+      outputPathStr
     )
   }
 }

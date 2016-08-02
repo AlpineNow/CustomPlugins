@@ -23,9 +23,9 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io.defaults.AbstractHdfsFile
-import com.alpine.plugin.core.io.{OperatorInfo, IONone, OperatorSchemaManager}
+import com.alpine.plugin.core.io.{IONone, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel, VisualModelFactory}
 import opennlp.tools.namefind.{NameFinderME, TokenNameFinderModel}
 import opennlp.tools.postag.{POSModel, POSTaggerME}
 import opennlp.tools.sentdetect.{SentenceDetectorME, SentenceModel}
@@ -65,9 +65,8 @@ class HdfsOpenNLPModelFileSignature extends OperatorSignature[
 
 case class HdfsOpenNLPModelFile(
   override val path: String,
-  modelType: String,
-  override val sourceOperatorInfo: Option[OperatorInfo]
-) extends AbstractHdfsFile(path, sourceOperatorInfo, Map[String, AnyRef]()) {
+  modelType: String
+) extends AbstractHdfsFile(path, Map.empty()) {
   def getModelType: String = modelType
 }
 
@@ -101,7 +100,7 @@ class HdfsOpenNLPModelFileGUINode extends OperatorGUINode[
     params: OperatorParameters,
     output: HdfsOpenNLPModelFile,
     visualFactory: VisualModelFactory): VisualModel = {
-    visualFactory.createTextVisualization(
+    TextVisualModel(
       "Successfully verified an OpenNLP model file " +
         output.path + " that is of the type " + output.getModelType
     )
@@ -182,7 +181,7 @@ class HdfsOpenNLPModelFileRuntime extends SparkRuntime[
       modelFileStream.close()
     }
 
-    new HdfsOpenNLPModelFile(sourcePath, expectedModelType, Some(params.operatorInfo))
+    HdfsOpenNLPModelFile(sourcePath, expectedModelType)
   }
 
   override def onStop(

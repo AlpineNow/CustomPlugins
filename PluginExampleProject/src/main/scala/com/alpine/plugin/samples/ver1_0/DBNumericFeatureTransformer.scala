@@ -57,9 +57,7 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     operatorDialog.addTabularDatasetColumnCheckboxes(
       "columnsToTransform",
       "Columns to transform",
-      // Need to figure out what numeric types the intended DBs have.
-      // Before that, we'll simply allow all column types to be shown.
-      ColumnFilter.All,
+      ColumnFilter.NumericOnly,
       "main"
     )
 

@@ -61,7 +61,7 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
       "Date Column change", ColumnFilter.All, "main")
 
     operatorDialog.addStringBox(DateTypeTranslatorUtils.dateFormatParamId, "Date Format String",
-      "MM/dd/yyyy", ".+", 0, 0)
+      "MM/dd/yyyy", ".+", required = true)
 
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
   }

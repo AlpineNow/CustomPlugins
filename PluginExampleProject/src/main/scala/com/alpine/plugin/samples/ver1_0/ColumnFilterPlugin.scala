@@ -134,7 +134,7 @@ class ColumnFilterGUINode extends SparkDataFrameGUINode[ColumnFilterJob] {
   /**
     * A method provided by the template which lets us define the output Tabular schema by
     * specifying the columns that the output schema will include. By using this method, we are
-    * defining a schema which has the type (TSV, Avro, Parquet) that the user selected. In this
+    * defining a schema which has the type (CSV, Avro, Parquet) that the user selected. In this
     * case we define the output schema as containing only the columns that the user selected in
     * the "Columns to keep" parameter.
     *

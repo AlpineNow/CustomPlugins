@@ -37,7 +37,7 @@ import org.apache.spark.rdd.RDD
 class RawTextToTabularDataSignature extends OperatorSignature[
   RawTextToTabularDataGUINode,
   RawTextToTabularDataRuntime] {
-  def getMetadata(): OperatorMetadata = {
+  def getMetadata: OperatorMetadata = {
     new OperatorMetadata(
       name = "Text Mining - Text to Table Converter",
       category = "Text Mining",
@@ -229,18 +229,14 @@ object DocumentFeatureManager {
   def createDocumentFeatureColumnDefs(
     docFeatures: Seq[String]): mutable.ArrayBuffer[ColumnDef] = {
     val columnDefs = new mutable.ArrayBuffer[ColumnDef]()
-    docFeatures.foreach(
-      docFeature => {
-        docFeature match {
-          case TextFeatures.docFeat_rootPathLabel =>
-            addColumnDef(columnDefs, TextFeatures.docFeat_rootPathLabel, ColumnType.String)
-          case TextFeatures.docFeat_numWordsLabel =>
-            addColumnDef(columnDefs, TextFeatures.docFeat_numWordsLabel, ColumnType.Double)
-          case TextFeatures.docFeat_normalizedNumWordsLabel =>
-            addColumnDef(columnDefs, TextFeatures.docFeat_normalizedNumWordsLabel, ColumnType.Double)
-        }
-      }
-    )
+    docFeatures.foreach {
+      case TextFeatures.docFeat_rootPathLabel =>
+        addColumnDef(columnDefs, TextFeatures.docFeat_rootPathLabel, ColumnType.String)
+      case TextFeatures.docFeat_numWordsLabel =>
+        addColumnDef(columnDefs, TextFeatures.docFeat_numWordsLabel, ColumnType.Double)
+      case TextFeatures.docFeat_normalizedNumWordsLabel =>
+        addColumnDef(columnDefs, TextFeatures.docFeat_normalizedNumWordsLabel, ColumnType.Double)
+    }
 
     columnDefs
   }
@@ -249,34 +245,30 @@ object DocumentFeatureManager {
     columnDefs: mutable.ArrayBuffer[ColumnDef],
     columnName: String,
     wordFeatures: Seq[String]): Unit = {
-    wordFeatures.foreach(
-      wordFeature => {
-        wordFeature match {
-          case TextFeatures.wordFeat_rawCountsLabel =>
-            addColumnDef(
-              columnDefs,
-              columnName,
-              TextFeatures.wordFeat_rawCountsLabel,
-              ColumnType.Double
-            )
-          case TextFeatures.wordFeat_normalizedCountsLabel =>
-            addColumnDef(
-              columnDefs,
-              columnName,
-              TextFeatures.wordFeat_normalizedCountsLabel,
-              ColumnType.Double
-            )
+    wordFeatures.foreach {
+      case TextFeatures.wordFeat_rawCountsLabel =>
+        addColumnDef(
+          columnDefs,
+          columnName,
+          TextFeatures.wordFeat_rawCountsLabel,
+          ColumnType.Double
+        )
+      case TextFeatures.wordFeat_normalizedCountsLabel =>
+        addColumnDef(
+          columnDefs,
+          columnName,
+          TextFeatures.wordFeat_normalizedCountsLabel,
+          ColumnType.Double
+        )
 
-          case TextFeatures.wordFeat_tfIdfLabel =>
-            addColumnDef(
-              columnDefs,
-              columnName,
-              TextFeatures.wordFeat_tfIdfLabel,
-              ColumnType.Double
-            )
-        }
-      }
-    )
+      case TextFeatures.wordFeat_tfIdfLabel =>
+        addColumnDef(
+          columnDefs,
+          columnName,
+          TextFeatures.wordFeat_tfIdfLabel,
+          ColumnType.Double
+        )
+    }
   }
 
   def createOutputSchema(
@@ -486,9 +478,8 @@ class RawTextToTabularDataJob extends SparkIOTypedPluginJob[
                 wordFeature match {
                   case TextFeatures.wordFeat_rawCountsLabel =>
                     wordFeatures(featureOffset + k) += 1.0
-                  case TextFeatures.wordFeat_normalizedCountsLabel => {
+                  case TextFeatures.wordFeat_normalizedCountsLabel =>
                     wordFeatures(featureOffset + k) += 1.0 / (docSize.toDouble + smoothingConstant)
-                  }
                   case TextFeatures.wordFeat_tfIdfLabel =>
                     wordFeatures(featureOffset + k) +=
                       math.log(numTotalDocs.toDouble / numDocsWithWord.toDouble)
@@ -534,9 +525,11 @@ class RawTextToTabularDataJob extends SparkIOTypedPluginJob[
       rddIndex += 1
     }
 
-    if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
-      new SparkRuntimeUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
-    }
+    new SparkRuntimeUtils(sparkContext).deleteOrFailIfExists(
+      path = outputPathStr,
+      overwrite = HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
+    )
+
     unionRdd.saveAsTextFile(outputPathStr)
 
     new HdfsDelimitedTabularDatasetDefault(

@@ -17,10 +17,6 @@
 
 package com.alpine.textmining
 
-import com.alpine.plugin.core.icon.{StarBurst, OperatorIcon}
-
-import scala.collection.mutable
-
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
@@ -34,10 +30,12 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkContext
 import org.jsoup.Jsoup
 
+import scala.collection.mutable
+
 class HtmlTagStripperSignature extends OperatorSignature[
   HtmlTagStripperGUINode,
   HtmlTagStripperRuntime] {
-  def getMetadata(): OperatorMetadata = {
+  def getMetadata: OperatorMetadata = {
     new OperatorMetadata(
       name = "Text Mining - HTML Tag Stripper",
       category = "Text Mining",
@@ -93,9 +91,10 @@ class HtmlTagStripperJob extends
     val outputPathStr = HdfsParameterUtils.getOutputPath(operatorParameters)
     val outputPath = new Path(outputPathStr)
 
-    if (HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)) {
-      new SparkRuntimeUtils(sparkContext).deleteFilePathIfExists(outputPathStr)
-    }
+    new SparkRuntimeUtils(sparkContext).deleteOrFailIfExists(
+      path = outputPathStr,
+      overwrite = HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
+    )
 
     var numTotalDocuments = 0
 
@@ -127,9 +126,8 @@ class HtmlTagStripperJob extends
       }
     }
 
-    new HdfsRawTextDatasetDefault(
+    HdfsRawTextDatasetDefault(
       outputPathStr,
-      Some(operatorParameters.operatorInfo),
       Map("numDocs" -> numTotalDocuments.toString)
     )
   }
