@@ -31,7 +31,7 @@ class IOListSampleSignature extends OperatorSignature[
   IOListSampleGUINode,
   IOListSampleRuntime] {
 
-  def getMetadata(): OperatorMetadata = {
+  def getMetadata: OperatorMetadata = {
     new OperatorMetadata(
       name = "Sample - IOList Input Viewer",
       category = "Plugin Sample - Local",
@@ -79,33 +79,25 @@ class IOListSampleRuntime extends SparkRuntime[
                            listener: OperatorListener): IOString = {
     val dataset1UUID = params.getStringValue("dataset1")
     val dataset2UUID = params.getStringValue("dataset2")
-    var dataset1Path: String = ""
-    var dataset1Type: String = ""
-    var dataset2Path: String = ""
-    var dataset2Type: String = ""
-    val itr = input.elements.iterator
 
-    //loop through the input elements and find the ones whose UUID's match
-    //the value of the input parameters for "number one dataset" and "number two dataset"
-    while (itr.hasNext) {
-      val dataset = itr.next()
-      if (dataset.sourceOperatorInfo.get.uuid.equals(dataset1UUID)) {
-        dataset1Path = dataset.path
-        //get the class used to create the HdfsTabularDataset
-        dataset1Type = dataset.getClass.getCanonicalName
-      } else if (dataset.sourceOperatorInfo.get.uuid.equals(dataset2UUID)) {
-        dataset2Path = dataset.path
-        dataset2Type = dataset.getClass.getCanonicalName
-      }
+    val dataset1Index = input.sources.indexWhere(o => o.uuid == dataset1UUID)
+    val dataset2Index = input.sources.indexWhere(o => o.uuid == dataset2UUID)
+
+    if (dataset1Index > -1 && dataset2Index > -1) {
+      val dataset1 = input.elements(dataset1Index)
+      val dataset2 = input.elements(dataset2Index)
+
+      IOStringDefault(
+        "The number one dataset has the path '" + dataset1.path +
+          "' and is of the type '" + dataset1.getClass.getCanonicalName + "'\n" +
+          "The number two dataset has the path '" + dataset2.path +
+          "' and is of the type '" + dataset2.getClass.getCanonicalName + "'\n"
+      )
+    } else {
+      IOStringDefault(
+        "Could not find both of the parent datasets."
+      )
     }
-    //return the IOString default object
-    new IOStringDefault(
-      "The number one dataset has the path '" + dataset1Path +
-        "' and is of the type '" + dataset1Type + "'\n" +
-        "The number two dataset has the path '" + dataset2Path +
-        "' and is of the type '" + dataset2Type + "'\n",
-      Some(params.operatorInfo)
-    )
   }
 
   override def onStop(context: SparkExecutionContext,

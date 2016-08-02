@@ -80,9 +80,7 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
     val overwrite =
       HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
 
-    if (overwrite) {
-      sparkUtils.deleteFilePathIfExists(outputPathStr)
-    }
+    sparkUtils.deleteOrFailIfExists(outputPathStr, overwrite)
 
     val outputSchema =
       TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))

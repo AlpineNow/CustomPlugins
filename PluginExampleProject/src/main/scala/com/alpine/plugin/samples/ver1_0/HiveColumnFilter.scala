@@ -131,11 +131,10 @@ class HiveColumnFilterJob extends SparkIOTypedPluginJob[HiveTable, HiveTable] {
     val sql = s"""CREATE TABLE $fullOutputName AS SELECT ${columnsToKeep.mkString(", ")} FROM ${input.getConcatenatedName}"""
     executeSQL(listener, hiveContext, sql)
 
-    new HiveTableDefault(
+    HiveTableDefault(
       outputTableName,
       outputDBName,
-      sparkUtils.convertSparkSQLSchemaToTabularSchema(hiveContext.table(fullOutputName).schema),
-      Some(operatorParameters.operatorInfo)
+      sparkUtils.convertSparkSQLSchemaToTabularSchema(hiveContext.table(fullOutputName).schema)
     )
   }
 

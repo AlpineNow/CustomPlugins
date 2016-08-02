@@ -2,9 +2,9 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core.io.TSVAttributes
 import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
-import com.alpine.plugin.core.utils.{HdfsStorageFormat, HdfsParameterUtils}
+import com.alpine.plugin.core.utils.{HdfsParameterUtils, HdfsStorageFormatType}
 import com.alpine.plugin.test.mock._
-import com.alpine.plugin.test.utils.{GolfData, OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{GolfData, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite, TestSparkContexts}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
@@ -42,7 +42,7 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
       params = parametersMock,
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY , "name")
     //add the HDFS storage parameters
-    OperatorParameterMockUtil.addHdfsParams(parametersMock, "ColumnFilterTestResults")
+    OperatorParameterMockUtil.addHdfsParamsDefault(parametersMock, "ColumnFilterTestResults")
 
     val (result , _)  = runDataFrameThroughDFTemplate(
       dataFrame = dataFrameInput,
@@ -71,18 +71,18 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
 
     val inputParameters = new OperatorParametersMock("2", "TestFullColumnFilter")
     OperatorParameterMockUtil.addTabularColumns(inputParameters, ColumnFilterUtil.COLUMNS_TO_KEEP_KEY, "outlook", "play")
-    OperatorParameterMockUtil.addHdfsParams(inputParameters, "FullColumnFilterTestResults")
+    OperatorParameterMockUtil.addHdfsParamsDefault(inputParameters, "FullColumnFilterTestResults")
 
     val inputHdfs = HdfsDelimitedTabularDatasetDefault(
       "target/testResults", sparkUtils.convertSparkSQLSchemaToTabularSchema(dataFrameInput.schema),
-      TSVAttributes.default, None)
+      TSVAttributes.default)
 
     val defaultParams = getNewParametersFromDataFrameGui(operatorGUI, inputHdfs, inputParameters)
 
     assert(defaultParams.contains(ColumnFilterUtil.COLUMNS_TO_KEEP_KEY))
 
     //the default storage format is TSV. Check that that value was added to the parameters in the GUI
-    assert(HdfsParameterUtils.getHdfsStorageFormat(defaultParams).equals(HdfsStorageFormat.TSV))
+    assert(HdfsParameterUtils.getHdfsStorageFormatType(defaultParams).equals(HdfsStorageFormatType.CSV))
 
     val (outputDF, _) = runDataFrameThroughEntireDFTemplate(operatorGUI,
     operatorJob = new ColumnFilterJob, inputParams = inputParameters, dataFrameInput = dataFrameInput )

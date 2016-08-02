@@ -37,7 +37,7 @@ import edu.uci.ics.crawler4j.url._
 class WebCrawlerSignature extends OperatorSignature[
   WebCrawlerGUINode,
   WebCrawlerRuntime] {
-  def getMetadata(): OperatorMetadata = {
+  def getMetadata: OperatorMetadata = {
     new OperatorMetadata(
       name = "Text Mining - Web Crawler",
       category = "Text Mining",
@@ -80,13 +80,12 @@ class WebCrawlerGUINode extends OperatorGUINode[
     val regexForValidUrl =
       "(?:(?:https?|ftp):\\/\\/)(?:\\S+(?::\\S*)?@)?(?:(?!(?:10|127)(?:\\.\\d{1,3}){3})(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))\\.?)(?::\\d{2,5})?(?:[/?#]\\S*)?"
 
-    operatorDialog.addStringBox(
+    operatorDialog.addLargeStringBox(
       id = "urlSeeds",
       label = "Comma Separated Url Seeds",
       defaultValue = "",
       regex = "^(" + regexForValidUrl + ")" + "(," + regexForValidUrl + ")*$",
-      width = 100,
-      height = 100
+      required = true
     )
 
     operatorDialog.addIntegerBox(
@@ -110,8 +109,7 @@ class WebCrawlerGUINode extends OperatorGUINode[
       label = "Temporary Local Crawler Folder",
       defaultValue = "/tmp/",
       regex = ".+",
-      width = 0,
-      height = 0
+      required = true
     )
   }
 
@@ -278,8 +276,7 @@ class WebCrawlerRuntime extends SparkRuntime[
 
     crawlController.start(classOf[PluginCrawler], numCrawlers)
     listener.notifyMessage("Finished running the crawler !")
-    new HdfsHtmlDatasetDefault(outputPath,
-      Some(params.operatorInfo),
+    HdfsHtmlDatasetDefault(outputPath,
       sharedState.storedPageCounts.toMap.map(t => (t._1, t._2.toString))
     )
   }

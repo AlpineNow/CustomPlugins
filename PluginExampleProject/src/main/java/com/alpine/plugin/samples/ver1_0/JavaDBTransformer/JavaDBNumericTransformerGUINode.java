@@ -48,7 +48,7 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
             operatorDialog.addTabularDatasetColumnCheckboxes(
                     DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM,
                     "Columns to Transform",
-                    ColumnFilter.All(),
+                    ColumnFilter.NumericOnly(),
                     SELECTION_GROUP_ID_MAIN,
                     true
             );

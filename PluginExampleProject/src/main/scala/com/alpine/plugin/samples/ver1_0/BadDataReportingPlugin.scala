@@ -72,7 +72,7 @@ class BadDataReportingPluginGUINode extends SparkDataFrameGUINode[BadDataReporti
 
     //a custom style tag to be used in formatting the "fancy table"
     operatorDialog.addStringBox(id = BadDataConstants.styleTagParamId, label = "Custom Style Tag",
-      defaultValue = BadDataConstants.DEFAULT_STYLE_TAG, regex = ".+", width = 0, height = 0)
+      defaultValue = BadDataConstants.DEFAULT_STYLE_TAG, regex = ".+", required = true)
 
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
 

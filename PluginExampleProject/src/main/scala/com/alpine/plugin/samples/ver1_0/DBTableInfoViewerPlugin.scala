@@ -62,7 +62,7 @@ class DBTableInfoViewerGUINode extends OperatorGUINode[
     operatorDialog.addDBTableDropdownBox(
       id = "dbTable",
       label = "Database Table",
-      defaultTable = ""
+      schemaBoxID = "dbSchema"
     )
   }
 }
