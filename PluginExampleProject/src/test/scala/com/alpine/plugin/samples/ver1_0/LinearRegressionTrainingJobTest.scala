@@ -81,14 +81,12 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
 
     val operatorInfo = OperatorInfo("12345", "RegressionEvaluatorTest")
     val params = new OperatorParametersMock(operatorInfo.name, operatorInfo.uuid)
-    OperatorParameterMockUtil.addHdfsParams(params, "RegressionEvaluatorTestOutput")
+    OperatorParameterMockUtil.addHdfsParamsDefault(params, "RegressionEvaluatorTestOutput")
 
     val regEvalOperator = new RegressionEvaluatorJob
 
     //create a tuple with the results of the previous tests and the same
-    val inputTuple = Tuple2Default("tuple", manufacturedData,
-          regressionModel,
-          Some(operatorInfo))
+    val inputTuple = Tuple2Default(manufacturedData, regressionModel)
 
     //run the input data through the on-execution method
     val result = regEvalOperator.onExecution(sc, null,

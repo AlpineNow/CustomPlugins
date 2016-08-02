@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>text-mining</artifactId>
-    <version>1.6</version>
+    <version>1.7</version>
 
     <repositories>
         <repository>
@@ -18,21 +18,9 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <!-- Incase there is a sync delay -->
-        <repository>
-            <id>sonatype-releases</id>
-            <name>Sonatype Repository</name>
-            <url>https://oss.sonatype.org/content/repositories/releases</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
     </repositories>
     <properties>
-        <alpine.version>1.6</alpine.version>
+        <alpine.version>1.7-beta</alpine.version>
     </properties>
     <dependencies>
 

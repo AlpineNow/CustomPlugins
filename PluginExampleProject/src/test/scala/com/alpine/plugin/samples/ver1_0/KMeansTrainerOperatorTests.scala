@@ -1,10 +1,11 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.visualization.VisualModel
+import com.alpine.plugin.core.utils.HdfsStorageFormatType
+import com.alpine.plugin.core.visualization.{HtmlVisualModel, VisualModel}
 import com.alpine.plugin.model.ClusteringModelWrapper
 import com.alpine.plugin.test.mock._
-import com.alpine.plugin.test.utils.{IrisFlowerPrediction, OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{IrisFlowerPrediction, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite, TestSparkContexts}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -26,7 +27,13 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
       KMeansConstants.featuresParamId, irisDF.schema.fieldNames : _* )
     parametersMock.setValue(KMeansConstants.numClustersParamId, 5)
     parametersMock.setValue(KMeansConstants.numIterationsParamId, 100)
-    OperatorParameterMockUtil.addHdfsParams(parametersMock, "KMeansOutput", outputDirectory = outputPath)
+    OperatorParameterMockUtil.addHdfsParams(
+      operatorParametersMock = parametersMock,
+      outputName = "KMeansOutput",
+      outputDirectory = outputPath,
+      storageFormat = HdfsStorageFormatType.CSV,
+      overwrite = true
+    )
 
      inputHdfsDataset = this.createHdfsTabularDatasetLocal(irisDF, Some(parametersMock.operatorInfo()),
     outputPath)
@@ -35,7 +42,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
     val resultModelWrapper: ClusteringModelWrapper = runInputThroughOperator[HdfsTabularDataset, ClusteringModelWrapper](
       inputHdfsDataset, kMeansJob, parametersMock)
 
-    val clusterMessage = resultModelWrapper.addendum.get(KMeansConstants.visualOutputKey).get
+    val clusterMessage = resultModelWrapper.addendum(KMeansConstants.visualOutputKey)
     println(clusterMessage)
 
     assert(resultModelWrapper.model.isInstanceOf[ExampleKMeansClusteringModel])
@@ -48,13 +55,13 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
     val inputParameters = new OperatorParametersMock("2", "K Means Trainer Job")
     OperatorParameterMockUtil.addTabularColumns(inputParameters, KMeansConstants.featuresParamId,
       "sepalLength", "sepalWidth", "petalLength", "petalWidth")
-    OperatorParameterMockUtil.addHdfsParams(inputParameters, "KMeansFullOperatorTestResult")
+    OperatorParameterMockUtil.addHdfsParamsDefault(inputParameters, "KMeansFullOperatorTestResult")
     //the result of the parameters will be assigned their default values.
 
     //run the onPlacement method, which will add parameters to the mock operator default
     val operatorDialogMock = new OperatorDialogMock(inputParameters, inputHdfsDataset, Some(inputHdfsDataset.tabularSchema))
-    guiNode.onPlacement(operatorDialogMock, new OperatorDataSourceManagerMock(new DataSourceMock("HdfsDataSource")),
-      new OperatorSchemaManagerMock(Some(inputHdfsDataset.tabularSchema)))
+    guiNode.onPlacement(operatorDialogMock, new OperatorDataSourceManagerMock(DataSourceMock("HdfsDataSource")),
+      new OperatorSchemaManagerMock())
 
 
     val defaultParameters = operatorDialogMock.getNewParameters
@@ -77,12 +84,12 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
     val inputParameters = new OperatorParametersMock("2", "K Means Trainer Job")
     OperatorParameterMockUtil.addTabularColumns(inputParameters, KMeansConstants.featuresParamId,
       "sepalLength", "sepalWidth", "petalLength", "petalWidth")
-    OperatorParameterMockUtil.addHdfsParams(inputParameters, "KMeansFullOperatorTestResult")
+    OperatorParameterMockUtil.addHdfsParamsDefault(inputParameters, "KMeansFullOperatorTestResult")
     //the result of the parameters will be assigned their default values.
     //run the onPlacement method, which will add parameters to the mock operator default
     val operatorDialogMock = new OperatorDialogMock(inputParameters, inputHdfsDataset, Some(inputHdfsDataset.tabularSchema))
-    guiNode.onPlacement(operatorDialogMock, new OperatorDataSourceManagerMock(new DataSourceMock("HdfsDataSource")),
-      new OperatorSchemaManagerMock(Some(inputHdfsDataset.tabularSchema)))
+    guiNode.onPlacement(operatorDialogMock, new OperatorDataSourceManagerMock(DataSourceMock("HdfsDataSource")),
+      new OperatorSchemaManagerMock())
 
     val defaultParameters = operatorDialogMock.getNewParameters
     //assert that the number of clusters is set to the default value five
@@ -91,7 +98,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
     val visualModels: VisualModel = guiNode.onOutputVisualization(defaultParameters, kMeansDefaultOutput,
       new VisualModelFactoryMock)
     //cast to the html model so we can see what the text looks like.
-    val visualizationText = visualModels.asInstanceOf[HtmlVisualModel].text
+    val visualizationText = visualModels.asInstanceOf[HtmlVisualModel].html
     assert(visualizationText.contains("<table ><tr><td style = \"padding-right:10px;\" >"))
 
   }

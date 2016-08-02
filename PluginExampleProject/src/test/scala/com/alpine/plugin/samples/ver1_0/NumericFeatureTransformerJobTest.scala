@@ -25,7 +25,7 @@ class NumericFeatureTransformerJobTest extends SimpleAbstractSparkJobSuite {
     parametersMock.setValue(NumericFeatureTransformerUtil.transformationTypeKey,
       NumericFeatureTransformerUtil.pow2)
 
-    OperatorParameterMockUtil.addHdfsParams(parametersMock, "NumericTransformerTest")
+    OperatorParameterMockUtil.addHdfsParamsDefault(parametersMock, "NumericTransformerTest")
 
     val nftSparkJobClass = new NumericFeatureTransformerJob
 

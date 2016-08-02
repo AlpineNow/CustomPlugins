@@ -21,7 +21,7 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
     parameters.setValue(BadDataConstants.badDataTypeParamId, BadDataConstants.ALL_NULL)
     parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
 
-    OperatorParameterMockUtil.addHdfsParams(parameters, "BadDataReportingTest")
+    OperatorParameterMockUtil.addHdfsParamsDefault(parameters, "BadDataReportingTest")
     val (r, _) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
     val justGoodData = GolfData.createGolfDF(sc)
 
@@ -42,7 +42,7 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
     parameters.setValue(BadDataConstants.badDataTypeParamId, BadDataConstants.NULL_AND_ZERO)
     parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
 
-    OperatorParameterMockUtil.addHdfsParams(parameters, "BadDataReportingTest")
+    OperatorParameterMockUtil.addHdfsParamsDefault(parameters, "BadDataReportingTest")
     val (r, _) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
     val justGoodData = GolfData.createGolfDF(sc)
 

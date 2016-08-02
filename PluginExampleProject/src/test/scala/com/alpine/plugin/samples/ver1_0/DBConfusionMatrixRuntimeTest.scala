@@ -12,7 +12,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
 
   describe("testGetCreateTableSQL") {
 
-    val lor = new MultiLogisticRegressionModel(Seq(
+    val lor = MultiLogisticRegressionModel(Seq(
       SingleLogisticRegression(
         "yes",
         Seq(2.0, 3.0).map(java.lang.Double.valueOf), 4.0
@@ -60,7 +60,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
     }
 
     it("Should work with good input") {
-      val dbTable = new DBTableDefault(
+      val dbTable = DBTableDefault(
         schemaName = "demo",
         tableName = "golfnew",
         tabularSchema = TabularSchema(
@@ -72,16 +72,10 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
         ),
         isView = true,
         dbName = "dummy DB Name",
-        dbURL = "dummy URL",
-        sourceOperatorInfo = None
+        dbURL = "dummy URL"
       )
 
-      val input = new Tuple2Default(
-        "dummy display name",
-        wrapper,
-        dbTable,
-        None
-      )
+      val input = Tuple2Default(wrapper, dbTable)
 
       val actualSQL = (new DBConfusionMatrixRuntime).getCreateTableSQL(
         mockSQLGenerator,
@@ -103,7 +97,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
     }
 
     it("Should fail with bad input") {
-      val dbTable = new DBTableDefault(
+      val dbTable = DBTableDefault(
         schemaName = "demo",
         tableName = "golfnew",
         tabularSchema = TabularSchema(
@@ -114,16 +108,10 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
         ),
         isView = true,
         dbName = "dummy DB Name",
-        dbURL = "dummy URL",
-        sourceOperatorInfo = None
+        dbURL = "dummy URL"
       )
 
-      val input = new Tuple2Default(
-        "dummy display name",
-        wrapper,
-        dbTable,
-        None
-      )
+      val input = Tuple2Default(wrapper, dbTable)
 
       /**
         * Should fail because the column "play" is not in the input dataset.
