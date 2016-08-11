@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<export-types>
-    <export-type>com.alpine.textmining.HdfsOpenNLPModelFile</export-type>
-    <export-type>com.alpine.textmining.WordDictionaryFile</export-type>
-</export-types>
