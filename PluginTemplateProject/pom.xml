@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-template</artifactId>
-    <version>1.7/version>
+    <version>1.7</version>
 
     <repositories>
         <repository>
@@ -20,7 +20,7 @@
         </repository>
     </repositories>
     <properties>
-        <alpine.version>1.7-beta</alpine.version>
+        <alpine.version>1.7</alpine.version>
     </properties>
     <dependencies>
 

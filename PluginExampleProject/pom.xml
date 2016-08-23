@@ -20,7 +20,7 @@
         </repository>
     </repositories>
     <properties>
-        <alpine.version>1.7-beta</alpine.version>
+        <alpine.version>1.7</alpine.version>
     </properties>
     <dependencies>
 
