@@ -166,7 +166,7 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
           statement.execute(sqlGenerator.getDropTableIfExistsSQL(fullOutputName, cascade = true))
         }
         catch {
-          case (e: Exception) => listener.notifyMessage("A view of the name " + fullOutputName + "exists");
+          case (e: SQLException) =>
         }
         //Now see if there is a view with the output name
         listener.notifyMessage("Dropping view if it exists")

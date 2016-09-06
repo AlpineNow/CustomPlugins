@@ -26,15 +26,12 @@ import com.alpine.plugin.core.io.DBTable;
 import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.io.defaults.DBTableDefault;
 import com.alpine.plugin.core.utils.DBParameterUtils;
-import com.alpine.plugin.util.JavaConversionUtils;
 import com.alpine.sql.SQLGenerator;
-import scala.Option;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -52,7 +49,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
     ) throws SQLException {
         String[] cols2transform = params.getTabularDatasetSelectedColumns(JavaDBTransformerUtil.COLUMNS_TO_TRANSFORM_PARAM)._2();
         String transformationType = params.getStringValue(JavaDBTransformerUtil.TRANSFORMATION_TYPE_PARAM);
-        SQLGenerator generator = context.getSQLGenerator();
+        SQLGenerator sqlGenerator = context.getSQLGenerator();
         //get parameter values using the DBParameterUtils class
         String outputSchemaName = DBParameterUtils.getDBOutputSchemaParam(params);
         String tableName = DBParameterUtils.getResultTableName(params);
@@ -60,31 +57,31 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
         Boolean dropIfExists = DBParameterUtils.getDropIfExistsParameterValue(params);
         DBConnectionInfo connectionInfo = context.getDBConnectionInfo();
 
-        String fullOutputName = generator.quoteObjectName(outputSchemaName, tableName);
+        String fullOutputName = sqlGenerator.quoteObjectName(outputSchemaName, tableName);
+
+        // Use try-with-resources to be sure the statement will be closed.
+        try (Statement statement = connectionInfo.connection().createStatement()) {
+            if (dropIfExists) {
+                //drop the table if it already exists
+                try {
+                    listener.notifyMessage("Dropping table if it exists.");
+                    statement.execute(sqlGenerator.getDropTableIfExistsSQL(fullOutputName, true));
+                } catch (SQLException ignored) {}
+
+                //drop the view if it already exists
+                try {
+                    listener.notifyMessage("Dropping view if it exists.");
+                    statement.execute(sqlGenerator.getDropViewIfExistsSQL(fullOutputName, true));
+                } catch (SQLException ignored) {}
+            } else {
+                // TODO: We should fail if the table already exists.
+            }
+        }
+
         //Create an sql statement object and build the statement according to the values
         //of the parameters and the input data.
 
-        if (dropIfExists) {
-            //drop the table if it already exists
-            try (Statement stmtTable = connectionInfo.connection().createStatement()) {
-                listener.notifyMessage("Dropping table if it exists.");
-                stmtTable.execute(("DROP TABLE IF EXISTS " + fullOutputName + " CASCADE;"));
-            } catch (Exception e) {
-                listener.notifyMessage("A view of the name " + fullOutputName + "exists");
-            }
-
-            //drop the view if it already exists
-            try (Statement stmtView = connectionInfo.connection().createStatement()) {
-                listener.notifyMessage("Dropping view if it exists.");
-                stmtView.execute(("DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"));
-            } catch (Exception e) {
-                listener.notifyMessage("A view of the name " + fullOutputName + "exists");
-            }
-        } else {
-            // TODO: We should fail if the table already exists.
-        }
-
-        //use a string builder to create a the sql statement
+        //use a string builder to create SQL of to select from the table.
         StringBuilder columnSQL = new StringBuilder();
 
         TabularSchema inputSchemaOutline = input.tabularSchema();
@@ -93,7 +90,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
 
         //select all of the input Columns (append them to the select statement)
         for (ColumnDef inputCol : inputCols) {
-            columnSQL.append(generator.quoteIdentifier(inputCol.columnName())).append(", ");
+            columnSQL.append(sqlGenerator.quoteIdentifier(inputCol.columnName())).append(", ");
         }
 
         String power;
@@ -112,23 +109,24 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                 started = true;
             }
             columnSQL
-                    .append("POWER(").append(generator.quoteIdentifier(columnName)).append(", ").append(power)
+                    .append("POWER(").append(sqlGenerator.quoteIdentifier(columnName)).append(", ").append(power)
                     .append(") AS ")
-                    .append(generator.quoteIdentifier(JavaDBTransformerUtil.getOutputColumnName(columnName, transformationType)));
+                    .append(sqlGenerator.quoteIdentifier(JavaDBTransformerUtil.getOutputColumnName(columnName, transformationType)));
         }
 
         //create a new table/view according to the database output parameters.
         StringBuilder createTableStatement = new StringBuilder();
         createTableStatement.append(
-                generator.getCreateTableOrViewAsSelectSQL(
+                sqlGenerator.getCreateTableOrViewAsSelectSQL(
                         columnSQL.toString(),
-                        generator.quoteObjectName(input.schemaName(), input.tableName()),
+                        sqlGenerator.quoteObjectName(input.schemaName(), input.tableName()),
                         fullOutputName,
                         isView
                 )
         );
 
         //execute the statement
+        // Use try-with-resources to be sure the statement will be closed.
         try (Statement stmt = connectionInfo.connection().createStatement()) {
             listener.notifyMessage("Executing the sql statement \n" + createTableStatement.toString());
             stmt.execute(createTableStatement.toString());
@@ -144,19 +142,14 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
                         transformationType
                 );
 
-        //create an empty addendum object
-        HashMap<String, Object> addendum = new HashMap<>();
-
         //create the DBTable object
-        return new DBTableDefault(
+        return DBTableDefault.apply(
                 outputSchemaName,
                 tableName,
                 outputTabularSchema,
                 isView,
                 connectionInfo.name(),
-                connectionInfo.url(),
-                Option.apply(params.operatorInfo()),
-                JavaConversionUtils.toImmutableMap(addendum)
+                connectionInfo.url()
         );
     }
 }
