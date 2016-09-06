@@ -24,7 +24,7 @@ import scala.collection.Seq;
 import java.util.ArrayList;
 import java.util.List;
 
-class DBTransformerConstants {
+class JavaDBTransformerUtil {
 
     static final String COLUMNS_TO_TRANSFORM_PARAM = "cols_to_transform";
     static final String TRANSFORMATION_TYPE_PARAM = "transformation_type";
@@ -37,7 +37,7 @@ class DBTransformerConstants {
                                          String transformationType) {
 
         Seq<ColumnDef> inputCols = inputSchema.getDefinedColumns();
-        List<ColumnDef> outputColumnDefs = new ArrayList<ColumnDef>(inputCols.size() + columnsToTransform.length);
+        List<ColumnDef> outputColumnDefs = new ArrayList<>(inputCols.size() + columnsToTransform.length);
 
         for (int i = 0; i < inputCols.length(); i++) {
             outputColumnDefs.add(inputCols.apply(i));
@@ -46,11 +46,15 @@ class DBTransformerConstants {
         for (String columnToTransform : columnsToTransform) {
             outputColumnDefs.add(
                     new ColumnDef(
-                            columnToTransform + "_" + transformationType,
+                            getOutputColumnName(columnToTransform, transformationType),
                             new ColumnType.TypeValue("DOUBLE PRECISION")
                     )
             );
         }
         return TabularSchema.apply(outputColumnDefs);
+    }
+
+    static String getOutputColumnName(String columnToTransform, String transformationType) {
+        return columnToTransform + "_" + transformationType;
     }
 }
