@@ -17,6 +17,8 @@
 
 package com.alpine.plugin.samples.ver1_0
 
+import java.sql.SQLException
+
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.db.{DBExecutionContext, DBRuntime}
@@ -24,8 +26,6 @@ import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.DBTableDefault
 import com.alpine.plugin.core.utils.DBParameterUtils
-
-import scala.collection.mutable
 
 /**
   * Ths operator has the same behavior as the Numeric Feature Transformer but works with Database input
@@ -64,7 +64,7 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
     operatorDialog.addDropdownBox(
       "transformationType",
       "Transformation type",
-      Array("Pow2", "Pow3").toSeq,
+      Seq("Pow2", "Pow3"),
       "Pow2"
     )
 
@@ -117,19 +117,20 @@ object SchemaTransformer {
   def transform(inputSchema: TabularSchema,
                 columnsToTransform: Array[String],
                 transformationType: String): TabularSchema = {
-    val outputColumnDefs = mutable.ArrayBuffer[ColumnDef]()
-    outputColumnDefs ++= inputSchema.getDefinedColumns
-    var i = 0
-    while (i < columnsToTransform.length) {
-      outputColumnDefs +=
+    val outputColumnDefs = inputSchema.getDefinedColumns ++ columnsToTransform.map(
+      columnName => {
         ColumnDef(
-          columnsToTransform(i) + "_" + transformationType.toLowerCase,
+          getOutputColumnName(columnName, transformationType),
           ColumnType.TypeValue("DOUBLE PRECISION")
         )
-      i += 1
-    }
+      }
+    )
 
     TabularSchema(outputColumnDefs)
+  }
+
+  def getOutputColumnName(columnToTransform: String, transformationType: String): String = {
+    columnToTransform + "_" + transformationType
   }
 }
 
@@ -148,74 +149,63 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
     val isView = DBParameterUtils.getIsViewParam(params)
     val outputName = DBParameterUtils.getResultTableName(params)
     val connectionInfo = context.getDBConnectionInfo
+    val statement = connectionInfo.connection.createStatement()
 
-    //check if there is a table  or with the same name as the output table and drop according to the
-    // "overwrite"
-    val overwrite = DBParameterUtils.getDropIfExistsParameterValue(params)
-    val fullOutputName = getQuotedSchemaTableName(outputSchema, outputName)
-    if (overwrite) {
-      val stmtTable = connectionInfo.connection.createStatement()
-      //First see if a table of that name exists.
-      // This will throw an exception if there is a view with the output name,
-      // we will catch the exception and delete the view in the next block of code.
-      try {
-        listener.notifyMessage("Dropping table if it exists")
-        val dropTableStatementBuilder = new StringBuilder()
-        dropTableStatementBuilder ++= "DROP TABLE IF EXISTS " + fullOutputName + " CASCADE;"
-        stmtTable.execute(dropTableStatementBuilder.toString())
+    try {
+      val sqlGenerator = context.getSQLGenerator
+      //check if there is a table  or with the same name as the output table and drop according to the
+      // "overwrite"
+      val overwrite = DBParameterUtils.getDropIfExistsParameterValue(params)
+      val fullOutputName = sqlGenerator.quoteIdentifier(outputSchema) + "." + sqlGenerator.quoteIdentifier(outputName)
+      if (overwrite) {
+        //First see if a table of that name exists.
+        // This will throw an exception if there is a view with the output name,
+        // we will catch the exception and delete the view in the next block of code.
+        try {
+          listener.notifyMessage("Dropping table if it exists")
+          statement.execute(sqlGenerator.getDropTableIfExistsSQL(fullOutputName, cascade = true))
+        }
+        catch {
+          case (e: SQLException) =>
+        }
+        //Now see if there is a view with the output name
+        listener.notifyMessage("Dropping view if it exists")
+        try {
+          statement.execute(sqlGenerator.getDropViewIfExistsSQL(fullOutputName, cascade = true))
+        } catch {
+          case (e: SQLException) =>
+        }
       }
-      catch {
-        case (e: Exception) => listener.notifyMessage("A view of the name " + fullOutputName + "exists");
-      }
-      finally {
-        stmtTable.close()
-      }
-      //Now see if there is a view with the output name
-      listener.notifyMessage("Dropping view if it exists")
-      val dropViewStatementBuilder = new StringBuilder()
-      dropViewStatementBuilder ++= "DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"
-      val stmtView = connectionInfo.connection.createStatement()
-      stmtView.execute(dropViewStatementBuilder.toString())
-      stmtView.close()
-    }
 
-    val sqlStatementBuilder = new StringBuilder()
-    if (isView) {
-      sqlStatementBuilder ++= "CREATE VIEW " + fullOutputName + " AS ("
-    } else {
-      sqlStatementBuilder ++= "CREATE TABLE " + fullOutputName + " AS ("
-    }
+      val inputSchema = input.tabularSchema
+      val columnDefs = inputSchema.getDefinedColumns
+      val passThroughColumnsSQL = columnDefs.map(
+        columnDef => sqlGenerator.quoteIdentifier(columnDef.columnName)
+      ).mkString(", ")
 
-    val inputSchema = input.tabularSchema
-    val columnDefs = inputSchema.getDefinedColumns
-    sqlStatementBuilder ++= "SELECT "
-    var i = 0
-    while (i < columnDefs.length) {
-      val columnDef = columnDefs(i)
-      sqlStatementBuilder ++= quoteName(columnDef.columnName) + ", "
-      i += 1
-    }
+      val power =
+        if (transformationType.equals("Pow2")) {
+          "2"
+        } else {
+          "3"
+        }
+      val transformedColumnsSQL = columnsToTransform.map(
+        columnToTransform =>
+          "POWER(" + sqlGenerator.quoteIdentifier(columnToTransform) + ", " + power + ") AS " +
+            sqlGenerator.quoteIdentifier(SchemaTransformer.getOutputColumnName(columnToTransform, transformationType))
+      ).mkString(", ")
 
-    val power =
-      if (transformationType.equals("Pow2")) {
-        "2"
-      } else {
-        "3"
-      }
-    i = 0
-    while (i < columnsToTransform.length) {
-      val columnToTransform = columnsToTransform(i)
-      sqlStatementBuilder ++= "POWER(" + quoteName(columnToTransform) + ", " + power + ") AS "
-      sqlStatementBuilder ++= columnToTransform + "_pow" + power
-      i += 1
-      if (i != columnsToTransform.length) {
-        sqlStatementBuilder ++= ", "
-      }
+      val createOutputSQL = sqlGenerator.getCreateTableOrViewAsSelectSQL(
+        columns = passThroughColumnsSQL + ", " + transformedColumnsSQL,
+        sourceTable = sqlGenerator.quoteIdentifier(input.schemaName) + "." + sqlGenerator.quoteIdentifier(input.tableName),
+        destinationTable = fullOutputName,
+        isView = isView
+      )
+
+      statement.execute(createOutputSQL)
+    } finally {
+      statement.close()
     }
-    sqlStatementBuilder ++= " FROM " + getQuotedSchemaTableName(input.schemaName, input.tableName) + ");"
-    val stmt = connectionInfo.connection.createStatement()
-    stmt.execute(sqlStatementBuilder.toString())
-    stmt.close()
 
     //create the output schema
     val outputTabularSchema =
@@ -232,18 +222,9 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
       isView,
       connectionInfo.name,
       connectionInfo.url,
-      Some(params.operatorInfo),
       //save keys to the output to create visualizations
       Map("TestValue1" -> new Integer(1), "TestValue2" -> new Integer(2))
     )
-  }
-
-  def getQuotedSchemaTableName(schemaName: String, tableName: String): String = {
-    quoteName(schemaName) + "." + quoteName(tableName)
-  }
-
-  def quoteName(colName: String): String = {
-    "\"" + colName + "\""
   }
 
 }
