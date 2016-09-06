@@ -46,7 +46,7 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
         try {
             //add the parameters
             operatorDialog.addTabularDatasetColumnCheckboxes(
-                    DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM,
+                    JavaDBTransformerUtil.COLUMNS_TO_TRANSFORM_PARAM,
                     "Columns to Transform",
                     ColumnFilter.NumericOnly(),
                     SELECTION_GROUP_ID_MAIN,
@@ -55,13 +55,13 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
             //the operator dialog methods require scala collection types.
             //use the ScalaConversionUtils class to generate those in Java.
             scala.collection.Seq<String> transformationTypes = JavaConversionUtils.toSeq(Arrays.asList(
-                    DBTransformerConstants.TRANSFORMATION_TYPE_POW2,
-                    DBTransformerConstants.TRANSFORMATION_TYPE_POW3));
+                    JavaDBTransformerUtil.TRANSFORMATION_TYPE_POW2,
+                    JavaDBTransformerUtil.TRANSFORMATION_TYPE_POW3));
             operatorDialog.addDropdownBox(
-                    DBTransformerConstants.TRANSFORMATION_TYPE_PARAM,
+                    JavaDBTransformerUtil.TRANSFORMATION_TYPE_PARAM,
                     "Transformation Type",
                     transformationTypes,
-                    DBTransformerConstants.TRANSFORMATION_TYPE_POW2
+                    JavaDBTransformerUtil.TRANSFORMATION_TYPE_POW2
             );
             DBParameterUtils.addStandardDBOutputParameters(operatorDialog, DBParameterUtils.operatorNameUUIDVariable());
         } catch (Exception e) {
@@ -87,11 +87,11 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
 
             if (inputSchema.getDefinedColumns().nonEmpty()) {
                 String[] colsToTransform = params.getTabularDatasetSelectedColumns(
-                        DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM)._2();
-                TabularSchema outputSchema = DBTransformerConstants.transformSchema(
+                        JavaDBTransformerUtil.COLUMNS_TO_TRANSFORM_PARAM)._2();
+                TabularSchema outputSchema = JavaDBTransformerUtil.transformSchema(
                         inputSchema,
                         colsToTransform,
-                        params.getStringValue(DBTransformerConstants.TRANSFORMATION_TYPE_PARAM)
+                        params.getStringValue(JavaDBTransformerUtil.TRANSFORMATION_TYPE_PARAM)
                 );
                 operatorSchemaManager.setOutputSchema(outputSchema);
             }

@@ -50,8 +50,8 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
             OperatorParameters params,
             OperatorListener listener
     ) throws SQLException {
-        String[] cols2transform = params.getTabularDatasetSelectedColumns(DBTransformerConstants.COLUMNS_TO_TRANSFORM_PARAM)._2();
-        String transformationType = params.getStringValue(DBTransformerConstants.TRANSFORMATION_TYPE_PARAM);
+        String[] cols2transform = params.getTabularDatasetSelectedColumns(JavaDBTransformerUtil.COLUMNS_TO_TRANSFORM_PARAM)._2();
+        String transformationType = params.getStringValue(JavaDBTransformerUtil.TRANSFORMATION_TYPE_PARAM);
         SQLGenerator generator = context.getSQLGenerator();
         //get parameter values using the DBParameterUtils class
         String outputSchemaName = DBParameterUtils.getDBOutputSchemaParam(params);
@@ -97,27 +97,25 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
         }
 
         String power;
-        if (DBTransformerConstants.TRANSFORMATION_TYPE_POW2.equals(transformationType)) {
+        if (JavaDBTransformerUtil.TRANSFORMATION_TYPE_POW2.equals(transformationType)) {
             power = "2";
         } else {
             power = "3";
         }
         //Perform the transformation according to the value set for the transformation type
         //parameter and the columns to transform parameter
-        for (int i = 0; i < cols2transform.length - 1; i++) {
-            String columnName = cols2transform[i];
+        boolean started = false;
+        for (String columnName : cols2transform) {
+            if (started) {
+                columnSQL.append(", ");
+            } else {
+                started = true;
+            }
             columnSQL
                     .append("POWER(").append(generator.quoteIdentifier(columnName)).append(", ").append(power)
                     .append(") AS ")
-                    .append(columnName + "_pow" + power)
-                    .append(", ");
+                    .append(generator.quoteIdentifier(JavaDBTransformerUtil.getOutputColumnName(columnName, transformationType)));
         }
-        //add the last column
-        String columnName = cols2transform[cols2transform.length - 1];
-        columnSQL
-                .append("POWER(").append(generator.quoteIdentifier(columnName)).append(", ").append(power)
-                .append(") AS ")
-                .append(columnName + "_pow" + power);
 
         //create a new table/view according to the database output parameters.
         StringBuilder createTableStatement = new StringBuilder();
@@ -139,7 +137,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
         //create the Tabular schema, which is required for the DBTable object.
         //Use the "transformSchema" method defined in the DBTransformerConstants class so that
         //the runtime schema will be consistent with the one defined in the GUI node.
-        TabularSchema outputTabularSchema = DBTransformerConstants
+        TabularSchema outputTabularSchema = JavaDBTransformerUtil
                 .transformSchema(
                         input.tabularSchema(),
                         cols2transform,
