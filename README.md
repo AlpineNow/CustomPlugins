@@ -31,3 +31,11 @@ Alpine Version | Custom Operator SDK | Spark Version
 [Building Your First Custom Operator in Scala](https://alpine.atlassian.net/wiki/display/V5/Building+Your+First+Custom+Operator+in+Scala)
 
 [Building a Source Operator](https://alpine.atlassian.net/wiki/display/V5/Building+a+Source+Operator)
+
+## Building on Windows
+
+When building the samples, the tests may not run on Windows without some extra configuration. If you do not want to run the tests, you can build the sample operators in PluginExampleProject by running `mvn package -DskipTests`. This should build correctly and give you the JAR necessary to upload into Alpine.
+
+If you want to be able to run the tests, know that Spark has extra requirements for reading and saving data in a Spark context on Windows. The linear regression model from MLlib (unlike the other Spark operators in PluginExampleProject) uses some Hadoop functionality to save intermediate results. Running Hadoop on Windows requires that you have a local Hadoop installation, the `HADOOP_HOME` variable correctly configured, and the winutils executable present on your machine. You may experience build errors if you are testing functionality using Spark Core or a Hive context. This is particularly true if you want to read and save data in a Windows environment. See [SPARK-2356](https://issues.apache.org/jira/browse/SPARK-2356) for more details.
+
+[How to run Spark on Windows](http://nishutayaltech.blogspot.com/2015/04/how-to-run-apache-spark-on-windows7-in.html)
