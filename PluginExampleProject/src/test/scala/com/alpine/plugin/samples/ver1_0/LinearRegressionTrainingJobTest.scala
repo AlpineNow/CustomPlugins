@@ -18,21 +18,22 @@ import org.scalatest.junit.JUnitRunner
  * Note: If you examine the results of the regression evaluator for the linear regression
  * model on this data you will notice that this algorithm does a very poor job on
  * data which isn't normalized.
-  *
-  *
-  * Warning: This test may not run on windows without some extra configuration step.
-  * See: http://nishutayaltech.blogspot.com/2015/04/how-to-run-apache-spark-on-windows7-in.html
-  * *
-  * The linear regression model in MLLib (unlike the other spark operators in this project)
-  * uses some Hadoop functionality to save intermediate results. Running hadoop on windows
-  * requires that local hadoop and the hadoop home variable correctly configured and winutils
-  * executable to be downloaded and present on your machine.
-  * You may run into this problem if using Spark CORE or the hive context to run local tests in
-  * particularly to read and save in a windows environment. See SPARK-2356.
+ *
+ *
+ * Warning: This test may not run on Windows without some extra configuration steps.
+ * See: http://nishutayaltech.blogspot.com/2015/04/how-to-run-apache-spark-on-windows7-in.html
+ * *
+ * The linear regression model in MLlib (unlike the other Spark operators in this project)
+ * uses some Hadoop functionality to save intermediate results. Running Hadoop on Windows
+ * requires that you have a local Hadoop installation, the HADOOP_HOME variable 
+ * correctly configured, and the winutils executable present on your machine.
+ * You may run into this problem if using Spark Core or the Hive context to run local tests,
+ * particularly if you want to read and save in a Windows environment. See SPARK-2356.
+ * (https://issues.apache.org/jira/browse/SPARK-2356)
 
-  * To run this test either
-  * a) Run in a Linux VM
-  * b) Follow the instructions described above to correctly configure the windows system.
+ * To run this test either
+ * a) Run in a Linux VM
+ * b) Follow the instructions described above to correctly configure the Windows system.
  */
 
 class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
