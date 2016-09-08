@@ -7,9 +7,6 @@ import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMo
 import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
 
 /**
   * A test class for our linear regression algorithm and regression evaluator.

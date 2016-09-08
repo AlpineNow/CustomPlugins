@@ -6,8 +6,11 @@ import com.alpine.plugin.core.io.{ColumnDef, ColumnType, TabularSchema}
 import com.alpine.plugin.model.ClassificationModelWrapper
 import com.alpine.sql.DatabaseType.TypeValue
 import com.alpine.sql.SQLGenerator
+import org.junit.runner.RunWith
 import org.scalatest.FunSpec
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class DBConfusionMatrixRuntimeTest extends FunSpec {
 
   describe("testGetCreateTableSQL") {
