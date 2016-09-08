@@ -12,14 +12,28 @@ import org.scalatest.junit.JUnitRunner
 
 
 /**
- * A test class for our linear regression algorithm and regression evaluator.
- * Demonstrates how to tests the behavior of two custom operators in sequence.
- *
- * Note: If you examine the results of the regression evaluator for the linear regression
- * model on this data you will notice that this algorithm does a very poor job on
- * data which isn't normalized.
+  * A test class for our linear regression algorithm and regression evaluator.
+  * Demonstrates how to tests the behavior of two custom operators in sequence.
+  *
+  * Note: If you examine the results of the regression evaluator for the linear regression
+  * model on this data you will notice that this algorithm does a very poor job on
+  * data which isn't normalized.
+  *
+  * Warning: This test may not run on Windows without some extra configuration steps.
+  * See: http://nishutayaltech.blogspot.com/2015/04/how-to-run-apache-spark-on-windows7-in.html
+  *
+  * The linear regression model in MLlib (unlike the other Spark operators in this project)
+  * uses some Hadoop functionality to save intermediate results. Running Hadoop on Windows
+  * requires that you have a local Hadoop installation, the HADOOP_HOME variable
+  * correctly configured, and the winutils executable present on your machine.
+  * You may run into this problem if using Spark Core or the Hive context to run local tests,
+  * particularly if you want to read and save in a Windows environment. See SPARK-2356.
+  * (https://issues.apache.org/jira/browse/SPARK-2356)
+  *
+  * To run this test either
+  * a) Run in a Linux VM
+  * b) Follow the instructions described above to correctly configure the Windows system
  */
-@RunWith(classOf[JUnitRunner])
 class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
   import TestSparkContexts._
   //values which we can use in both tests
