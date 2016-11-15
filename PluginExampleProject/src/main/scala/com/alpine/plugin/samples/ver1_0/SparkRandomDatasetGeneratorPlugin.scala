@@ -19,10 +19,10 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
-import com.alpine.plugin.core.dialog.OperatorDialog
+import com.alpine.plugin.core.dialog.{SparkParameter, OperatorDialog}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.{AutoTunerOptions, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.{HdfsStorageFormatType, HdfsParameterUtils, SparkParameterUtils}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SQLContext
@@ -105,13 +105,7 @@ class SparkRandomDatasetGeneratorGUINode
     HdfsParameterUtils.addHdfsStorageFormatParameter(operatorDialog, HdfsStorageFormatType.CSV)
     HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
-    SparkParameterUtils.addStandardSparkOptions(
-      operatorDialog,
-      defaultNumExecutors = 2,
-      defaultExecutorMemoryMB = 1024,
-      defaultDriverMemoryMB = 1024,
-      defaultNumExecutorCores = 1
-    )
+    SparkParameterUtils.addStandardSparkOptions(operatorDialog, List[SparkParameter]())
 
     operatorSchemaManager.setOutputSchema(
       TabularSchema(
@@ -147,7 +141,27 @@ class SparkRandomDatasetGeneratorGUINode
 }
 
 class SparkRandomDatasetGeneratorRuntime
-  extends SparkRuntimeWithIOTypedJob[RandomDatasetGeneratorJob, IONone, HdfsTabularDataset] {}
+  extends SparkRuntimeWithIOTypedJob[RandomDatasetGeneratorJob, IONone, HdfsTabularDataset] {
+  /**
+    * We use this method to change how the Spark AutoTuner Works.
+    * By default the auto tuner spins up enough workers to read the input data into memory. We estimate
+    * the size of the input data in memory as the file size times some scalar, which can be
+    * set in this method.
+    * (See the documentation for the 'AutoTunerOptions' class for more details.)
+    *
+    * However, since this operator has no input data, we need to override this value so that
+    * it will correspond with the computational resources we need.
+    * There are many possible ways of doing this, one simple way, is just to assume that the
+    * operator requires more resources as the number of rows increases. (Note that this value
+    * will be reported in the "view status" feed of the alpine UI as  the "size of input data in memory").
+    */
+
+  override def getAutoTuningOptions(parameters: OperatorParameters, input: IONone): AutoTunerOptions = {
+    val fileSizeMultiplier = parameters.getIntValue("numRows")/2000.0 //we will increase the file size base on the number of rows
+    AutoTunerOptions(driverMemoryFraction = 0.5, //this doesn't require much work from the driver so we set this value to less than one.
+      fileSizeMultiplier = fileSizeMultiplier)
+  }
+}
 
 class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabularDataset] {
   override def onExecution(sparkContext: SparkContext,
@@ -198,6 +212,7 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
       sqlContext.createDataFrame(randomDataRdd, sparkUtils.convertTabularSchemaToSparkSQLSchema(outputSchema))
 
     //use sparkUtils to save the DataFrame and return the HdfsTabularDataset object
+
     sparkUtils.saveDataFrame(
       outputPath,
       outputDF,
