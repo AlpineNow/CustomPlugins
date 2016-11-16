@@ -58,7 +58,7 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
                            operatorDataSourceManager: OperatorDataSourceManager,
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addTabularDatasetColumnDropdownBox(DateTypeTranslatorUtils.dateColumnParamId,
-      "Date Column change", ColumnFilter.All, "main")
+      "Date Column change", ColumnFilter.DateTimeOnly, "main")
 
     operatorDialog.addStringBox(DateTypeTranslatorUtils.dateFormatParamId, "Date Format String",
       "MM/dd/yyyy", ".+", required = true)
@@ -81,7 +81,7 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
 
 
   /**
-    * We have to write custom validation code to check that the columns selected are date columns and that the
+    * We have to write custom validation code to check that the
     * date format string is a valid SimpleDateFormat.
     *
     * A Date Time Column Filter will be made available in the next release of the SDK.
@@ -91,17 +91,9 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
                                         operatorSchemaManager: OperatorSchemaManager):
   OperatorStatus = {
 
-    val (_, selectedColumn) = params.getTabularDatasetSelectedColumn(DateTypeTranslatorUtils.dateColumnParamId)
-
-    //will only be evaluated is there is an input schema
-    lazy val dateColumn = inputSchemas.head._2.getDefinedColumns.find(_.columnName == selectedColumn)
-
     val format: String = params.getStringValue(DateTypeTranslatorUtils.dateFormatParamId)
 
-    if (inputSchemas.nonEmpty && dateColumn.isDefined && !isDateColumn(dateColumn.get)) {
-      OperatorStatus(isValid = false, "The column selected must be have type 'DateTime'")
-    }
-    else if (Try(new SimpleDateFormat(format)).isFailure) {
+    if(Try(new SimpleDateFormat(format)).isFailure) {
       OperatorStatus(isValid = false, format + " is not a valid SimpleDateFormat")
     }
     else {
@@ -109,14 +101,6 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
     }
   }
 
-  /**
-    * DateTypes are somewhat more complicated than other alpine types since they often include a
-    * format String. Without enumererating all the possible date types accepted, we cannot define a column filter for date columns.
-    * This feature is scheduled for the next Alpine release.
-    */
-  def isDateColumn(columnDef: ColumnDef): Boolean = {
-    columnDef.columnType.name == ColumnType.DateTime.name
-  }
 
 
 }

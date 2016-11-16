@@ -6,7 +6,7 @@ import com.alpine.plugin.core.io.{HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.{BadDataReportingUtils, SparkRuntimeUtils}
 import com.alpine.plugin.core.utils.{SparkParameterUtils, HdfsParameterUtils, HtmlTabulator, Timer}
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{CompositeVisualModel, HtmlVisualModel, VisualModel, VisualModelFactory}
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.storage.StorageLevel
@@ -91,15 +91,15 @@ class BadDataReportingPluginGUINode extends SparkDataFrameGUINode[BadDataReporti
     val fancyHtmlTable = addendum.getOrElse(BadDataConstants.fancyHtmlTableId, "").toString
     val badDataReport = addendum.getOrElse(BadDataConstants.badDataReportId, "").toString
     val timerTable = addendum.getOrElse(BadDataConstants.timerReportId, "").toString
-    val compositeVisualModel = visualFactory.createCompositeVisualModel()
+    val compositeVisualModel =new CompositeVisualModel()
     compositeVisualModel.addVisualModel("Good Data",
       visualFactory.createTabularDatasetVisualization(output))
     compositeVisualModel.addVisualModel("Bad Data Report",
-      visualFactory.createHtmlTextVisualization(badDataReport))
+      new HtmlVisualModel(badDataReport))
     compositeVisualModel.addVisualModel("Test of Fancy Html Table",
-      visualFactory.createHtmlTextVisualization(fancyHtmlTable))
+      new HtmlVisualModel(fancyHtmlTable))
     compositeVisualModel.addVisualModel("Timer Report",
-      visualFactory.createHtmlTextVisualization(timerTable))
+      new HtmlVisualModel(timerTable))
     compositeVisualModel
   }
 }
@@ -128,6 +128,8 @@ class BadDataReportingPluginJob extends SparkDataFrameJob {
     dataFrame.persist(storageLevel)
 
     //use the BadDataReportingUtils to filter out the rows with null/zero data
+    //This function takes a custom routine called that maps from a row to a boolean.
+    //In this case we pass in a function (defined bellow) called 'containsZero' that labels as removable if they contain any zeros.
     val (goodData, badDataReport) =
       if (typeOfBadDataToRemove.equals(BadDataConstants.NULL_AND_ZERO)) {
         BadDataReportingUtils.filterNullDataAndReportGeneral(
@@ -165,8 +167,18 @@ class BadDataReportingPluginJob extends SparkDataFrameJob {
 /**
   * When defining sub routines to be performed by spark transformations it is best to put them in a
   * static object extending the "Serializable" Trait to avoid serialization errors.
+  * The important thing is that nothing in these functions relies on mutable values that could be changed
+  * during the Spark job.
+  *
+  *
+  * These routines are used for the 'removeNullData' function.
   */
 object RowProcessingUtil extends Serializable {
+  /**
+    * This is a function that maps from a row to a boolean and is passed to the
+    * 'removeNullData' routine.
+    * It is true if any value is not numeric or is a zero.
+    */
   def containsZeros(r: Row): Boolean = {
     if (r.anyNull) true
     else {
