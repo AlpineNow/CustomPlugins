@@ -25,12 +25,14 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
       Seq(ColumnDef("temperature", ColumnType.Long), ColumnDef("humidity", ColumnType.Long))
     )
 
-    val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper("dummy name", lor, None)
+    val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper(lor)
 
     val mockSQLGenerator = new SQLGenerator {
 
       override def quoteIdentifier(s: String): String = s""""$s""""
+
       override def useAliasForSelectSubQueries: Boolean = true
+
       override def escapeColumnName(s: String): String = quoteIdentifier(s)
 
       override def dbType: TypeValue = ???
@@ -52,6 +54,12 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
       override def getCreateTableOrViewAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, whereClause: String, isView: Boolean): String = ???
 
       override def getCreateTableOrViewAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, isView: Boolean): String = ???
+
+      override def getCreateTableAsSelectSQL(selectQuery: String, destinationTable: String): String = ???
+
+      override def getCreateViewAsSelectSQL(selectQuery: String, destinationView: String): String = ???
+
+      override def getCreateTableOrViewAsSelectSQL(selectQuery: String, destinationTableOrView: String, isView: Boolean): String = ???
 
       override def quoteChar: String = ???
 
