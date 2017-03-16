@@ -24,7 +24,7 @@ object DateTypeTranslatorUtils {
   val dateFormatParamId = "dateFormat"
 
   def outputSchema(parameters: OperatorParameters,
-                   inputSchema: TabularSchema) = {
+                   inputSchema: TabularSchema): TabularSchema = {
 
     val (_, dateColumn) = parameters.getTabularDatasetSelectedColumn(DateTypeTranslatorUtils.dateColumnParamId)
 
@@ -93,15 +93,13 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
 
     val format: String = params.getStringValue(DateTypeTranslatorUtils.dateFormatParamId)
 
-    if(Try(new SimpleDateFormat(format)).isFailure) {
+    if (Try(new SimpleDateFormat(format)).isFailure) {
       OperatorStatus(isValid = false, format + " is not a valid SimpleDateFormat")
     }
     else {
       super.onInputOrParameterChange(inputSchemas, params, operatorSchemaManager)
     }
   }
-
-
 
 }
 

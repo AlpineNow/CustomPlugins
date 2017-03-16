@@ -7,7 +7,7 @@ import com.alpine.plugin.core.io.{ColumnDef, HdfsTabularDataset, OperatorSchemaM
 import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HtmlTabulator
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{HtmlVisualModel, VisualModel, VisualModelFactory}
 import com.alpine.plugin.model.ClusteringModelWrapper
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
@@ -68,8 +68,7 @@ class KMeansTrainerGUINode extends OperatorGUINode[HdfsTabularDataset, Clusterin
     val clusterTable = output.addendum.getOrElse(KMeansConstants.visualOutputKey,
       "No Cluster Table Found").toString
 
-    //create a text visual model
-    visualFactory.createHtmlTextVisualization(clusterTable)
+    HtmlVisualModel(clusterTable)
   }
 }
 
@@ -127,8 +126,7 @@ class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, Cluster
     //this will be used in the visualization to create a tab that shows which clusters were trained
     val clusterAddendum = makeAddendum(inputFeatureNames, clusters, labels)
 
-    new ClusteringModelWrapper(modelName = "K Means Model", model = alpineModel, sourceOperatorInfo =
-      Some(operatorParameters.operatorInfo), addendum = clusterAddendum)
+    new ClusteringModelWrapper(model = alpineModel, addendum = clusterAddendum)
   }
 
   /**
@@ -137,7 +135,7 @@ class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, Cluster
     * a table with information about the centers.
     */
 
-  def makeAddendum(inputFeatureNames: Array[String], clusters: Array[DenseVector],
+  private def makeAddendum(inputFeatureNames: Array[String], clusters: Array[DenseVector],
                    labels: Seq[String]) = {
 
     val clusterTableHeader = "ClusterName" :: inputFeatureNames.toList

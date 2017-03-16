@@ -53,9 +53,7 @@ class HelloWorldInSparkGUINode extends OperatorGUINode[
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
-
-    val outputSchema =
-      TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
+    val outputSchema = TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
     operatorSchemaManager.setOutputSchema(outputSchema)
   }
 }
@@ -75,22 +73,18 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
                            listener: OperatorListener): HdfsDelimitedTabularDataset = {
     val sparkUtils = new SparkRuntimeUtils(sparkContext)
 
-    val outputPathStr =
-      HdfsParameterUtils.getOutputPath(operatorParameters)
-    val overwrite =
-      HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
+    val outputPathStr = HdfsParameterUtils.getOutputPath(operatorParameters)
+    val overwrite = HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
 
     sparkUtils.deleteOrFailIfExists(outputPathStr, overwrite)
 
-    val outputSchema =
-      TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
+    val outputSchema = TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
     val rdd = sparkContext.parallelize(List("Hello World"))
     rdd.saveAsTextFile(outputPathStr)
-    new HdfsDelimitedTabularDatasetDefault(
+    HdfsDelimitedTabularDatasetDefault(
       outputPathStr,
       outputSchema,
-      TSVAttributes.default,
-      Some(operatorParameters.operatorInfo)
+      TSVAttributes.default
     )
   }
 }

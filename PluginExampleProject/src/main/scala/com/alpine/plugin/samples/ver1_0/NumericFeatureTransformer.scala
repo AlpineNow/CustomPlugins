@@ -18,13 +18,13 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
-import com.alpine.plugin.core.icon.{StarBurst, OperatorIcon}
+import com.alpine.plugin.core.icon.{OperatorIcon, StarBurst}
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.SparkJobConfiguration
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.SparkParameterUtils
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{CompositeVisualModel, TextVisualModel, VisualModel, VisualModelFactory}
 import com.alpine.plugin.core.{OperatorMetadata, _}
 import org.apache.spark.sql.DataFrame
 
@@ -75,13 +75,8 @@ class NumericFeatureTransformerGUINode
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
 
     //add the standard spark configuration parameters
-    SparkParameterUtils.addStandardSparkOptions(
-      operatorDialog,
-      defaultNumExecutors = 2,
-      defaultExecutorMemoryMB = 1024,
-      defaultDriverMemoryMB = 1024,
-      defaultNumExecutorCores = 1
-    )
+    SparkParameterUtils.addStandardSparkOptions(operatorDialog, List())
+
   }
 
   /**
@@ -115,14 +110,14 @@ class NumericFeatureTransformerGUINode
     val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
-      visualFactory.createTextVisualization(
+      TextVisualModel(
         //the output contains the map of the visual information returned by the dataFrameJob
         "Data transformation type completed:  " + addendum(
           NumericFeatureTransformerUtil.transformationTypeVisualKey).toString + " .\n" +
           "The resulting data has " + addendum(
           NumericFeatureTransformerUtil.dataFrameLengthVisualKey).toString + " rows."
       )
-    val compositeVisualModel = visualFactory.createCompositeVisualModel()
+    val compositeVisualModel = new CompositeVisualModel
     compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
     compositeVisualModel.addVisualModel("Addendum", addendumVisualModel)
     compositeVisualModel

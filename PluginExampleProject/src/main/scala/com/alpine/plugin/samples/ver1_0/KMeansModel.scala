@@ -52,7 +52,7 @@ class ExampleKMeansClusteringModel(val inputFeatures: Seq[ColumnDef], clusters: 
   */
 class ExampleKMeansTransformer(clusters: Array[Array[Double]],
                                override val classLabels: Seq[String]) extends ClusteringTransformer {
-  val numClasses = classLabels.length
+  private val numClasses = classLabels.length
 
   override def scoreDistances(row: Row): Array[Double] = {
     val doubleRow = CastedDoubleSeq(row)

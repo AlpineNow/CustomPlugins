@@ -133,8 +133,7 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
       ConfusionMatrixUtils.outputTabularSchema,
       isView,
       connectionInfo.name,
-      connectionInfo.url,
-      Some(params.operatorInfo)
+      connectionInfo.url
     )
   }
 
@@ -156,7 +155,7 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
     verifyColumns(inputModel, inputDataset)
 
     val dependentColumn = inputModel.dependentFeature
-    val unitModel = new UnitModel(Seq(dependentColumn))
+    val unitModel = UnitModel(Seq(dependentColumn))
     val combinedModel = CombinerModel.make(Seq(unitModel, inputModel))
     val classificationSQL = combinedModel.sqlTransformer(sqlGenerator).get.getSQL
 
