@@ -79,7 +79,7 @@ class HiveColumnFilterGUINode extends OperatorGUINode[HiveTable, HiveTable] {
         val columnsToKeep = columnsToKeepArray.toSet
         val columnDefs: Seq[ColumnDef] = inputSchema.getDefinedColumns
           .filter(colDef => columnsToKeep.contains(colDef.columnName))
-        val outputSchema = TabularSchema(columnDefs, TabularFormatAttributes.createHiveFormat())
+        val outputSchema = TabularSchema(columnDefs)
         operatorSchemaManager.setOutputSchema(outputSchema)
       }
     }

@@ -56,7 +56,7 @@ class HelloWorldRuntime extends SparkRuntime[
                            input: IONone,
                            params: OperatorParameters,
                            listener: OperatorListener): IOString = {
-    new IOStringDefault("Hello World", Some(params.operatorInfo))
+    IOStringDefault("Hello World")
   }
 
   override def onStop(context: SparkExecutionContext,

@@ -102,6 +102,6 @@ class DBTableInfoViewerRuntime extends DBRuntime[IONone, IOString] {
         append("\n")
     }
 
-    new IOStringDefault(outputBuilder.toString(), Some(params.operatorInfo))
+    IOStringDefault(outputBuilder.toString())
   }
 }

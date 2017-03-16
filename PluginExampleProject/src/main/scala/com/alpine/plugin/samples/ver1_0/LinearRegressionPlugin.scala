@@ -24,7 +24,7 @@ import com.alpine.plugin.core.io.{ColumnDef, ColumnType, HdfsTabularDataset, Ope
 import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.SparkParameterUtils
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel, VisualModelFactory}
 import com.alpine.plugin.model.RegressionModelWrapper
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.regression.LassoWithSGD
@@ -79,13 +79,8 @@ class LinearRegressionPluginGUINode extends OperatorGUINode[
       "main"
     )
 
-    SparkParameterUtils.addStandardSparkOptions(
-      operatorDialog,
-      defaultNumExecutors = 2,
-      defaultExecutorMemoryMB = 1024,
-      defaultDriverMemoryMB = 1024,
-      defaultNumExecutorCores = 1
-    )
+    SparkParameterUtils.addStandardSparkOptions(operatorDialog, List())
+
   }
 
 
@@ -96,7 +91,7 @@ class LinearRegressionPluginGUINode extends OperatorGUINode[
     val eqn = model.dependentFeatureName + " = " + model.intercept + " + " +
       model.coefficients.zip(model.inputFeatures).map(t => s"${t._1} * ${t._2.columnName}").mkString(" + ")
     val text: String = s"Model is \n $eqn"
-    visualFactory.createTextVisualization(text)
+    TextVisualModel(text)
   }
 }
 
@@ -154,9 +149,7 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
 
     //return a RegressionModelWrapper containing the alpineLinearRegressionModel
     new RegressionModelWrapper(
-      "Simple Linear Regression Model",
-      alpineLinearRegressionModel,
-      Some(operatorParameters.operatorInfo)
+      alpineLinearRegressionModel
     )
   }
 

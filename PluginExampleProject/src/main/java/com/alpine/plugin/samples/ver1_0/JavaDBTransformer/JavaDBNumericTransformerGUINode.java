@@ -102,7 +102,6 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
                                                    OperatorParameters params,
                                                    OperatorSchemaManager operatorSchemaManager) {
         this.updateOutputSchema(inputSchemas, params, operatorSchemaManager);
-        scala.Option<String> msg = Option.empty();
-        return new OperatorStatus(true, msg);
+        return OperatorStatus.apply(true);
     }
 }

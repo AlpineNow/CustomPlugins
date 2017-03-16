@@ -92,14 +92,10 @@ class BadDataReportingPluginGUINode extends SparkDataFrameGUINode[BadDataReporti
     val badDataReport = addendum.getOrElse(BadDataConstants.badDataReportId, "").toString
     val timerTable = addendum.getOrElse(BadDataConstants.timerReportId, "").toString
     val compositeVisualModel =new CompositeVisualModel()
-    compositeVisualModel.addVisualModel("Good Data",
-      visualFactory.createTabularDatasetVisualization(output))
-    compositeVisualModel.addVisualModel("Bad Data Report",
-      new HtmlVisualModel(badDataReport))
-    compositeVisualModel.addVisualModel("Test of Fancy Html Table",
-      new HtmlVisualModel(fancyHtmlTable))
-    compositeVisualModel.addVisualModel("Timer Report",
-      new HtmlVisualModel(timerTable))
+    compositeVisualModel.addVisualModel("Good Data", visualFactory.createTabularDatasetVisualization(output))
+    compositeVisualModel.addVisualModel("Bad Data Report", HtmlVisualModel(badDataReport))
+    compositeVisualModel.addVisualModel("Test of Fancy Html Table", HtmlVisualModel(fancyHtmlTable))
+    compositeVisualModel.addVisualModel("Timer Report", HtmlVisualModel(timerTable))
     compositeVisualModel
   }
 }
