@@ -86,11 +86,10 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
       TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
     val rdd = sparkContext.parallelize(List("Hello World"))
     rdd.saveAsTextFile(outputPathStr)
-    new HdfsDelimitedTabularDatasetDefault(
+    HdfsDelimitedTabularDatasetDefault(
       outputPathStr,
       outputSchema,
-      TSVAttributes.default,
-      Some(operatorParameters.operatorInfo)
+      TSVAttributes.default
     )
   }
 }

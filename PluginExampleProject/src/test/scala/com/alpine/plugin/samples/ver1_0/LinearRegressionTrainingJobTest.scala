@@ -2,9 +2,10 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.Tuple2Default
+import com.alpine.plugin.core.utils.HdfsStorageFormatType
 import com.alpine.plugin.model.RegressionModelWrapper
-import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMock}
-import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.mock.{OperatorParametersMock, SimpleOperatorListener}
+import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, SimpleAbstractSparkJobSuite, TestSparkContexts}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.junit.runner.RunWith
@@ -50,7 +51,7 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
     val independentVar1 = "columnA"
     val independentVar2 = "columnB"
 
-   //generate some dat to test the linear regression on
+   //generate some data to test the linear regression on
     val rows = Range(0, 50).map(i => Row.fromTuple(i.toDouble,
       i.toDouble, 2*i.toDouble+5))
     val schema = StructType(Array(
@@ -71,7 +72,7 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
     //create the mock parameters object
     val params = new OperatorParametersMock("123", "RegressionTest")
     OperatorParameterMockUtil.addHdfsParams(params, "regressionOutput",
-      outputDirectory = outputDirectory)
+      outputDirectory = outputDirectory, HdfsStorageFormatType.CSV, overwrite = true)
     OperatorParameterMockUtil.addTabularColumn(params, "dependentColumn",
       dependantVar)
     OperatorParameterMockUtil.addTabularColumns(params, "independentColumns",

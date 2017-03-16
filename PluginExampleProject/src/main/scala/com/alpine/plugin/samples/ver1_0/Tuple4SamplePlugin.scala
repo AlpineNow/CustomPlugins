@@ -79,12 +79,11 @@ class Tuple4SampleRuntime extends SparkRuntime[
       HdfsTabularDataset],
     params: OperatorParameters,
     listener: OperatorListener): IOString = {
-    new IOStringDefault(
+    IOStringDefault(
       "The first input is a dataset with the path '" + input._1.path + "'\n" +
       "The second input is a model of type'" + input._2.model.getClass + "'\n" +
       "The third input is a string with the value '" + input._3.value + "'\n" +
-      "The fourth input is a dataset with the path '" + input._4.path + "'\n",
-      Some(params.operatorInfo)
+      "The fourth input is a dataset with the path '" + input._4.path + "'\n"
     )
   }
 

@@ -55,7 +55,7 @@ object SparkRandomDatasetGeneratorConstants {
   def defineOutputSchema(numDoubleCols: Int,
                          numIntCols: Int,
                          numStringCols: Int
-                        ) = {
+                        ): TabularSchema = {
     TabularSchema(
       (1 to numDoubleCols).map(i => ColumnDef("DoubleCol" + i.toString, ColumnType.Double)) ++
         (1 to numIntCols).map(i => ColumnDef("IntCol" + i.toString, ColumnType.Int)) ++

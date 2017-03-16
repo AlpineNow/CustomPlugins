@@ -22,7 +22,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
       Seq(ColumnDef("temperature", ColumnType.Long), ColumnDef("humidity", ColumnType.Long))
     )
 
-    val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper("dummy name", lor, None)
+    val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper(lor)
 
     val mockSQLGenerator = new SQLGenerator {
 

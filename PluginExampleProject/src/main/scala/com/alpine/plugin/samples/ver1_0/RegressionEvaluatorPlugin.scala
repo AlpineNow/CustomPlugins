@@ -83,9 +83,7 @@ class RegressionEvaluatorGUINode extends OperatorGUINode[
       ColumnDef("r2", ColumnType.Double)
     )
 
-    val expectedOutputFormat = TabularFormatAttributes.createTSVFormat()
-
-    val outputSchema = TabularSchema(columnDefs, expectedOutputFormat)
+    val outputSchema = TabularSchema(columnDefs)
     operatorSchemaManager.setOutputSchema(outputSchema)
   }
 

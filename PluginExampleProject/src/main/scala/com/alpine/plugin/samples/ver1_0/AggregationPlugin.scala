@@ -21,7 +21,7 @@ import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, OperatorSchemaManager, TabularSchema}
 import com.alpine.plugin.core.spark.templates._
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import com.alpine.plugin.core.utils.{HdfsParameterUtils, SparkParameterUtils}
+import com.alpine.plugin.core.utils.SparkParameterUtils
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Row}
@@ -85,11 +85,6 @@ object AggregationOutputSchema {
     * GUI Node and spark job.
     */
   def getAlpineSchema(operatorParameters: OperatorParameters): TabularSchema = {
-    //get the storage format i.e. Avro, Parquet, delimited ,
-    val storageFormatParam = HdfsParameterUtils.getHdfsStorageFormatType(operatorParameters)
-    //create an object with all the information about the tabular structure such as delimiter and
-    //escape character
-    val tabularFormatAttributes = HdfsParameterUtils.getTabularFormatAttributes(storageFormatParam)
     val (_, aggregationCols) =
       operatorParameters.getTabularDatasetSelectedColumns(
         AggregationConstants.AGGREGATION_PARAM_KEY)
@@ -100,7 +95,7 @@ object AggregationOutputSchema {
       newColumnDefs(i + 1) = ColumnDef(aggregationCols(i) + "_PRODUCT", ColumnType.Double)
       i += 1
     }
-    TabularSchema(newColumnDefs, tabularFormatAttributes)
+    TabularSchema(newColumnDefs)
   }
 }
 

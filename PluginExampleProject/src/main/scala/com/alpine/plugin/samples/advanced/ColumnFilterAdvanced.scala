@@ -25,7 +25,7 @@ import com.alpine.plugin.core.spark.SparkJobConfiguration
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.SparkParameterUtils
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization._
 import org.apache.spark.sql.DataFrame
 
 /**
@@ -158,19 +158,17 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
     val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
-      visualFactory.createTextVisualization(
+      TextVisualModel(
         /**
           * Get the key from the addendum
           * We have to get it, since get returns an option type and convert to String since
           * it is of type AnyRef
           */
-        addendum.get(ColumnFilterUtil.MESSAGE_STRING_KEY).get.toString
+        addendum(ColumnFilterUtil.MESSAGE_STRING_KEY).toString
       )
 
-    val htmlVisualModel = visualFactory.createHtmlTextVisualization(
-      addendum.get(ColumnFilterUtil.HTML_MESSAGE_KEY).get.toString
-    )
-    val compositeVisualModel = visualFactory.createCompositeVisualModel()
+    val htmlVisualModel = HtmlVisualModel(addendum(ColumnFilterUtil.HTML_MESSAGE_KEY).toString)
+    val compositeVisualModel = new CompositeVisualModel
     compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
     compositeVisualModel.addVisualModel("MessageString", addendumVisualModel)
     compositeVisualModel.addVisualModel("Columns Selected", htmlVisualModel)

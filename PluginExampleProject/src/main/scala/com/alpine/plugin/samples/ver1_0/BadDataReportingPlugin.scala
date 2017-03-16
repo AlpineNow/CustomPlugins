@@ -6,7 +6,7 @@ import com.alpine.plugin.core.io.{HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.{BadDataReportingUtils, SparkRuntimeUtils}
 import com.alpine.plugin.core.utils.{SparkParameterUtils, HdfsParameterUtils, HtmlTabulator, Timer}
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{CompositeVisualModel, HtmlVisualModel, VisualModel, VisualModelFactory}
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.storage.StorageLevel
@@ -91,15 +91,11 @@ class BadDataReportingPluginGUINode extends SparkDataFrameGUINode[BadDataReporti
     val fancyHtmlTable = addendum.getOrElse(BadDataConstants.fancyHtmlTableId, "").toString
     val badDataReport = addendum.getOrElse(BadDataConstants.badDataReportId, "").toString
     val timerTable = addendum.getOrElse(BadDataConstants.timerReportId, "").toString
-    val compositeVisualModel = visualFactory.createCompositeVisualModel()
-    compositeVisualModel.addVisualModel("Good Data",
-      visualFactory.createTabularDatasetVisualization(output))
-    compositeVisualModel.addVisualModel("Bad Data Report",
-      visualFactory.createHtmlTextVisualization(badDataReport))
-    compositeVisualModel.addVisualModel("Test of Fancy Html Table",
-      visualFactory.createHtmlTextVisualization(fancyHtmlTable))
-    compositeVisualModel.addVisualModel("Timer Report",
-      visualFactory.createHtmlTextVisualization(timerTable))
+    val compositeVisualModel =new CompositeVisualModel()
+    compositeVisualModel.addVisualModel("Good Data", visualFactory.createTabularDatasetVisualization(output))
+    compositeVisualModel.addVisualModel("Bad Data Report", HtmlVisualModel(badDataReport))
+    compositeVisualModel.addVisualModel("Test of Fancy Html Table", HtmlVisualModel(fancyHtmlTable))
+    compositeVisualModel.addVisualModel("Timer Report", HtmlVisualModel(timerTable))
     compositeVisualModel
   }
 }

@@ -24,7 +24,7 @@ object DateTypeTranslatorUtils {
   val dateFormatParamId = "dateFormat"
 
   def outputSchema(parameters: OperatorParameters,
-                   inputSchema: TabularSchema) = {
+                   inputSchema: TabularSchema): TabularSchema = {
 
     val (_, dateColumn) = parameters.getTabularDatasetSelectedColumn(DateTypeTranslatorUtils.dateColumnParamId)
 
