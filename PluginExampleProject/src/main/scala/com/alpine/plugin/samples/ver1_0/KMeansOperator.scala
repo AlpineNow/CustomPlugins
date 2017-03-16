@@ -3,7 +3,7 @@ package com.alpine.plugin.samples.ver1_0
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
-import com.alpine.plugin.core.io.{ColumnDef, HdfsTabularDataset, OperatorSchemaManager}
+import com.alpine.plugin.core.io.{ColumnDef, ColumnType, HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
 import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HtmlTabulator
@@ -11,7 +11,7 @@ import com.alpine.plugin.core.visualization.{HtmlVisualModel, VisualModel, Visua
 import com.alpine.plugin.model.ClusteringModelWrapper
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
-import org.apache.spark.mllib.linalg.{DenseVector, Vector, Vectors}
+import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 
@@ -55,7 +55,7 @@ class KMeansTrainerGUINode extends OperatorGUINode[HdfsTabularDataset, Clusterin
       min = 0, max = 1000, defaultValue = 5)
 
     operatorDialog.addIntegerBox(id = KMeansConstants.numIterationsParamId, label = "Number of Iterations",
-      min = 0, max = 1000, defaultValue = 5)
+      min = 0, max = 1000, defaultValue = 20)
   }
 
   /**
@@ -97,6 +97,8 @@ class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, Cluster
       Vectors.dense(rowAsDoubles)
     })
 
+    vectorRDD.cache()
+
     val k = operatorParameters.getIntValue(KMeansConstants.numClustersParamId)
     val n = operatorParameters.getIntValue(KMeansConstants.numIterationsParamId)
 
@@ -104,27 +106,15 @@ class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, Cluster
 
     listener.notifyMessage("The model was trained with " + k + " clusters and " + n + " iterations")
 
-    val clusters: Array[DenseVector] = mllibModel.clusterCenters.map(_.toDense)
+    val inputFeatureColumnDefs = inputFeatureNames.map(name => ColumnDef(name, ColumnType.Double))
 
-    //filter the input column definitions base on the value of the input features parameters
-    //in order to get a sequence of the full Alpine Column Definitions  for the input feature
-    val inputFeatureColumnDefs: Array[ColumnDef] =
-      input.tabularSchema.getDefinedColumns.filter(columnDef =>
-        inputFeatureNames.contains(columnDef.columnName)).toArray
+    val clusters: Array[Array[Double]] = mllibModel.clusterCenters.map(_.toArray)
+    val clusterNames = clusters.indices.map(index => "Cluster_" + index)
 
-    val clusterWithName = clusters.zipWithIndex.map {
-      case (vector, index) => "Cluster_" + index
-    }
-
-    val labels = clusterWithName.toSeq
-    val clustersAsDoubleArrays = clusters.map(_.toArray)
-
-
-    val alpineModel = new ExampleKMeansClusteringModel(inputFeatureColumnDefs,
-      clustersAsDoubleArrays, labels)
+    val alpineModel = new ExampleKMeansClusteringModel(inputFeatureColumnDefs, clusters, clusterNames)
 
     //this will be used in the visualization to create a tab that shows which clusters were trained
-    val clusterAddendum = makeAddendum(inputFeatureNames, clusters, labels)
+    val clusterAddendum = makeAddendum(inputFeatureNames, clusters, clusterNames)
 
     new ClusteringModelWrapper(model = alpineModel, addendum = clusterAddendum)
   }
@@ -135,13 +125,12 @@ class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, Cluster
     * a table with information about the centers.
     */
 
-  private def makeAddendum(inputFeatureNames: Array[String], clusters: Array[DenseVector],
-                   labels: Seq[String]) = {
+  private def makeAddendum(inputFeatureNames: Array[String], clusters: Array[Array[Double]], labels: Seq[String]) = {
 
     val clusterTableHeader = "ClusterName" :: inputFeatureNames.toList
 
     val clusterTableBody = labels.zip(clusters).map {
-      case (name, vector) => name :: vector.values.map(_.toString).toList
+      case (name, vector) => name :: vector.map(_.toString).toList
     }
     val clusterTable = HtmlTabulator.format(clusterTableHeader :: clusterTableBody.toList)
 
