@@ -27,11 +27,11 @@ Alpine Version | Custom Operator SDK | Spark Version
 
 ## Resources
 
-[How to Compile and Run the Sample Operators](https://alpine.atlassian.net/wiki/display/V5/How+To+Compile+and+Run+the+Sample+Operators)
+[How to Compile and Run the Sample Operators](https://alpine.atlassian.net/wiki/display/V6/How+To+Compile+and+Run+the+Sample+Operators)
 
-[Building Your First Custom Operator in Scala](https://alpine.atlassian.net/wiki/display/V5/Building+Your+First+Custom+Operator+in+Scala)
+[Building Your First Custom Operator in Scala](https://alpine.atlassian.net/wiki/display/V6/Building+Your+First+Custom+Operator+in+Scala)
 
-[Building a Source Operator](https://alpine.atlassian.net/wiki/display/V5/Building+a+Source+Operator)
+[Building a Source Operator](https://alpine.atlassian.net/wiki/display/V6/Building+a+Source+Operator)
 
 ## Building on Windows
 
