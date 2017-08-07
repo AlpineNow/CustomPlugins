@@ -76,10 +76,6 @@ class ChorusFileRunnerRuntime extends SparkRuntime[IONone, IONone] {
         ", the file name is: " + chorusFileObject.name
     )
 
-    //create new workfile in this workspace
-    val currentWorkfileId = context.workflowInfo.workflowID
-    val tempDir = context.recommendedTempDir
-
     val newChorusFile = ChorusUtils.writeTextChorusFile("Exported_from_Spark_Op",
       "The is a file that was exported from the runtime class of a Spark operator",
       context, newVersionIfExists = true)

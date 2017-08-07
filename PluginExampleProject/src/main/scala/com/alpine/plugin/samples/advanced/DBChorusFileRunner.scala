@@ -124,12 +124,7 @@ class DBChorusFileRunnerRuntime extends DBRuntime[IONone, IONone] {
         listener.notifyMessage("No python notebook was selected.")
     }
 
-    //workfileID is used to get the workspace Id which is needed to write a workfile
-    val workFileID = context.workflowInfo.workflowID
-
     val newFileName = params.getStringValue("newFileName")
-    //get the tempDir from the execution context
-    val tmpDir = context.recommendedTempDir
     //write new chorus file
     val newChorusFile = ChorusUtils.writeTextChorusFile(
       newFileName,
