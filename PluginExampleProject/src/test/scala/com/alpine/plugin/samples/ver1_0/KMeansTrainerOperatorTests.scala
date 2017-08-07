@@ -6,22 +6,28 @@ import com.alpine.plugin.core.visualization.{HtmlVisualModel, VisualModel}
 import com.alpine.plugin.model.ClusteringModelWrapper
 import com.alpine.plugin.test.mock._
 import com.alpine.plugin.test.utils.{IrisFlowerPrediction, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite, TestSparkContexts}
+import org.apache.spark.sql.DataFrame
 import org.junit.runner.RunWith
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
+class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite with BeforeAndAfterAll {
   //we need to import this line in order to get the pre-defined Spark Local Context Test
   import TestSparkContexts._
   val outputPath = "target/results/Kmeans"
   var kMeansDefaultOutput : ClusteringModelWrapper = _
-
+  var irisDF: DataFrame = _
   var inputHdfsDataset : HdfsDelimitedTabularDataset = _
-  test("Test of K Means Plugin Spark Job using Iris dataset"){
-    val irisDataPath = "src/test/resources/irisDataSet"
-    val irisData = sc.textFile(irisDataPath )
-    val irisDF = IrisFlowerPrediction.convertIrisRDDtoDF(irisData, sqlContext)
 
+  override protected def beforeAll(): Unit = {
+    val irisDataPath = "src/test/resources/irisDataSet"
+    val irisData = sc.textFile(irisDataPath)
+    irisDF = IrisFlowerPrediction.convertIrisRDDtoDF(irisData, sqlContext)
+    inputHdfsDataset = this.createHdfsTabularDatasetLocal(irisDF, None, outputPath)
+  }
+
+  test("Test of K Means Plugin Spark Job using Iris dataset"){
     val parametersMock = new OperatorParametersMock("Iris Kmeans", "1776")
     OperatorParameterMockUtil.addTabularColumns(parametersMock,
       KMeansConstants.featuresParamId, irisDF.schema.fieldNames : _* )
@@ -34,8 +40,6 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
       storageFormat = HdfsStorageFormatType.CSV,
       overwrite = true
     )
-
-     inputHdfsDataset = this.createHdfsTabularDatasetLocal(irisDF, None, outputPath)
 
     val kMeansJob = new KMeansTrainerJob
     val resultModelWrapper: ClusteringModelWrapper = runInputThroughOperator[HdfsTabularDataset, ClusteringModelWrapper](
@@ -53,7 +57,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
 
     val inputParameters = new OperatorParametersMock("2", "K Means Trainer Job")
     OperatorParameterMockUtil.addTabularColumns(inputParameters, KMeansConstants.featuresParamId,
-      "sepalLength", "sepalWidth", "petalLength", "petalWidth")
+      "sepalLength", "sepalWidth", "petalWidth")
     OperatorParameterMockUtil.addHdfsParamsDefault(inputParameters, "KMeansFullOperatorTestResult")
     //the result of the parameters will be assigned their default values.
 
@@ -79,10 +83,11 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
 
   test("K Means Visualization"){
     val guiNode = new KMeansTrainerGUINode
+    val runtimeClass = new KMeansTrainerRuntime
 
     val inputParameters = new OperatorParametersMock("2", "K Means Trainer Job")
     OperatorParameterMockUtil.addTabularColumns(inputParameters, KMeansConstants.featuresParamId,
-      "sepalLength", "sepalWidth", "petalLength", "petalWidth")
+      "sepalLength", "sepalWidth", "petalWidth")
     OperatorParameterMockUtil.addHdfsParamsDefault(inputParameters, "KMeansFullOperatorTestResult")
     //the result of the parameters will be assigned their default values.
     //run the onPlacement method, which will add parameters to the mock operator default
@@ -94,12 +99,12 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
     //assert that the number of clusters is set to the default value five
     assert(defaultParameters.getIntValue(KMeansConstants.numClustersParamId) == 5)
 
-    val visualModels: VisualModel = guiNode.onOutputVisualization(defaultParameters, kMeansDefaultOutput,
-      new VisualModelFactoryMock)
+    val visualModels: VisualModel = runtimeClass.createVisualResults(
+      new SparkExecutionContextMock(null), inputHdfsDataset, kMeansDefaultOutput, defaultParameters, new SimpleOperatorListener
+    )
     //cast to the html model so we can see what the text looks like.
     val visualizationText = visualModels.asInstanceOf[HtmlVisualModel].html
     assert(visualizationText.contains("<table ><tr><td style = \"padding-right:10px;\" >"))
-
   }
 
 }

@@ -5,9 +5,9 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HtmlTabulator
-import com.alpine.plugin.core.visualization.{HtmlVisualModel, VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{HtmlVisualModel, VisualModel}
 import com.alpine.plugin.model.ClusteringModelWrapper
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
@@ -59,12 +59,22 @@ class KMeansTrainerGUINode extends OperatorGUINode[HdfsTabularDataset, Clusterin
       min = 0, max = 1000, defaultValue = 20)
   }
 
+}
+
+class KMeansTrainerRuntime extends SparkRuntimeWithIOTypedJob[
+  KMeansTrainerJob, HdfsTabularDataset,
+  ClusteringModelWrapper] {
   /**
     * We only need to override this method since we want the custom visualization behavior wherein
     * we have a tab that displays the value of the cluster centers.
     */
-  override def onOutputVisualization(params: OperatorParameters, output: ClusteringModelWrapper,
-                                     visualFactory: VisualModelFactory): VisualModel = {
+  override def createVisualResults(
+    context: SparkExecutionContext,
+    input: HdfsTabularDataset,
+    output: ClusteringModelWrapper,
+    params: OperatorParameters,
+    listener: OperatorListener
+  ): VisualModel = {
     //get the Table from the addendum
     val clusterTable = output.addendum.getOrElse(KMeansConstants.visualOutputKey,
       "No Cluster Table Found").toString
@@ -72,10 +82,6 @@ class KMeansTrainerGUINode extends OperatorGUINode[HdfsTabularDataset, Clusterin
     HtmlVisualModel(clusterTable)
   }
 }
-
-class KMeansTrainerRuntime extends SparkRuntimeWithIOTypedJob[
-  KMeansTrainerJob, HdfsTabularDataset,
-  ClusteringModelWrapper] {}
 
 class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, ClusteringModelWrapper] {
   override def onExecution(sparkContext: SparkContext,

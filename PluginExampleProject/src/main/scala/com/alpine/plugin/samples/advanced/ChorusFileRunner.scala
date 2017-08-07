@@ -7,7 +7,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.IONoneDefault
 import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkRuntime}
 import com.alpine.plugin.core.utils.{ChorusAPICaller, ChorusUtils}
-import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel}
 
 /**
   * This is a hadoop custom operator that displays the functionality to create a workfile selector
@@ -34,31 +34,25 @@ class ChorusFileRunnerSignature extends OperatorSignature[ChorusFileRunnerGUI, C
 
 class ChorusFileRunnerGUI extends OperatorGUINode[IONone, IONone] {
 
-  override def onPlacement(operatorDialog: OperatorDialog,
-                           operatorDataSourceManager: OperatorDataSourceManager,
-                           operatorSchemaManager: OperatorSchemaManager): Unit = {
+  override def onPlacement(
+    operatorDialog: OperatorDialog,
+    operatorDataSourceManager: OperatorDataSourceManager,
+    operatorSchemaManager: OperatorSchemaManager
+  ): Unit = {
     operatorDialog.addChorusFileDropdownBox(id = "file",
       label = "Select a File From the Workspace",
       extensionFilter = Set[String](".ipynb", ".txt"), isRequired = true)
   }
 
-
-  override def onOutputVisualization(params: OperatorParameters, output: IONone,
-                                     visualFactory: VisualModelFactory): VisualModel = {
-    TextVisualModel(output.addendum("key").toString)
-  }
-
-
-  override def onInputOrParameterChange(inputSchemas: Map[String, TabularSchema],
-                                        params: OperatorParameters,
-                                        operatorSchemaManager: OperatorSchemaManager): OperatorStatus =
-    super.onInputOrParameterChange(inputSchemas, params, operatorSchemaManager)
 }
 
 class ChorusFileRunnerRuntime extends SparkRuntime[IONone, IONone] {
 
-  override def onExecution(context: SparkExecutionContext, input: IONone,
-                           params: OperatorParameters, listener: OperatorListener): IONone = {
+  override def onExecution(
+    context: SparkExecutionContext, input: IONone,
+    params: OperatorParameters,
+    listener: OperatorListener
+  ): IONone = {
 
     // At runtime is is okay to call .get on required Chorus files, since we only run valid operators.
     val chorusFileObject: ChorusFile = params.getChorusFile("file").get
@@ -79,7 +73,7 @@ class ChorusFileRunnerRuntime extends SparkRuntime[IONone, IONone] {
 
     listener.notifyMessage(
       "The chorus file id is: " + chorusFileObject.id +
-      ", the file name is: " + chorusFileObject.name
+        ", the file name is: " + chorusFileObject.name
     )
 
     //create new workfile in this workspace
@@ -88,7 +82,7 @@ class ChorusFileRunnerRuntime extends SparkRuntime[IONone, IONone] {
 
     val newChorusFile = ChorusUtils.writeTextChorusFile("Exported_from_Spark_Op",
       "The is a file that was exported from the runtime class of a Spark operator",
-      context,newVersionIfExists = true)
+      context, newVersionIfExists = true)
 
     if (newChorusFile.isSuccess) {
       listener.notifyMessage("The new chorus file: " +
@@ -99,6 +93,16 @@ class ChorusFileRunnerRuntime extends SparkRuntime[IONone, IONone] {
     }
 
     IONoneDefault(input.addendum.+("key" -> text))
+  }
+
+  override def createVisualResults(
+    context: SparkExecutionContext,
+    input: IONone,
+    output: IONone,
+    params: OperatorParameters,
+    listener: OperatorListener
+  ): VisualModel = {
+    TextVisualModel(output.addendum("key").toString)
   }
 
   override def onStop(context: SparkExecutionContext, listener: OperatorListener): Unit = {}

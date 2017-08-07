@@ -21,7 +21,7 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, HdfsTabularDataset, OperatorSchemaManager, TabularSchema}
-import com.alpine.plugin.core.spark.SparkJobConfiguration
+import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkJobConfiguration}
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.SparkParameterUtils
@@ -145,11 +145,32 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
     else OperatorStatus(isValid = true)
   }
 
-  override def onOutputVisualization(params: OperatorParameters,
-                                     output: HdfsTabularDataset,
-                                     visualFactory: VisualModelFactory): VisualModel = {
+}
+
+/**
+  * What happens when the alpine user clicks the "run button". In this case the base class,
+  * SparkDataFrameRuntime, handles launching the spark job and serializing/de-serializing the inputs
+  * The class takes one type parameter: ColumnFilterJob, which extends SparkDataFrameJob and
+  * defines the Spark Job.
+  */
+class AdvancedColumnFilterRuntime extends SparkDataFrameRuntime[AdvancedColumnFilterJob] {
+  override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
+    /**
+      * Exercise 2: adding max resultSize
+      */
+    val config = super.getSparkJobConfiguration(parameters, input)
+    config.additionalParameters += ("spark.driver.maxResultSize" -> "1g")
+    config
+  }
+
+  override def createVisualResults(
+    context: SparkExecutionContext,
+    input: HdfsTabularDataset,
+    output: HdfsTabularDataset,
+    params: OperatorParameters,
+    listener: OperatorListener): VisualModel = {
     //create the standard visualization of the output data
-    val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
+    val datasetVisualModel = context.visualModelHelper.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
       TextVisualModel(
@@ -167,23 +188,6 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
     compositeVisualModel.addVisualModel("MessageString", addendumVisualModel)
     compositeVisualModel.addVisualModel("Columns Selected", htmlVisualModel)
     compositeVisualModel
-  }
-}
-
-/**
-  * What happens when the alpine user clicks the "run button". In this case the base class,
-  * SparkDataFrameRuntime, handles launching the spark job and serializing/de-serializing the inputs
-  * The class takes one type parameter: ColumnFilterJob, which extends SparkDataFrameJob and
-  * defines the Spark Job.
-  */
-class AdvancedColumnFilterRuntime extends SparkDataFrameRuntime[AdvancedColumnFilterJob] {
-  override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
-    /**
-      * Exercise 2: adding max resultSize
-      */
-    val config = super.getSparkJobConfiguration(parameters, input)
-    config.additionalParameters += ("spark.driver.maxResultSize" -> "1g")
-    config
   }
 }
 
