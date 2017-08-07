@@ -46,10 +46,10 @@ class LinearRegressionSignature extends OperatorSignature[
   LinearRegressionPluginGUINode,
   LinearRegressionPluginRuntime] {
 
-  def getMetadata(): OperatorMetadata = new OperatorMetadata(
+  def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Linear Regression",
     category = "Plugin Sample - Spark",
-    author = Some("Jenny Thompson"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

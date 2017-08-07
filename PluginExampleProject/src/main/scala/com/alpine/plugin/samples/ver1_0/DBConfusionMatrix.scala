@@ -40,7 +40,7 @@ class DBConfusionMatrixSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - DB Confusion Matrix",
     category = "Plugin Sample - DB",
-    author = Some("Jenny Thompson"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

@@ -33,7 +33,7 @@ class BadDataReportingPluginSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Bad Data Reporting",
     category = "Plugin Sample - Spark",
-    author = Some("Rachel Warren"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

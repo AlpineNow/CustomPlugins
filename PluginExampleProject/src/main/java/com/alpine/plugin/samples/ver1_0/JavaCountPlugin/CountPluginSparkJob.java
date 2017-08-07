@@ -43,7 +43,7 @@ public class CountPluginSparkJob extends SparkDataFrameJob {
         DataFrame df = selectedData.groupBy(groupByVar).count();
 
         //customize the output schema
-        List<StructField> fields = new ArrayList<StructField>();
+        List<StructField> fields = new ArrayList<>();
         fields.add(DataTypes.createStructField(groupByVar, DataTypes.StringType, true));
         fields.add(DataTypes.createStructField("GroupCount", DataTypes.LongType, true));
         StructType dfSchema = DataTypes.createStructType(fields);

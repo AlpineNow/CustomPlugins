@@ -6,10 +6,11 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io._
+import com.alpine.plugin.core.spark.SparkExecutionContext
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.AddendumWriter
-import com.alpine.plugin.core.visualization.{VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.VisualModel
 import org.apache.spark.sql.DataFrame
 
 import scala.util.Try
@@ -42,7 +43,7 @@ class DateTypeTranslatorSignature extends OperatorSignature[DateTypeTranslatorGU
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Date Type Translator",
     category = "Plugin Sample - Spark",
-    author = Some("Rachel Warren"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -67,20 +68,6 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
   }
 
   /**
-    * Overwrite the onOutputVisualisation method to get a visualization with two tabs one for output and one for
-    * Summary like other Alpine Transformation operators such as T-Test and Regression Evaluator.
-    */
-  override def onOutputVisualization(parameters: OperatorParameters,
-                                     output: HdfsTabularDataset,
-                                     visualModelFactory: VisualModelFactory): VisualModel = {
-    //This util must be used in tandem with the createStandardAddendum method in the SparkJob.
-    //The argument passed to the createStandardAddendum method is the contents of the "Summary" tab
-    //in the visualization created here.
-    AddendumWriter.createCompositeVisualModel(visualModelFactory, output)
-  }
-
-
-  /**
     * We have to write custom validation code to check that the
     * date format string is a valid SimpleDateFormat.
     *
@@ -92,8 +79,7 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
   OperatorStatus = {
 
     val format: String = params.getStringValue(DateTypeTranslatorUtils.dateFormatParamId)
-
-    if (Try(new SimpleDateFormat(format)).isFailure) {
+    if(Try(new SimpleDateFormat(format)).isFailure) {
       OperatorStatus(isValid = false, format + " is not a valid SimpleDateFormat")
     }
     else {
@@ -103,7 +89,19 @@ class DateTypeTranslatorGUINode extends SparkDataFrameGUINode[DateTypeTranslator
 
 }
 
-class DateTypeTranslatorRuntime extends SparkDataFrameRuntime[DateTypeTranslatorJob] {}
+class DateTypeTranslatorRuntime extends SparkDataFrameRuntime[DateTypeTranslatorJob] {
+
+  /**
+    * Overwrite the createVisualResults method to get a visualization with two tabs one for output and one for
+    * Summary like other Alpine Transformation operators such as T-Test and Regression Evaluator.
+    */
+  override def createVisualResults(context: SparkExecutionContext,
+                                   input: HdfsTabularDataset,
+                                   output: HdfsTabularDataset,
+                                   params: OperatorParameters,
+                                   listener: OperatorListener): VisualModel =
+    AddendumWriter.createCompositeVisualModel(context.visualModelHelper, output, Seq())
+}
 
 class DateTypeTranslatorJob extends SparkDataFrameJob {
   override def transformWithAddendum(parameters: OperatorParameters,

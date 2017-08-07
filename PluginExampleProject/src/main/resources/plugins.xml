@@ -55,6 +55,15 @@
     <signature-class>com.alpine.plugin.samples.ver1_0.ColumnFilterSignature</signature-class>
   </plugin>
   <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.ChorusFileRunnerSignature</signature-class>
+  </plugin>
+  <plugin>
     <signature-class>com.alpine.plugin.samples.advanced.DateTypeTranslatorSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.DBChorusFileRunnerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.JavascriptVisualizationSignature</signature-class>
   </plugin>
 </alpine-plugins>

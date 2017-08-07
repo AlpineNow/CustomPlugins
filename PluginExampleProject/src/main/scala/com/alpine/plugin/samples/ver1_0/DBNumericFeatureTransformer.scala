@@ -17,8 +17,6 @@
 
 package com.alpine.plugin.samples.ver1_0
 
-import java.sql.SQLException
-
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.db.{DBExecutionContext, DBRuntime}
@@ -38,7 +36,7 @@ class DBNumericFeatureTransformerSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - DB Transform",
     category = "Plugin Sample - DB",
-    author = Some("Sung Chung"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -78,7 +76,7 @@ class DBNumericFeatureTransformerGUINode extends OperatorGUINode[
                                  operatorSchemaManager: OperatorSchemaManager): Unit = {
     // There can only be one input schema.
     if (inputSchemas.nonEmpty) {
-      val inputSchema = inputSchemas.values.iterator.next()
+      val inputSchema = inputSchemas.values.head
       if (inputSchema.getDefinedColumns.nonEmpty) {
         val (_, columnsToTransform) =
           params.getTabularDatasetSelectedColumns("columnsToTransform")
@@ -156,25 +154,10 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
       //check if there is a table  or with the same name as the output table and drop according to the
       // "overwrite"
       val overwrite = DBParameterUtils.getDropIfExistsParameterValue(params)
-      val fullOutputName = sqlGenerator.quoteIdentifier(outputSchema) + "." + sqlGenerator.quoteIdentifier(outputName)
+      val fullOutputName = sqlGenerator.quoteObjectName(outputSchema, outputName)
+      val sqlExecutor = context.getSQLExecutor
       if (overwrite) {
-        //First see if a table of that name exists.
-        // This will throw an exception if there is a view with the output name,
-        // we will catch the exception and delete the view in the next block of code.
-        try {
-          listener.notifyMessage("Dropping table if it exists")
-          statement.execute(sqlGenerator.getDropTableIfExistsSQL(fullOutputName, cascade = true))
-        }
-        catch {
-          case (e: SQLException) =>
-        }
-        //Now see if there is a view with the output name
-        listener.notifyMessage("Dropping view if it exists")
-        try {
-          statement.execute(sqlGenerator.getDropViewIfExistsSQL(fullOutputName, cascade = true))
-        } catch {
-          case (e: SQLException) =>
-        }
+        sqlExecutor.ddlDropTableOrViewIfExists(fullOutputName, cascadeFlag = true)
       }
 
       val inputSchema = input.tabularSchema
@@ -219,9 +202,6 @@ class DBNumericFeatureTransformerRuntime extends DBRuntime[DBTable, DBTable] {
       outputSchema,
       outputName,
       outputTabularSchema,
-      isView,
-      connectionInfo.name,
-      connectionInfo.url,
       //save keys to the output to create visualizations
       Map("TestValue1" -> new Integer(1), "TestValue2" -> new Integer(2))
     )

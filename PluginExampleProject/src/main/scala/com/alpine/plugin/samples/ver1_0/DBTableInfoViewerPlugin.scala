@@ -31,7 +31,7 @@ class DBTableInfoViewerSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - DB Table Info Viewer",
     category = "Plugin Sample - DB",
-    author = Some("Sung Chung"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -77,6 +77,7 @@ class DBTableInfoViewerRuntime extends DBRuntime[IONone, IOString] {
     val dbTable = params.getStringValue("dbTable")
 
     val outputBuilder = new StringBuilder
+    outputBuilder.append("Database Type: " + context.getSQLGenerator.dbType.name + "\n")
     outputBuilder.append("Database : " + dbName + "\n")
     outputBuilder.append("Schema : " + dbSchema + "\n")
     outputBuilder.append("Table : " + dbTable + "\n")

@@ -38,7 +38,7 @@ class AdvancedColumnFilterSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Spark Column Filter (Advanced)",
     category = "Plugin Sample - Spark",
-    author = Some("Rachel Warren"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -86,7 +86,7 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
 
     operatorDialog.addTabularDatasetColumnCheckboxes(
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY, //key so we can access this parameter in the Spark job
-      "Columns to keep", //display name of the parameter
+      "Columns To Keep", //display name of the parameter
       ColumnFilter.All, //A filter which specifies what types of columns can be selected
       "main" // This is a string used to group together column selectors.
     )
@@ -162,7 +162,7 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
       )
 
     val htmlVisualModel = HtmlVisualModel(addendum(ColumnFilterUtil.HTML_MESSAGE_KEY).toString)
-    val compositeVisualModel = new CompositeVisualModel
+    val compositeVisualModel = new CompositeVisualModel()
     compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
     compositeVisualModel.addVisualModel("MessageString", addendumVisualModel)
     compositeVisualModel.addVisualModel("Columns Selected", htmlVisualModel)

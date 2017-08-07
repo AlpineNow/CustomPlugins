@@ -59,8 +59,7 @@ class DBTransformationTemplateGUINode extends OperatorGUINode[
     //TODO - add needed parameters
 
     //utility class to add standard parameters that let the user determine how the output table will be written
-    DBParameterUtils.addStandardDatabaseOutputParameters(operatorDialog, operatorDataSourceManager)
-
+    DBParameterUtils.addStandardDBOutputParameters(operatorDialog)
   }
 
 
@@ -85,11 +84,8 @@ class DBTransformationTemplateGUINode extends OperatorGUINode[
     //TODO - set the output schema of the operatorSchemaManager to "outputSchema"
     //NOTE - for now, output schema = input schema
     if (inputSchemas.nonEmpty) {
-      val inputSchema = inputSchemas.values.iterator.next()
-      if (inputSchema.getDefinedColumns.nonEmpty) {
-        operatorSchemaManager.setOutputSchema(inputSchema)
-
-      }
+      val inputSchema = inputSchemas.values.head
+      operatorSchemaManager.setOutputSchema(inputSchema)
     }
   }
 
@@ -113,85 +109,43 @@ class DBTransformationTemplateRuntime extends DBRuntime[DBTable, DBTable] {
     val outputName = DBParameterUtils.getResultTableName(params)
     val connectionInfo = context.getDBConnectionInfo
     val overwrite = DBParameterUtils.getOverwriteParameterValue(params)
-    val fullOutputName = getQuotedSchemaTableName(outputSchema, outputName)
-    val tableOrView = if (isView) "VIEW" else "TABLE"
+    val generator = context.getSQLGenerator
+    val fullOutputName = generator.quoteObjectName(outputSchema, outputName)
 
-    //check if there is a table  or with the same name as the output table and drop according to the
-    // "overwrite"
+    val sqlExecutor = context.getSQLExecutor
     if (overwrite) {
-      val stmtTable = connectionInfo.connection.createStatement()
-      //First see if a table of that name exists.
-      // This will throw an exception if there is a view with the output name,
-      // we will catch the exception and delete the view in the next block of code.
-      try {
-        listener.notifyMessage("Dropping table if it exists")
-        val dropTableStatementBuilder = new StringBuilder()
-        dropTableStatementBuilder ++= "DROP TABLE IF EXISTS " + fullOutputName + " CASCADE;"
-        stmtTable.execute(dropTableStatementBuilder.toString())
-      }
-      catch {
-        case (e: Exception) => listener.notifyMessage("A view of the name " + fullOutputName + "exists")
-      }
-      finally {
-        stmtTable.close()
-      }
-      //Now see if there is a view with the output name
-      listener.notifyMessage("Dropping view if it exists")
-      val dropViewStatementBuilder = new StringBuilder()
-      dropViewStatementBuilder ++= "DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"
-      val stmtView = connectionInfo.connection.createStatement()
-      stmtView.execute(dropViewStatementBuilder.toString())
-      stmtView.close()
+      sqlExecutor.ddlDropTableOrViewIfExists(fullOutputName)
     }
+    val sourceTableFullName = generator.quoteObjectName(input.schemaName, input.tableName)
 
     //TODO - pull out values from custom parameters
 
-
     //TODO - create the sql statement that will be executed using the parameters
-    val sqlStatement = s"""
-      CREATE $tableOrView $fullOutputName AS (
-        SELECT *
-        FROM ${getQuotedSchemaTableName(input.schemaName, input.tableName)}
-      );
+    val sqlStatement = generator.getCreateTableOrViewAsSelectSQL(
+      columns = "*",sourceTable = sourceTableFullName, destinationTable = fullOutputName, isView = isView
+    )
 
-        """
-
-
-    //execute the SQL to create the new table
     val stmt = connectionInfo.connection.createStatement()
-    stmt.execute(sqlStatement)
-    stmt.close()
+    try {
+      stmt.execute(sqlStatement)
+    } finally {
+      stmt.close()
+    }
 
     //TODO - create the output schema (set to input schema for now)
     val outputTabularSchema = input.tabularSchema
-
     //
     //metadata about output table.  At runtime, next operator uses this to know where the data is.  Also passed to visualization function. However, default works so not overriding it.
     /**
      *  returns implementation of DBTable.  Used in two ways:
      *  (1) At runtime, the following operator uses this information to know where its input data is coming from
      *  (2) At runtime, this object is passed to the visualization function (not applicable here as we use the default visualization for a DBTable)
-
      */
-
     DBTableDefault(
       outputSchema,
       outputName,
-      outputTabularSchema,
-      isView,
-      connectionInfo.name,
-      connectionInfo.url,
-      Some(params.operatorInfo)
+      outputTabularSchema
     )
-  }
-
-  //helper functions.  database tables that are not lowercase need to be put into quotes to be read properly
-  def getQuotedSchemaTableName(schemaName: String, tableName: String): String = {
-    quoteName(schemaName) + "." + quoteName(tableName)
-  }
-
-  def quoteName(colName: String): String = {
-    "\"" + colName + "\""
   }
 
 }

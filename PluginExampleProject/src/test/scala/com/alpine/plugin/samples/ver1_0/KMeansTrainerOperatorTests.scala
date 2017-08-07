@@ -35,8 +35,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
       overwrite = true
     )
 
-     inputHdfsDataset = this.createHdfsTabularDatasetLocal(irisDF, Some(parametersMock.operatorInfo()),
-    outputPath)
+     inputHdfsDataset = this.createHdfsTabularDatasetLocal(irisDF, None, outputPath)
 
     val kMeansJob = new KMeansTrainerJob
     val resultModelWrapper: ClusteringModelWrapper = runInputThroughOperator[HdfsTabularDataset, ClusteringModelWrapper](
@@ -59,7 +58,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
     //the result of the parameters will be assigned their default values.
 
     //run the onPlacement method, which will add parameters to the mock operator default
-    val operatorDialogMock = new OperatorDialogMock(inputParameters, inputHdfsDataset, Some(inputHdfsDataset.tabularSchema))
+    val operatorDialogMock = new OperatorDialogMock(inputParameters, inputHdfsDataset)
     guiNode.onPlacement(operatorDialogMock, new OperatorDataSourceManagerMock(DataSourceMock("HdfsDataSource")),
       new OperatorSchemaManagerMock())
 
@@ -87,7 +86,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite {
     OperatorParameterMockUtil.addHdfsParamsDefault(inputParameters, "KMeansFullOperatorTestResult")
     //the result of the parameters will be assigned their default values.
     //run the onPlacement method, which will add parameters to the mock operator default
-    val operatorDialogMock = new OperatorDialogMock(inputParameters, inputHdfsDataset, Some(inputHdfsDataset.tabularSchema))
+    val operatorDialogMock = new OperatorDialogMock(inputParameters, inputHdfsDataset)
     guiNode.onPlacement(operatorDialogMock, new OperatorDataSourceManagerMock(DataSourceMock("HdfsDataSource")),
       new OperatorSchemaManagerMock())
 

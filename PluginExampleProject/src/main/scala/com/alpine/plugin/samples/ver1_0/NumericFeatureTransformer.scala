@@ -33,16 +33,16 @@ class NumericFeatureTransformerSignature extends OperatorSignature[
   NumericFeatureTransformerRuntime] {
 
   def getMetadata: OperatorMetadata = new OperatorMetadata(
-      name = "Sample - Numeric Feature Transformer",
-      category = "Plugin Sample - Spark",
-    author = Some("Sung Chung"),
-      version = 1,
+    name = "Sample - Numeric Feature Transformer",
+    category = "Plugin Sample - Spark",
+    author = Some("Alpine Data"),
+    version = 1,
     helpURL = Some("http://alpinenow.com"),
     icon = Some(OperatorIcon("test", StarBurst)),
     toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
       "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
       " of the operator and are no more than fifty words.")
-    )
+  )
 
 }
 

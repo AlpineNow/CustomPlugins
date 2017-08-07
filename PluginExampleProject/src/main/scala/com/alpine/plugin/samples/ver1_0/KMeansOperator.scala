@@ -18,11 +18,12 @@ import org.apache.spark.sql.DataFrame
 import scala.collection.mutable
 
 class KMeansTrainerSignature extends OperatorSignature[KMeansTrainerGUINode, KMeansTrainerRuntime] {
-  def getMetadata(): OperatorMetadata = {
+
+  def getMetadata: OperatorMetadata = {
     new OperatorMetadata(
       name = "Sample - K Means Trainer",
       category = "Plugin Sample - Spark",
-      author = Some("Rachel Warren"),
+      author = Some("Alpine Data"),
       version = 1,
       helpURL = None,
       icon = None,

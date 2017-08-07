@@ -30,7 +30,7 @@ class HelloWorldSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Hello World",
     category = "Plugin Sample - Local",
-    author = Some("Sung Chung"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
