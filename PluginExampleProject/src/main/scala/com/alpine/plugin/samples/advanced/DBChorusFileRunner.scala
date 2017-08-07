@@ -10,8 +10,6 @@ import com.alpine.plugin.core.utils.ChorusUtils
 import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel}
 import com.alpine.plugin.{EmptyIOMetadata, OperatorDesignContext}
 
-import scala.util.{Failure, Success}
-
 /**
   * Demonstrates the functionality of the new chorus file drop down box on database and the
   * ChorusAPICaller object, which can be used to make several different calls to the chorus API
@@ -22,12 +20,6 @@ import scala.util.{Failure, Success}
   * from the workspace.
   * Then the custom operator will download the file at runtime and in the createVisualResults.
   * It will show the text of the workfile.
-  *
-  * The second drop down box allows selecting ONLY a python notebook.
-  * At runtime, the operator will run the python notebook. and return some information about the notebook.
-  * Currently, running the notebook will fail silently if the notebook server is not running or if
-  * their is an error in the notebook itself. It also will not save the notebook, so unless the
-  * notebook has a side effect there may not be evidence that the notebook was run.
   *
   * Lastly, the operator creates a new workfile in the workspace called
   * NOTE: This is a work in progress to test the chorus API functionality, it should be simplified
@@ -63,9 +55,6 @@ class DBChorusFileRunnerGUI extends OperatorGUINode[IONone, IONone] {
       label = "Select a File From the Workspace",
       extensionFilter = Set(".ipynb", ".txt"),
       isRequired = true)
-
-    operatorDialog.addChorusFileDropdownBox("pythonNotebook",
-      "Select Python Notebook to run", Set(".ipynb"), isRequired = false)
 
     operatorDialog.addStringBox("newFileName", "Name of New Workfile", "exported_file.txt", ".+", required = true)
   }
@@ -104,25 +93,6 @@ class DBChorusFileRunnerRuntime extends DBRuntime[IONone, IONone] {
 
     //download first file and get content.
     val text = context.chorusAPICaller.readWorkfileAsText(params.getChorusFile("file").get.id).get
-
-    //run python notebook, if present.
-    params.getChorusFile("pythonNotebook") match {
-      case Some(workfile) =>
-        listener.notifyMessage("The python workfile is " +
-          workfile.name + " with id " + workfile.id)
-        //TODO: Clean up this string
-        val pythonNotebook: String =
-          context.chorusAPICaller.runNotebook(workfile.id) match {
-            case Success(c) =>
-              if (c.serverStatus == "not_running") {
-                listener.notifyError(" Warning the python server is not running ")
-              }
-              "Success: the python notebook was last updated at: " + c.userModifiedAt
-            case Failure(e) => "Failed to run python notebook: " + e.getMessage
-          }
-      case None =>
-        listener.notifyMessage("No python notebook was selected.")
-    }
 
     val newFileName = params.getStringValue("newFileName")
     //write new chorus file

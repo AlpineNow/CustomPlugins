@@ -13,7 +13,6 @@ import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel}
   * This is a hadoop custom operator that displays the functionality to create a workfile selector
   * dropdown. The custom operator only allows the user to select .txt and .pynb (python notebook)
   * files. It then downloads those files and displays the text of that workfile.
-  * If a python notebook was selected it runs the notebook.
   *
   * Finally, the operator creates a new workfile in the workspace
   *
@@ -59,15 +58,6 @@ class ChorusFileRunnerRuntime extends SparkRuntime[IONone, IONone] {
 
     //retrieve a wrapper for the chorus api from the parameters object
     val chorusAPICaller: ChorusAPICaller = context.chorusAPICaller
-    //run notebook
-    if (chorusFileObject.extension == ".ipynb") {
-      val pythonNotebook = chorusAPICaller.runNotebook(chorusFileObject.id)
-      if (pythonNotebook.isSuccess) {
-        listener.notifyMessage("The python notebook was last updated by the user on " + pythonNotebook.get.userModifiedAt)
-      } else {
-        listener.notifyError("The python notebook failed to run: " + pythonNotebook.failed.get.getMessage)
-      }
-    }
     //download file
     val text = chorusAPICaller.readWorkfileAsText(chorusFileObject.id)
 
