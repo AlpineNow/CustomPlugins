@@ -53,7 +53,7 @@ class RegressionEvaluatorSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Regression Evaluator",
     category = "Plugin Sample - Spark",
-    author = Some("Jenny Thompson"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

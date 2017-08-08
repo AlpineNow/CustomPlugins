@@ -26,9 +26,8 @@ import com.alpine.plugin.core.io.DBTable;
 import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.io.defaults.DBTableDefault;
 import com.alpine.plugin.core.utils.DBParameterUtils;
+import com.alpine.sql.SQLExecutor;
 import com.alpine.sql.SQLGenerator;
-import scala.collection.JavaConversions;
-import scala.collection.Seq;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -59,23 +58,9 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
 
         String fullOutputName = sqlGenerator.quoteObjectName(outputSchemaName, tableName);
 
-        // Use try-with-resources to be sure the statement will be closed.
-        try (Statement statement = connectionInfo.connection().createStatement()) {
-            if (dropIfExists) {
-                //drop the table if it already exists
-                try {
-                    listener.notifyMessage("Dropping table if it exists.");
-                    statement.execute(sqlGenerator.getDropTableIfExistsSQL(fullOutputName, true));
-                } catch (SQLException ignored) {}
-
-                //drop the view if it already exists
-                try {
-                    listener.notifyMessage("Dropping view if it exists.");
-                    statement.execute(sqlGenerator.getDropViewIfExistsSQL(fullOutputName, true));
-                } catch (SQLException ignored) {}
-            } else {
-                // TODO: We should fail if the table already exists.
-            }
+        if (dropIfExists) {
+            final SQLExecutor sqlExecutor = context.getSQLExecutor();
+            sqlExecutor.ddlDropTableOrViewIfExists(fullOutputName);
         }
 
         //Create an sql statement object and build the statement according to the values
@@ -85,8 +70,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
         StringBuilder columnSQL = new StringBuilder();
 
         TabularSchema inputSchemaOutline = input.tabularSchema();
-        Seq<ColumnDef> inputColSeq = inputSchemaOutline.getDefinedColumns().toSeq();
-        List<ColumnDef> inputCols = JavaConversions.asJavaList(inputColSeq);
+        List<ColumnDef> inputCols = inputSchemaOutline.getDefinedColumnsAsJavaList();
 
         //select all of the input Columns (append them to the select statement)
         for (ColumnDef inputCol : inputCols) {
@@ -146,10 +130,7 @@ public class JavaDBTransformerRuntime extends DBRuntime<DBTable, DBTable> {
         return DBTableDefault.apply(
                 outputSchemaName,
                 tableName,
-                outputTabularSchema,
-                isView,
-                connectionInfo.name(),
-                connectionInfo.url()
+                outputTabularSchema
         );
     }
 }

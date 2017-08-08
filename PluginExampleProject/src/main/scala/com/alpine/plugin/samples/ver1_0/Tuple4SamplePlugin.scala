@@ -40,7 +40,7 @@ class Tuple4SampleSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Tuple4 Input Viewer",
     category = "Plugin Sample - Local",
-    author = Some("Sung Chung"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

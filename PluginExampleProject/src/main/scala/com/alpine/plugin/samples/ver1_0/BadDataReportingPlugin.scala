@@ -3,10 +3,11 @@ package com.alpine.plugin.samples.ver1_0
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io.{HdfsTabularDataset, OperatorSchemaManager}
+import com.alpine.plugin.core.spark.SparkExecutionContext
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.{BadDataReportingUtils, SparkRuntimeUtils}
-import com.alpine.plugin.core.utils.{SparkParameterUtils, HdfsParameterUtils, HtmlTabulator, Timer}
-import com.alpine.plugin.core.visualization.{CompositeVisualModel, HtmlVisualModel, VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.utils.{HdfsParameterUtils, HtmlTabulator, SparkParameterUtils, Timer}
+import com.alpine.plugin.core.visualization._
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
 import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.storage.StorageLevel
@@ -33,7 +34,7 @@ class BadDataReportingPluginSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Bad Data Reporting",
     category = "Plugin Sample - Spark",
-    author = Some("Rachel Warren"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -85,22 +86,28 @@ class BadDataReportingPluginGUINode extends SparkDataFrameGUINode[BadDataReporti
       defaultStorageLevel = "MEMORY_AND_DISK")
   }
 
-  override def onOutputVisualization(params: OperatorParameters,
-                                     output: HdfsTabularDataset, visualFactory: VisualModelFactory): VisualModel = {
+}
+
+class BadDataReportingPluginRuntime extends SparkDataFrameRuntime[BadDataReportingPluginJob] {
+
+  override def createVisualResults(
+    context: SparkExecutionContext,
+    input: HdfsTabularDataset,
+    output: HdfsTabularDataset,
+    params: OperatorParameters,
+    listener: OperatorListener): VisualModel = {
     val addendum = output.addendum
     val fancyHtmlTable = addendum.getOrElse(BadDataConstants.fancyHtmlTableId, "").toString
     val badDataReport = addendum.getOrElse(BadDataConstants.badDataReportId, "").toString
     val timerTable = addendum.getOrElse(BadDataConstants.timerReportId, "").toString
     val compositeVisualModel =new CompositeVisualModel()
-    compositeVisualModel.addVisualModel("Good Data", visualFactory.createTabularDatasetVisualization(output))
+    compositeVisualModel.addVisualModel("Good Data", context.visualModelHelper.createTabularDatasetVisualization(output))
     compositeVisualModel.addVisualModel("Bad Data Report", HtmlVisualModel(badDataReport))
     compositeVisualModel.addVisualModel("Test of Fancy Html Table", HtmlVisualModel(fancyHtmlTable))
     compositeVisualModel.addVisualModel("Timer Report", HtmlVisualModel(timerTable))
     compositeVisualModel
   }
 }
-
-class BadDataReportingPluginRuntime extends SparkDataFrameRuntime[BadDataReportingPluginJob] {}
 
 
 class BadDataReportingPluginJob extends SparkDataFrameJob {

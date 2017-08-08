@@ -31,7 +31,7 @@ public class CountByGroupSignature extends OperatorSignature<CountGUINode, Count
         return new OperatorMetadata(
                 "Sample - Java Count By Group",
                 "Plugin Sample - Spark",
-                Option.apply("Rachel Warren"),
+                Option.apply("Alpine Data"),
                 1,
                 Option.<String>empty(), //The help link
                 Option.<OperatorIcon>empty(), //A custom Icon

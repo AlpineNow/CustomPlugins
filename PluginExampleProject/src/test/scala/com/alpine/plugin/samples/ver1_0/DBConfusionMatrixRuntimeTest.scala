@@ -27,6 +27,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
 
     val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper(lor)
 
+    //noinspection NotImplementedCode
     val mockSQLGenerator = new SQLGenerator {
 
       override def quoteIdentifier(s: String): String = s""""$s""""
@@ -68,6 +69,8 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
       override def getDropViewIfExistsSQL(viewName: String, cascade: Boolean): String = ???
 
       override def getModuloExpression(dividend: String, divisor: String): String = ???
+
+      override def getCreateTempTableAsSelectSQL(selectQuery: String, destinationTable: String): String = ???
     }
 
     it("Should work with good input") {
@@ -80,10 +83,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
             ColumnDef("humidity", ColumnType.Long),
             ColumnDef("play", ColumnType.String)
           )
-        ),
-        isView = true,
-        dbName = "dummy DB Name",
-        dbURL = "dummy URL"
+        )
       )
 
       val input = Tuple2Default(wrapper, dbTable)
@@ -101,7 +101,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
           | "play" AS "Observed",
           | "PRED" AS "Predicted",
           | COUNT(*) AS "N"
-          | FROM (SELECT "column_0" AS "play", (CASE WHEN ("baseVal" > "ce0") THEN 'no' ELSE 'yes' END) AS "PRED" FROM (SELECT "column_0" AS "column_0", 1 / "sum" AS "baseVal", "e0" / "sum" AS "ce0" FROM (SELECT "column_0" AS "column_0", 1 + "e0" AS "sum", "e0" AS "e0" FROM (SELECT "play" AS "column_0", EXP(4.0 + "temperature" * 2.0 + "humidity" * 3.0) AS "e0" FROM "demo"."golfnew") AS alias_0) AS alias_1) AS alias_2) AS alias_3
+          | FROM (SELECT "column_0" AS "play", CASE WHEN "baseVal" IS NULL OR "ce0" IS NULL THEN NULL ELSE (CASE WHEN ("baseVal" > "ce0") THEN 'no' ELSE 'yes' END) END AS "PRED" FROM (SELECT "column_0" AS "column_0", 1 / "sum" AS "baseVal", "e0" / "sum" AS "ce0" FROM (SELECT "column_0" AS "column_0", 1 + "e0" AS "sum", "e0" AS "e0" FROM (SELECT "play" AS "column_0", EXP(4.0 + "temperature" * 2.0 + "humidity" * 3.0) AS "e0" FROM "demo"."golfnew") AS alias_0) AS alias_1) AS alias_2) AS alias_3
           | GROUP BY "play", "PRED");""".stripMargin
 
       assert(expectedSQL === actualSQL)
@@ -116,10 +116,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
             ColumnDef("temperature", ColumnType.Long),
             ColumnDef("humidity", ColumnType.Long)
           )
-        ),
-        isView = true,
-        dbName = "dummy DB Name",
-        dbURL = "dummy URL"
+        )
       )
 
       val input = Tuple2Default(wrapper, dbTable)

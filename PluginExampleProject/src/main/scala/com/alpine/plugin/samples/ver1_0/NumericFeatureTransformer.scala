@@ -20,11 +20,11 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.icon.{OperatorIcon, StarBurst}
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.spark.SparkJobConfiguration
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
+import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkJobConfiguration}
 import com.alpine.plugin.core.utils.SparkParameterUtils
-import com.alpine.plugin.core.visualization.{CompositeVisualModel, TextVisualModel, VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{CompositeVisualModel, TextVisualModel, VisualModel}
 import com.alpine.plugin.core.{OperatorMetadata, _}
 import org.apache.spark.sql.DataFrame
 
@@ -33,16 +33,16 @@ class NumericFeatureTransformerSignature extends OperatorSignature[
   NumericFeatureTransformerRuntime] {
 
   def getMetadata: OperatorMetadata = new OperatorMetadata(
-      name = "Sample - Numeric Feature Transformer",
-      category = "Plugin Sample - Spark",
-    author = Some("Sung Chung"),
-      version = 1,
+    name = "Sample - Numeric Feature Transformer",
+    category = "Plugin Sample - Spark",
+    author = Some("Alpine Data"),
+    version = 1,
     helpURL = Some("http://alpinenow.com"),
     icon = Some(OperatorIcon("test", StarBurst)),
     toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
       "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
       " of the operator and are no more than fifty words.")
-    )
+  )
 
 }
 
@@ -103,11 +103,25 @@ class NumericFeatureTransformerGUINode
       })
   }
 
-  override def onOutputVisualization(params: OperatorParameters,
-                                     output: HdfsTabularDataset,
-                                     visualFactory: VisualModelFactory): VisualModel = {
+}
+
+class NumericFeatureTransformerRuntime
+  extends SparkDataFrameRuntime[NumericFeatureTransformerJob] {
+
+  override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
+    val config = super.getSparkJobConfiguration(parameters, input)
+    config.additionalParameters += ("spark.shuffle.memoryFraction" -> "0.1")
+    config
+  }
+
+  override def createVisualResults(
+    context: SparkExecutionContext,
+    input: HdfsTabularDataset,
+    output: HdfsTabularDataset,
+    params: OperatorParameters,
+    listener: OperatorListener): VisualModel = {
     //create the standard visualization of the output data
-    val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
+    val datasetVisualModel = context.visualModelHelper.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
     val addendumVisualModel =
       TextVisualModel(
@@ -122,17 +136,6 @@ class NumericFeatureTransformerGUINode
     compositeVisualModel.addVisualModel("Addendum", addendumVisualModel)
     compositeVisualModel
   }
-}
-
-class NumericFeatureTransformerRuntime
-  extends SparkDataFrameRuntime[NumericFeatureTransformerJob] {
-
-  override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
-    val config = super.getSparkJobConfiguration(parameters, input)
-    config.additionalParameters += ("spark.shuffle.memoryFraction" -> "0.1")
-    config
-  }
-
 }
 
 class NumericFeatureTransformerJob extends SparkDataFrameJob {

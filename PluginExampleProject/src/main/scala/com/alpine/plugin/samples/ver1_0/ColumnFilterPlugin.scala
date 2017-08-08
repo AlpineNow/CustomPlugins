@@ -54,7 +54,7 @@ class ColumnFilterSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Spark Column Filter",
     category = "Plugin Sample - Spark",
-    author = Some("Rachel Warren"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

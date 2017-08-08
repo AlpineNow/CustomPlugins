@@ -21,7 +21,7 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, HdfsTabularDataset, OperatorSchemaManager, TabularSchema}
-import com.alpine.plugin.core.spark.SparkJobConfiguration
+import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkJobConfiguration}
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.SparkParameterUtils
@@ -38,7 +38,7 @@ class AdvancedColumnFilterSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Spark Column Filter (Advanced)",
     category = "Plugin Sample - Spark",
-    author = Some("Rachel Warren"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -86,7 +86,7 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
 
     operatorDialog.addTabularDatasetColumnCheckboxes(
       ColumnFilterUtil.COLUMNS_TO_KEEP_KEY, //key so we can access this parameter in the Spark job
-      "Columns to keep", //display name of the parameter
+      "Columns To Keep", //display name of the parameter
       ColumnFilter.All, //A filter which specifies what types of columns can be selected
       "main" // This is a string used to group together column selectors.
     )
@@ -145,29 +145,6 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
     else OperatorStatus(isValid = true)
   }
 
-  override def onOutputVisualization(params: OperatorParameters,
-                                     output: HdfsTabularDataset,
-                                     visualFactory: VisualModelFactory): VisualModel = {
-    //create the standard visualization of the output data
-    val datasetVisualModel = visualFactory.createTabularDatasetVisualization(output)
-    val addendum: Map[String, AnyRef] = output.addendum
-    val addendumVisualModel =
-      TextVisualModel(
-        /**
-          * Get the key from the addendum
-          * We have to get it, since get returns an option type and convert to String since
-          * it is of type AnyRef
-          */
-        addendum(ColumnFilterUtil.MESSAGE_STRING_KEY).toString
-      )
-
-    val htmlVisualModel = HtmlVisualModel(addendum(ColumnFilterUtil.HTML_MESSAGE_KEY).toString)
-    val compositeVisualModel = new CompositeVisualModel
-    compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
-    compositeVisualModel.addVisualModel("MessageString", addendumVisualModel)
-    compositeVisualModel.addVisualModel("Columns Selected", htmlVisualModel)
-    compositeVisualModel
-  }
 }
 
 /**
@@ -184,6 +161,33 @@ class AdvancedColumnFilterRuntime extends SparkDataFrameRuntime[AdvancedColumnFi
     val config = super.getSparkJobConfiguration(parameters, input)
     config.additionalParameters += ("spark.driver.maxResultSize" -> "1g")
     config
+  }
+
+  override def createVisualResults(
+    context: SparkExecutionContext,
+    input: HdfsTabularDataset,
+    output: HdfsTabularDataset,
+    params: OperatorParameters,
+    listener: OperatorListener): VisualModel = {
+    //create the standard visualization of the output data
+    val datasetVisualModel = context.visualModelHelper.createTabularDatasetVisualization(output)
+    val addendum: Map[String, AnyRef] = output.addendum
+    val addendumVisualModel =
+      TextVisualModel(
+        /**
+          * Get the key from the addendum
+          * We have to get it, since get returns an option type and convert to String since
+          * it is of type AnyRef
+          */
+        addendum(ColumnFilterUtil.MESSAGE_STRING_KEY).toString
+      )
+
+    val htmlVisualModel = HtmlVisualModel(addendum(ColumnFilterUtil.HTML_MESSAGE_KEY).toString)
+    val compositeVisualModel = new CompositeVisualModel()
+    compositeVisualModel.addVisualModel("Dataset", datasetVisualModel)
+    compositeVisualModel.addVisualModel("MessageString", addendumVisualModel)
+    compositeVisualModel.addVisualModel("Columns Selected", htmlVisualModel)
+    compositeVisualModel
   }
 }
 

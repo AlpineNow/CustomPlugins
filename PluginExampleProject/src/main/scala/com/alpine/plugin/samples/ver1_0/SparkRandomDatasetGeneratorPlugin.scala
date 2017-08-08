@@ -36,7 +36,7 @@ class SparkRandomDatasetGeneratorSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Random Data Generator",
     category = "Plugin Sample - Spark",
-    author = Some("Jenny Thompson"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

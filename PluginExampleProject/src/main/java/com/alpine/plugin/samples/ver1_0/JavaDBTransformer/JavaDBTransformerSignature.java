@@ -34,7 +34,7 @@ public class JavaDBTransformerSignature extends
         return new OperatorMetadata(
                 "Sample - Java DB Transform",
                 "Plugin Sample - DB",
-                Option.apply("Rachel Warren"),
+                Option.apply("Alpine Data"),
                 1,
                 Option.<String>empty(), //The help link
                 Option.apply(OperatorIcon.apply("test", starBurst)), //A custom Icon

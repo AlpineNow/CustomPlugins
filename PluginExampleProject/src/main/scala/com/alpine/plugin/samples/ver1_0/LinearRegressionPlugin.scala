@@ -22,9 +22,9 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.SparkParameterUtils
-import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel, VisualModelFactory}
+import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel}
 import com.alpine.plugin.model.RegressionModelWrapper
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.regression.LassoWithSGD
@@ -46,10 +46,10 @@ class LinearRegressionSignature extends OperatorSignature[
   LinearRegressionPluginGUINode,
   LinearRegressionPluginRuntime] {
 
-  def getMetadata(): OperatorMetadata = new OperatorMetadata(
+  def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Linear Regression",
     category = "Plugin Sample - Spark",
-    author = Some("Jenny Thompson"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -83,22 +83,27 @@ class LinearRegressionPluginGUINode extends OperatorGUINode[
 
   }
 
+}
 
-  override def onOutputVisualization(params: OperatorParameters,
-                                     output: RegressionModelWrapper,
-                                     visualFactory: VisualModelFactory): VisualModel = {
+class LinearRegressionPluginRuntime extends SparkRuntimeWithIOTypedJob[
+  LinearRegressionTrainingJob,
+  HdfsTabularDataset,
+  RegressionModelWrapper] {
+
+  override def createVisualResults(
+    context: SparkExecutionContext,
+    input: HdfsTabularDataset,
+    output: RegressionModelWrapper,
+    params: OperatorParameters,
+    listener: OperatorListener): VisualModel = {
     val model = output.model.asInstanceOf[LinearRegressionModel]
     val eqn = model.dependentFeatureName + " = " + model.intercept + " + " +
       model.coefficients.zip(model.inputFeatures).map(t => s"${t._1} * ${t._2.columnName}").mkString(" + ")
     val text: String = s"Model is \n $eqn"
     TextVisualModel(text)
   }
-}
 
-class LinearRegressionPluginRuntime extends SparkRuntimeWithIOTypedJob[
-  LinearRegressionTrainingJob,
-  HdfsTabularDataset,
-  RegressionModelWrapper]
+}
 
 class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
   HdfsTabularDataset,
@@ -110,8 +115,8 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
                            listener: OperatorListener): RegressionModelWrapper = {
     val sparkUtils = new SparkRuntimeUtils(sparkContext)
 
-    val dependentColumn = operatorParameters.getTabularDatasetSelectedColumn("dependentColumn")._2
-    val independentColumnNames = operatorParameters.getTabularDatasetSelectedColumns("independentColumns")._2
+    val dependentColumn = operatorParameters.getTabularDatasetSelectedColumnName("dependentColumn")
+    val independentColumnNames = operatorParameters.getTabularDatasetSelectedColumnNames("independentColumns")
 
     val schemaFixedColumns = input.tabularSchema.getDefinedColumns
 

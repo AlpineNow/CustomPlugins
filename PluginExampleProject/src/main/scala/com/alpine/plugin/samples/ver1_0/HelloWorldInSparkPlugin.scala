@@ -35,7 +35,7 @@ class HelloWorldInSparkSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Hello World In Spark",
     category = "Plugin Sample - Spark",
-    author = Some("Sung Chung"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,
@@ -53,7 +53,8 @@ class HelloWorldInSparkGUINode extends OperatorGUINode[
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
 
     HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
-    val outputSchema = TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
+
+    val outputSchema = TabularSchema(Seq(ColumnDef("HelloWorld", ColumnType.String)))
     operatorSchemaManager.setOutputSchema(outputSchema)
   }
 }
@@ -78,7 +79,7 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
 
     sparkUtils.deleteOrFailIfExists(outputPathStr, overwrite)
 
-    val outputSchema = TabularSchema(Array(ColumnDef("HelloWorld", ColumnType.String)))
+    val outputSchema = TabularSchema(Seq(ColumnDef("HelloWorld", ColumnType.String)))
     val rdd = sparkContext.parallelize(List("Hello World"))
     rdd.saveAsTextFile(outputPathStr)
     HdfsDelimitedTabularDatasetDefault(

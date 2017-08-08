@@ -59,7 +59,7 @@ class AggregationSignature extends OperatorSignature[
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
     name = "Sample - Aggregate By Product",
     category = "Plugin Sample - Spark",
-    author = Some("Rachel Warren"),
+    author = Some("Alpine Data"),
     version = 1,
     helpURL = None,
     icon = None,

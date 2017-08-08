@@ -28,7 +28,6 @@ import com.alpine.plugin.core.io.OperatorSchemaManager;
 import com.alpine.plugin.core.io.TabularSchema;
 import com.alpine.plugin.core.utils.DBParameterUtils;
 import com.alpine.plugin.util.JavaConversionUtils;
-import scala.Option;
 import scala.collection.immutable.Map;
 
 import java.util.Arrays;
@@ -82,7 +81,7 @@ public class JavaDBNumericTransformerGUINode extends OperatorGUINode<DBTable, DB
         //only update the output schema if something has been connected to this operator
         //(if the list of input schemas is nonEmpty)
         if (!inputSchemas.isEmpty()) {
-            TabularSchema inputSchema = inputSchemas.values().iterator().next();
+            TabularSchema inputSchema = inputSchemas.values().head();
             //add columns to the output schema only if the input Schemas are not empty
 
             if (inputSchema.getDefinedColumns().nonEmpty()) {

@@ -35,7 +35,7 @@ class IOListSampleSignature extends OperatorSignature[
     new OperatorMetadata(
       name = "Sample - IOList Input Viewer",
       category = "Plugin Sample - Local",
-      author = Some("Rachel Warren"),
+      author = Some("Alpine Data"),
       version = 1,
       helpURL = None,
       icon = None,
@@ -54,12 +54,14 @@ class IOListSampleGUINode extends OperatorGUINode[
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addParentOperatorDropdownBox(
       id = "dataset1",
-      label = "Number One Dataset"
+      label = "Number One Dataset",
+      required = false
     )
 
     operatorDialog.addParentOperatorDropdownBox(
       id = "dataset2",
-      label = "Number Two Dataset"
+      label = "Number Two Dataset",
+      required = false
     )
   }
 }
