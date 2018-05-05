@@ -34,10 +34,9 @@ class ChorusFileRunnerSignature extends OperatorSignature[ChorusFileRunnerGUI, C
 class ChorusFileRunnerGUI extends OperatorGUINode[IONone, IONone] {
 
   override def onPlacement(
-    operatorDialog: OperatorDialog,
-    operatorDataSourceManager: OperatorDataSourceManager,
-    operatorSchemaManager: OperatorSchemaManager
-  ): Unit = {
+                            operatorDialog: OperatorDialog,
+                            operatorDataSourceManager: OperatorDataSourceManager,
+                            operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addChorusFileDropdownBox(id = "file",
       label = "Select a File From the Workspace",
       extensionFilter = Set[String](".ipynb", ".txt"), isRequired = true)

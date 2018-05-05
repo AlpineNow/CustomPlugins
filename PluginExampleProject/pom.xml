@@ -4,7 +4,7 @@
 
     <groupId>alpine</groupId>
     <artifactId>plugin-example</artifactId>
-    <version>1.9</version>
+    <version>1.10</version>
 
     <repositories>
         <repository>
@@ -20,7 +20,7 @@
         </repository>
     </repositories>
     <properties>
-        <alpine.version>1.9</alpine.version>
+        <alpine.version>1.10</alpine.version>
     </properties>
     <dependencies>
 
@@ -81,6 +81,14 @@
             <version>${alpine.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <artifactId>junit</artifactId>
+            <groupId>junit</groupId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+
 
     </dependencies>
 

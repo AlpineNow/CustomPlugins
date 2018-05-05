@@ -29,7 +29,7 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
     val input : RDD[Row] = sc.parallelize(inputRows)
     //create a dataFrame using that test data
     // and the sqlContext provided by the parent class
-    val dataFrameInput = sqlContext.createDataFrame(input, inputSchema)
+    val dataFrameInput = sparkSession.createDataFrame(input, inputSchema)
 
     val colFilterJob = new ColumnFilterJob
     val uuid = "1"
@@ -66,7 +66,7 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
   test("Test Col Filter GUI and Spark Job using Provided Golf Dataset"){
 
     //The Golf data object is provided in our test utils class.
-    val dataFrameInput = GolfData.createGolfDF(sc)
+    val dataFrameInput = GolfData.createGolfDF(sparkSession)
     val operatorGUI = new ColumnFilterGUINode
 
     val inputParameters = new OperatorParametersMock("2", "TestFullColumnFilter")
@@ -74,8 +74,10 @@ class ColumnFilterPluginTest extends SimpleAbstractSparkJobSuite  {
     OperatorParameterMockUtil.addHdfsParamsDefault(inputParameters, "FullColumnFilterTestResults")
 
     val inputHdfs = HdfsDelimitedTabularDatasetDefault(
-      "target/testResults", sparkUtils.convertSparkSQLSchemaToTabularSchema(dataFrameInput.schema),
-      TSVAttributes.default)
+      "target/testResults",
+      sparkUtils.convertSparkSQLSchemaToTabularSchema(dataFrameInput.schema),
+      TSVAttributes.defaultCSV
+    )
 
     val defaultParams = getNewParametersFromDataFrameGui(operatorGUI, inputHdfs, inputParameters)
 

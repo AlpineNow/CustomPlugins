@@ -4,18 +4,15 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, HdfsTabularDataset, OperatorSchemaManager}
-import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
-import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.utils.MLlibUtils
+import com.alpine.plugin.core.spark.{AlpineSparkEnvironment, SparkExecutionContext, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HtmlTabulator
 import com.alpine.plugin.core.visualization.{HtmlVisualModel, VisualModel}
 import com.alpine.plugin.model.ClusteringModelWrapper
-import org.apache.spark.SparkContext
 import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
-
-import scala.collection.mutable
 
 class KMeansTrainerSignature extends OperatorSignature[KMeansTrainerGUINode, KMeansTrainerRuntime] {
 
@@ -84,13 +81,12 @@ class KMeansTrainerRuntime extends SparkRuntimeWithIOTypedJob[
 }
 
 class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, ClusteringModelWrapper] {
-  override def onExecution(sparkContext: SparkContext,
-                           appConf: mutable.Map[String, String],
+  override def onExecution(alpineSparkEnvironment : AlpineSparkEnvironment,
                            input: HdfsTabularDataset,
                            operatorParameters: OperatorParameters,
                            listener: OperatorListener): ClusteringModelWrapper = {
 
-    val sparkRuntimeUtils = new SparkRuntimeUtils(sparkContext)
+    val sparkRuntimeUtils = alpineSparkEnvironment.getSparkUtils
     val inputData: DataFrame = sparkRuntimeUtils.getDataFrame(input)
 
     val (inputDataSetUUID, inputFeatureNames) =
@@ -99,7 +95,7 @@ class KMeansTrainerJob extends SparkIOTypedPluginJob[HdfsTabularDataset, Cluster
 
     val selectedData = inputData.select(inputFeatureNames.head, inputFeatureNames.tail: _*)
     //add to Vector to MLLibUtils
-    val vectorRDD: RDD[Vector] = selectedData.map(row => {
+    val vectorRDD: RDD[Vector] = selectedData.rdd.map(row => {
       val rowAsDoubles: Array[Double] = row.toSeq.map(x => MLlibUtils.anyToDouble(x)).toArray
       Vectors.dense(rowAsDoubles)
     })

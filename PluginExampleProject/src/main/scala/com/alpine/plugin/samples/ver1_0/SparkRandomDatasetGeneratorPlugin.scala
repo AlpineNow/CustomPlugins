@@ -19,15 +19,11 @@ package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
-import com.alpine.plugin.core.dialog.{SparkParameter, OperatorDialog}
+import com.alpine.plugin.core.dialog.{OperatorDialog, SparkParameter}
 import com.alpine.plugin.core.io._
-import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import com.alpine.plugin.core.spark.{AutoTunerOptions, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
-import com.alpine.plugin.core.utils.{HdfsStorageFormatType, HdfsParameterUtils, SparkParameterUtils}
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.SQLContext
+import com.alpine.plugin.core.spark.{AlpineSparkEnvironment, AutoTunerOptions, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.utils.{HdfsCompressionType, HdfsParameterUtils, HdfsStorageFormatType, SparkParameterUtils}
 
-import scala.collection.mutable
 
 class SparkRandomDatasetGeneratorSignature extends OperatorSignature[
   SparkRandomDatasetGeneratorGUINode,
@@ -102,7 +98,7 @@ class SparkRandomDatasetGeneratorGUINode
       1000
     )
 
-    HdfsParameterUtils.addHdfsStorageFormatParameter(operatorDialog, HdfsStorageFormatType.CSV)
+    HdfsParameterUtils.addHdfsStorageAndCompressionParameters(operatorDialog, HdfsStorageFormatType.CSV, HdfsCompressionType.NoCompression)
     HdfsParameterUtils.addStandardHdfsOutputParameters(operatorDialog)
 
     SparkParameterUtils.addStandardSparkOptions(operatorDialog, List[SparkParameter]())
@@ -157,24 +153,24 @@ class SparkRandomDatasetGeneratorRuntime
     */
 
   override def getAutoTuningOptions(parameters: OperatorParameters, input: IONone): AutoTunerOptions = {
-    val fileSizeMultiplier = parameters.getIntValue("numRows")/2000.0 //we will increase the file size base on the number of rows
+    val cachedSizeMultiplier = parameters.getIntValue("numRows")/8000.0 //we will increase the desired cached size base on the number of rows (6000 rows => inputCachedSizeMultiplier = 1.0)
     AutoTunerOptions(driverMemoryFraction = 0.5, //this doesn't require much work from the driver so we set this value to less than one.
-      fileSizeMultiplier = fileSizeMultiplier)
+      inputCachedSizeMultiplier = cachedSizeMultiplier)
   }
 }
 
 class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabularDataset] {
-  override def onExecution(sparkContext: SparkContext,
-                           appConf: mutable.Map[String, String],
+  override def onExecution(alpineSparkEnvironment: AlpineSparkEnvironment,
                            input: IONone,
                            params: OperatorParameters,
                            listener: OperatorListener): HdfsTabularDataset = {
 
-    val sparkUtils = new SparkRuntimeUtils(sparkContext)
+    val sparkUtils = alpineSparkEnvironment.getSparkUtils
     val numDoubleCols = params.getIntValue("numDoubleColumns")
     val numIntCols = params.getIntValue("numIntColumns")
     val numStringCols = params.getIntValue("numStringColumns")
     val numRows = params.getIntValue("numRows")
+    val sparkContext = alpineSparkEnvironment.sparkSession.sparkContext
     val numExecutors = sparkContext.getExecutorMemoryStatus.size
     val numRowsPerPartition = math.ceil(numRows.toDouble / numExecutors.toDouble).toInt
     val randomDataRdd = sparkContext.parallelize(Seq[Int](), numExecutors).mapPartitionsWithIndex {
@@ -201,15 +197,15 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
     val outputPath = HdfsParameterUtils.getOutputPath(params)
     val overwrite = HdfsParameterUtils.getOverwriteParameterValue(params)
     val storageFormat = HdfsParameterUtils.getHdfsStorageFormatType(params)
+    val compressionType = HdfsParameterUtils.getHdfsCompressionType(params)
 
     //use our utils object to get the AlpineOutputSchema which we can then convert to Spark SQL with the
     //the SparkRuntimeUtils class.
     val outputSchema = SparkRandomDatasetGeneratorConstants.defineOutputSchema(numDoubleCols,
       numIntCols, numStringCols)
 
-    val sqlContext = new SQLContext(sparkContext)
     val outputDF =
-      sqlContext.createDataFrame(randomDataRdd, sparkUtils.convertTabularSchemaToSparkSQLSchema(outputSchema))
+      alpineSparkEnvironment.sparkSession.createDataFrame(randomDataRdd, sparkUtils.convertTabularSchemaToSparkSQLSchema(outputSchema))
 
     //use sparkUtils to save the DataFrame and return the HdfsTabularDataset object
 
@@ -218,9 +214,9 @@ class RandomDatasetGeneratorJob extends SparkIOTypedPluginJob[IONone, HdfsTabula
       outputDF,
       storageFormat,
       overwrite,
-      Some(params.operatorInfo),
       Map[String, AnyRef](),
-      TSVAttributes.defaultCSV //the default is a comma delimited file. But you may specify different delimiters or escape characters with this parameter
+      TSVAttributes.defaultCSV, //the default is a comma delimited file. But you may specify different delimiters or escape characters with this parameter
+      compressionType
     )
   }
 }

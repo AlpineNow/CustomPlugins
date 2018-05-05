@@ -21,7 +21,8 @@ import com.alpine.plugin.core.OperatorListener;
 import com.alpine.plugin.core.OperatorParameters;
 import com.alpine.plugin.core.spark.templates.SparkDataFrameJob;
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils;
-import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -34,13 +35,13 @@ public class CountPluginSparkJob extends SparkDataFrameJob {
 
     static final String GroupByParamKey = "groupBy";
 
-    public DataFrame transform(OperatorParameters params, DataFrame inputDataFrame,
+    public Dataset<Row> transform(OperatorParameters params, Dataset<Row> inputDataFrame,
                                SparkRuntimeUtils sparkUtils, OperatorListener listener) {
         String groupByVar = params.getTabularDatasetSelectedColumn(
                 GroupByParamKey)._2();
         listener.notifyMessage("Starting the DataFrame Transformation");
-        DataFrame selectedData = inputDataFrame.select(groupByVar);
-        DataFrame df = selectedData.groupBy(groupByVar).count();
+        Dataset<Row> selectedData = inputDataFrame.select(groupByVar);
+        Dataset<Row> df = selectedData.groupBy(groupByVar).count();
 
         //customize the output schema
         List<StructField> fields = new ArrayList<>();

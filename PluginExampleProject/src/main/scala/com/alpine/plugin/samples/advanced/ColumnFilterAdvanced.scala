@@ -19,9 +19,9 @@ package com.alpine.plugin.samples.advanced
 
 import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
-import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
+import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog, SparkParameter}
 import com.alpine.plugin.core.io.{ColumnDef, HdfsTabularDataset, OperatorSchemaManager, TabularSchema}
-import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkJobConfiguration}
+import com.alpine.plugin.core.spark.{AutoTunerOptions, SparkExecutionContext}
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.SparkParameterUtils
@@ -90,16 +90,17 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
       ColumnFilter.All, //A filter which specifies what types of columns can be selected
       "main" // This is a string used to group together column selectors.
     )
+
     /*
     Call the super method which adds the default storage parameters. See documentation for the
     HdfsParameterUtils class and the SparkDataFrameGUINode for more information.
      */
 
-    /**
-      * Advanced Exercise 1:  use the utility function to add the standard spark parameters function
-      */
-
-    SparkParameterUtils.addStandardSparkOptions(operatorDialog, List())
+    SparkParameterUtils.addStandardSparkOptions(
+      operatorDialog,
+      List[SparkParameter](SparkParameterUtils.makeStorageLevelParam("NONE"),
+        SparkParameterUtils.makeRepartitionParam, SparkParameterUtils.makeNumPartitionsParam)
+    )
 
     super.onPlacement(operatorDialog, operatorDataSourceManager, operatorSchemaManager)
   }
@@ -154,21 +155,43 @@ class AdvancedColumnFilterGUINode extends SparkDataFrameGUINode[AdvancedColumnFi
   * defines the Spark Job.
   */
 class AdvancedColumnFilterRuntime extends SparkDataFrameRuntime[AdvancedColumnFilterJob] {
-  override def getSparkJobConfiguration(parameters: OperatorParameters, input: HdfsTabularDataset): SparkJobConfiguration = {
-    /**
-      * Exercise 2: adding max resultSize
-      */
-    val config = super.getSparkJobConfiguration(parameters, input)
-    config.additionalParameters += ("spark.driver.maxResultSize" -> "1g")
-    config
+  /**
+    * Set the options passed to our Spark Auto Tuner which will choose optimal Spark configuration
+    * settings for values not provided by the user based on the size of the cluster, the input
+    * data and the type of computation.
+    * See documentation for the AutoTunerOptions object for more details on what the settings in this
+    * object mean.
+    * Set only the auto tuning options by overriding this method.
+    * To change the parameters passed the Spark Configuration more comprehensively override
+    * 'getSparkJobConfiguration' and this method will be ignored.
+    */
+  override def getAutoTuningOptions(parameters: OperatorParameters, input: HdfsTabularDataset): AutoTunerOptions = {
+    AutoTunerOptions(
+      driverMemoryFraction = 0.5,
+      inputCachedSizeMultiplier = 1.0,
+      minExecutorMemory = 1800L)
   }
 
+  /**
+    * This is called to generate the visual output for the results console.
+    * If the developer does not override it, we try OperatorGUINode#onOutputVisualization,
+    * which predated this, so we keep for compatibility.
+    *
+    * @param context  Execution context of the operator.
+    * @param input    The input to the operator.
+    * @param output   The output from the execution.
+    * @param params   The parameter values to the operator.
+    * @param listener The listener object to communicate information back to
+    *                 the console.
+    * @return
+    */
   override def createVisualResults(
-    context: SparkExecutionContext,
-    input: HdfsTabularDataset,
-    output: HdfsTabularDataset,
-    params: OperatorParameters,
-    listener: OperatorListener): VisualModel = {
+      context: SparkExecutionContext,
+      input: HdfsTabularDataset,
+      output: HdfsTabularDataset,
+      params: OperatorParameters,
+      listener: OperatorListener
+  ): VisualModel = {
     //create the standard visualization of the output data
     val datasetVisualModel = context.visualModelHelper.createTabularDatasetVisualization(output)
     val addendum: Map[String, AnyRef] = output.addendum
@@ -179,8 +202,7 @@ class AdvancedColumnFilterRuntime extends SparkDataFrameRuntime[AdvancedColumnFi
           * We have to get it, since get returns an option type and convert to String since
           * it is of type AnyRef
           */
-        addendum(ColumnFilterUtil.MESSAGE_STRING_KEY).toString
-      )
+        addendum(ColumnFilterUtil.MESSAGE_STRING_KEY).toString)
 
     val htmlVisualModel = HtmlVisualModel(addendum(ColumnFilterUtil.HTML_MESSAGE_KEY).toString)
     val compositeVisualModel = new CompositeVisualModel()
@@ -202,6 +224,21 @@ class AdvancedColumnFilterJob extends SparkDataFrameJob {
                                      dataFrame: DataFrame,
                                      sparkUtils: SparkRuntimeUtils,
                                      listener: OperatorListener): (DataFrame, Map[String, AnyRef]) = {
+
+    val repartition = SparkParameterUtils.getRepartition(parameters)
+    listener.notifyMessage("Repartition:  " + repartition)
+    val defaultParallelism = dataFrame.rdd.sparkContext.getConf.get("spark.default.parallelism", "1")
+    val numPartitions = SparkParameterUtils.getUserSetNumPartitions(parameters) match {
+      case Some(p) => Math.max(p, defaultParallelism.toInt)
+      case None => defaultParallelism.toInt
+    }
+
+    listener.notifyMessage(" The number of partitions set to use is " + numPartitions)
+    val partitioned: DataFrame = if (repartition) {
+      dataFrame.sqlContext.createDataFrame(dataFrame.rdd.repartition(numPartitions), dataFrame.schema)
+    } else {
+      dataFrame
+    }
     //get the value of the columnsToKeep parameter
     val columnNamesToKeep = ColumnFilterUtil.getColumnsToKeep(parameters)
     // map the list of column names to DataFrame column definitions.
@@ -210,14 +247,14 @@ class AdvancedColumnFilterJob extends SparkDataFrameJob {
     /**
       * Exercise 3: Add addendum with the number of rows in the output
       */
-    val messageString = "Number of rows in the output " + dataFrame.count()
+    val messageString = "Number of rows in the output " + partitioned.count()
 
     /**
       * Exercise 4: Add a visualization which lists the parameters and bolds the header to
       * the output
       */
     val htmlMessageString = "<b>Columns Selected </b> <br>" + columnNamesToKeep.mkString("<br>")
-    (dataFrame.select(columnsToKeep: _*),
+    (partitioned.select(columnsToKeep: _*),
       Map(ColumnFilterUtil.MESSAGE_STRING_KEY -> messageString,
         ColumnFilterUtil.HTML_MESSAGE_KEY -> htmlMessageString))
   }

@@ -1,7 +1,7 @@
 package com.alpine.plugin.samples.ver1_0
 
 import com.alpine.plugin.test.mock.OperatorParametersMock
-import com.alpine.plugin.test.utils.{IrisFlowerPrediction, TestSparkContexts, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.utils.{IrisFlowerPrediction, OperatorParameterMockUtil, SimpleAbstractSparkJobSuite, TestSparkContexts}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -12,9 +12,7 @@ class NumericFeatureTransformerJobTest extends SimpleAbstractSparkJobSuite {
   import TestSparkContexts._
 
   test("Test addendum and schema"){
-    val path = "src/test/resources/irisDataSet"
-    val irisData = sc.textFile(path )
-    val irisDF = IrisFlowerPrediction.convertIrisRDDtoDF(irisData, sqlContext)
+    val irisDF = IrisFlowerPrediction.createIrisDataFrame(sparkSession)
 
     val parametersMock = new OperatorParametersMock("TestNFT", "123")
     //add columnsToTransform

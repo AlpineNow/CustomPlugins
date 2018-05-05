@@ -57,7 +57,7 @@ object JavascriptVisualizationUtil {
 
 /**
   * The JavascriptVisualizationGUINode defines the design time behavior of the plugin. It extends
-  * the template GUI class "SparkDataFrameGUINode".
+  * the template GUI class "OperatorGUINode".
   * It is in this class that we define the parameters which the user will see when they click on the
   * operator and the design time output schema.
   */
@@ -66,7 +66,7 @@ class JavascriptVisualizationGUINode extends OperatorGUINode[HdfsTabularDataset,
                            operatorDataSourceManager: OperatorDataSourceManager,
                            operatorSchemaManager: OperatorSchemaManager): Unit = {
     operatorDialog.addTabularDatasetColumnDropdownBox(JavascriptVisualizationUtil.COLUMN_TO_ANALYZE,
-      "Column", ColumnFilter.All, "main", true)
+      "Column", ColumnFilter.All, "main")
   }
 }
 
@@ -103,13 +103,13 @@ class JavascriptVisualizationRuntime extends SparkRuntime[HdfsTabularDataset, IO
     if (i != -1) {
       val valuesSet = tabularModel.content.map(row => row(i))
       compositeVisualModel.addVisualModel("Data Cloud",
-        new JavascriptVisualModel("execute", Option.apply(valuesSet)))
+        JavascriptVisualModel("execute", Option.apply(valuesSet)))
     } else {
       compositeVisualModel.addVisualModel("Data Cloud",
-        new JavascriptVisualModel("execute", Option.apply(new Gson().toJson(Array("No results")))))
+        JavascriptVisualModel("execute", Option.apply(new Gson().toJson(Array("No results")))))
     }
     compositeVisualModel.addVisualModel("Hello World",
-      new JavascriptVisualModel("simpleFunction", Option.apply()))
+      JavascriptVisualModel("simpleFunction", Option.apply()))
     compositeVisualModel
   }
 

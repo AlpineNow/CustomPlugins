@@ -22,18 +22,15 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.{AlpineSparkEnvironment, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.model.RegressionModelWrapper
 import com.alpine.transformer.RegressionTransformer
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.mllib.evaluation.RegressionMetrics
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.apache.spark.{SparkContext, sql}
-
-import scala.collection.mutable
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
   * This is the design-time code for the Regression evaluator operator.
@@ -110,14 +107,11 @@ class RegressionEvaluatorJob extends
     Tuple2[HdfsTabularDataset, RegressionModelWrapper],
     HdfsTabularDataset
     ] {
-  override def onExecution(sparkContext: SparkContext,
-                           appConf: mutable.Map[String, String],
+  override def onExecution(alpineSparkEnvironment: AlpineSparkEnvironment,
                            input: Tuple2[HdfsTabularDataset, RegressionModelWrapper],
                            operatorParameters: OperatorParameters,
                            listener: OperatorListener): HdfsTabularDataset = {
-    val sparkUtils = new SparkRuntimeUtils(
-      sparkContext
-    )
+    val sparkUtils = alpineSparkEnvironment.getSparkUtils
     val inputDataSet = input._1
     val schemaFixedColumns = inputDataSet.tabularSchema.getDefinedColumns
 
@@ -125,16 +119,15 @@ class RegressionEvaluatorJob extends
 
     val model: RegressionRowModel = input._2.model
 
-    val resultDataFrame: DataFrame = RegressionEvaluatorUtil.calculateResultDataFrame(
-      sparkContext,
-      schemaFixedColumns,
-      dataFrame,
-      model,
-      listener
-    )
+    val resultDataFrame: DataFrame =
+      RegressionEvaluatorUtil.calculateResultDataFrame(
+        alpineSparkEnvironment.sparkSession,
+        schemaFixedColumns = schemaFixedColumns,
+        dataFrame = dataFrame,
+        model = model,
+        listener = listener)
 
     RegressionEvaluatorUtil.saveOutput(
-      sparkContext,
       operatorParameters,
       listener,
       sparkUtils,
@@ -189,11 +182,10 @@ object RegressionEvaluatorUtil {
     * metrics against the known value of the dependent column in the input data.
     * Return a DataFrame with the results of each metric.
     */
-  def calculateResultDataFrame(sparkContext: SparkContext,
-                               schemaFixedColumns: Seq[ColumnDef],
-                               dataFrame: DataFrame,
-                               model: RegressionRowModel,
-                               listener: OperatorListener): DataFrame = {
+  def calculateResultDataFrame(
+    sparkSession: SparkSession,
+    schemaFixedColumns: Seq[ColumnDef], dataFrame: DataFrame,
+    model: RegressionRowModel, listener: OperatorListener): DataFrame = {
     val inputFeatures = model.inputFeatures
 
     /**
@@ -230,7 +222,7 @@ object RegressionEvaluatorUtil {
 
     val transformer = model.transformer
 
-    val predictionTuples: RDD[(Double, Double)] = dataFrame.map((row: sql.Row) => {
+    val predictionTuples: RDD[(Double, Double)] = dataFrame.rdd.map((row: sql.Row) => {
       RegressionEvaluatorUtil
         .calculatePredictionTuple(independentColumnIndices, dependentColumnIndex, transformer)(row)
     })
@@ -238,8 +230,7 @@ object RegressionEvaluatorUtil {
     val metrics: RegressionMetrics = new RegressionMetrics(predictionTuples)
 
     val outputRow = RegressionEvaluatorUtil.getOutputRow(metrics)
-    val outputRDD = sparkContext.makeRDD(Seq(outputRow))
-    val sqlContext = new SQLContext(sparkContext)
+    val outputRDD = sparkSession.sparkContext.makeRDD(Seq(outputRow))
 
     val schema = StructType(
       Seq(
@@ -250,27 +241,21 @@ object RegressionEvaluatorUtil {
         StructField("r2", DoubleType, nullable = false)
       )
     )
-    val resultDataFrame = sqlContext.createDataFrame(outputRDD, schema)
+    val resultDataFrame = sparkSession.createDataFrame(outputRDD, schema)
     resultDataFrame
   }
 
   /**
     * Uses the spark utils class to save the result dataFrame to HDFS.
     */
-  def saveOutput(sparkContext: SparkContext,
+  def saveOutput(
                  operatorParameters: OperatorParameters,
                  listener: OperatorListener,
                  sparkUtils: SparkRuntimeUtils,
                  resultDataFrame: DataFrame): HdfsDelimitedTabularDataset = {
     val outputPathStr = HdfsParameterUtils.getOutputPath(operatorParameters)
-    listener.notifyMessage("Output path is : " + outputPathStr)
-    val driverHdfs = FileSystem.get(sparkContext.hadoopConfiguration)
-    val outputPath = new Path(outputPathStr)
-    if (driverHdfs.exists(outputPath)) {
-      listener.notifyMessage("Deleting previous output.")
-      driverHdfs.delete(outputPath, true)
-    }
-    sparkUtils.saveAsTSV(outputPathStr, resultDataFrame, Some(operatorParameters.operatorInfo))
+
+    sparkUtils.saveAsCSV(outputPathStr, resultDataFrame, TSVAttributes.defaultCSV)
   }
 
 }

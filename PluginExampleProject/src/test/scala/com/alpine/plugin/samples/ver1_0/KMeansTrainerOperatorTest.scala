@@ -12,7 +12,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite with BeforeAndAfterAll {
+class KMeansTrainerOperatorTest extends SimpleAbstractSparkJobSuite with BeforeAndAfterAll {
   //we need to import this line in order to get the pre-defined Spark Local Context Test
   import TestSparkContexts._
   val outputPath = "target/results/Kmeans"
@@ -21,10 +21,8 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite with Before
   var inputHdfsDataset : HdfsDelimitedTabularDataset = _
 
   override protected def beforeAll(): Unit = {
-    val irisDataPath = "src/test/resources/irisDataSet"
-    val irisData = sc.textFile(irisDataPath)
-    irisDF = IrisFlowerPrediction.convertIrisRDDtoDF(irisData, sqlContext)
-    inputHdfsDataset = this.createHdfsTabularDatasetLocal(irisDF, None, outputPath)
+    irisDF = IrisFlowerPrediction.createIrisDataFrame(sparkSession)
+    inputHdfsDataset = this.createHdfsTabularDatasetLocal(irisDF, outputPath)
   }
 
   test("Test of K Means Plugin Spark Job using Iris dataset"){
@@ -72,8 +70,7 @@ class KMeansTrainerOperatorTests extends SimpleAbstractSparkJobSuite with Before
     assert(defaultParameters.getIntValue(KMeansConstants.numClustersParamId) == 5)
 
     //test the gui node and run time class.
-    kMeansDefaultOutput = runInputThroughEntireOperator(inputHdfsDataset, guiNode,
-      job, inputParameters, Some(inputHdfsDataset.tabularSchema))
+    kMeansDefaultOutput = runInputThroughEntireOperator(inputHdfsDataset, guiNode, job, inputParameters)
 
     assert(kMeansDefaultOutput.model.isInstanceOf[ExampleKMeansClusteringModel])
     //check the output visualization method

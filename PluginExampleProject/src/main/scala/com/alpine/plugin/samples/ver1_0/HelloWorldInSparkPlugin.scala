@@ -21,12 +21,8 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.HdfsDelimitedTabularDatasetDefault
-import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
-import com.alpine.plugin.core.spark.{SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.{AlpineSparkEnvironment, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.HdfsParameterUtils
-import org.apache.spark.SparkContext
-
-import scala.collection.mutable
 
 class HelloWorldInSparkSignature extends OperatorSignature[
   HelloWorldInSparkGUINode,
@@ -67,12 +63,11 @@ class HelloWorldInSparkRuntime extends SparkRuntimeWithIOTypedJob[
 class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
   IONone,
   HdfsDelimitedTabularDataset] {
-  override def onExecution(sparkContext: SparkContext,
-                           appConf: mutable.Map[String, String],
+  override def onExecution(alpineSparkEnvironment: AlpineSparkEnvironment,
                            input: IONone,
                            operatorParameters: OperatorParameters,
                            listener: OperatorListener): HdfsDelimitedTabularDataset = {
-    val sparkUtils = new SparkRuntimeUtils(sparkContext)
+    val sparkUtils = alpineSparkEnvironment.getSparkUtils
 
     val outputPathStr = HdfsParameterUtils.getOutputPath(operatorParameters)
     val overwrite = HdfsParameterUtils.getOverwriteParameterValue(operatorParameters)
@@ -80,12 +75,12 @@ class HelloWorldInSparkJob extends SparkIOTypedPluginJob[
     sparkUtils.deleteOrFailIfExists(outputPathStr, overwrite)
 
     val outputSchema = TabularSchema(Seq(ColumnDef("HelloWorld", ColumnType.String)))
-    val rdd = sparkContext.parallelize(List("Hello World"))
+    val rdd = alpineSparkEnvironment.sparkSession.sparkContext.parallelize(List("Hello World"))
     rdd.saveAsTextFile(outputPathStr)
     HdfsDelimitedTabularDatasetDefault(
       outputPathStr,
       outputSchema,
-      TSVAttributes.default
+      TSVAttributes.defaultCSV
     )
   }
 }

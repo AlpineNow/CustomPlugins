@@ -4,8 +4,8 @@ import com.alpine.model.pack.ml.{MultiLogisticRegressionModel, SingleLogisticReg
 import com.alpine.plugin.core.io.defaults.{DBTableDefault, Tuple2Default}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, TabularSchema}
 import com.alpine.plugin.model.ClassificationModelWrapper
-import com.alpine.sql.DatabaseType.TypeValue
-import com.alpine.sql.SQLGenerator
+import com.alpine.plugin.test.mock.SimpleSQLGenerator
+import org.apache.commons.lang3.StringUtils
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
@@ -27,51 +27,7 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
 
     val wrapper: ClassificationModelWrapper = new ClassificationModelWrapper(lor)
 
-    //noinspection NotImplementedCode
-    val mockSQLGenerator = new SQLGenerator {
-
-      override def quoteIdentifier(s: String): String = s""""$s""""
-
-      override def useAliasForSelectSubQueries: Boolean = true
-
-      override def escapeColumnName(s: String): String = quoteIdentifier(s)
-
-      override def dbType: TypeValue = ???
-
-      override def getStandardDeviationFunctionName: String = ???
-
-      override def quoteObjectName(schemaName: String, objectName: String): String = ???
-
-      override def getCreateTableAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, whereClause: String): String = ???
-
-      override def getCreateTableAsSelectSQL(columns: String, sourceTable: String, destinationTable: String): String = ???
-
-      override def getDropTableIfExistsSQL(tableName: String, cascade: Boolean): String = ???
-
-      override def getCreateViewAsSelectSQL(columns: String, sourceTable: String, destinationView: String, whereClause: String): String = ???
-
-      override def getCreateViewAsSelectSQL(columns: String, sourceTable: String, destinationView: String): String = ???
-
-      override def getCreateTableOrViewAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, whereClause: String, isView: Boolean): String = ???
-
-      override def getCreateTableOrViewAsSelectSQL(columns: String, sourceTable: String, destinationTable: String, isView: Boolean): String = ???
-
-      override def getCreateTableAsSelectSQL(selectQuery: String, destinationTable: String): String = ???
-
-      override def getCreateViewAsSelectSQL(selectQuery: String, destinationView: String): String = ???
-
-      override def getCreateTableOrViewAsSelectSQL(selectQuery: String, destinationTableOrView: String, isView: Boolean): String = ???
-
-      override def quoteChar: String = ???
-
-      override def getVarianceFunctionName: String = ???
-
-      override def getDropViewIfExistsSQL(viewName: String, cascade: Boolean): String = ???
-
-      override def getModuloExpression(dividend: String, divisor: String): String = ???
-
-      override def getCreateTempTableAsSelectSQL(selectQuery: String, destinationTable: String): String = ???
-    }
+    val mockSQLGenerator = new SimpleSQLGenerator()
 
     it("Should work with good input") {
       val dbTable = DBTableDefault(
@@ -94,7 +50,6 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
         fullOutputName = "\"output_schema\".\"output_table\""
       )
 
-      // println(actualSQL)
 
       val expectedSQL =
         """CREATE TABLE "output_schema"."output_table" AS (SELECT
@@ -102,9 +57,12 @@ class DBConfusionMatrixRuntimeTest extends FunSpec {
           | "PRED" AS "Predicted",
           | COUNT(*) AS "N"
           | FROM (SELECT "column_0" AS "play", CASE WHEN "baseVal" IS NULL OR "ce0" IS NULL THEN NULL ELSE (CASE WHEN ("baseVal" > "ce0") THEN 'no' ELSE 'yes' END) END AS "PRED" FROM (SELECT "column_0" AS "column_0", 1 / "sum" AS "baseVal", "e0" / "sum" AS "ce0" FROM (SELECT "column_0" AS "column_0", 1 + "e0" AS "sum", "e0" AS "e0" FROM (SELECT "play" AS "column_0", EXP(4.0 + "temperature" * 2.0 + "humidity" * 3.0) AS "e0" FROM "demo"."golfnew") AS alias_0) AS alias_1) AS alias_2) AS alias_3
-          | GROUP BY "play", "PRED");""".stripMargin
+          | GROUP BY "play", "PRED")""".stripMargin
 
-      assert(expectedSQL === actualSQL)
+//      println(actualSQL)
+//      println(expectedSQL)
+
+      assert(StringUtils.normalizeSpace(expectedSQL) === StringUtils.normalizeSpace(actualSQL))
     }
 
     it("Should fail with bad input") {

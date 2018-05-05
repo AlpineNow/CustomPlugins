@@ -1,12 +1,18 @@
 package com.alpine.plugin.samples.ver1_0
 
+import java.io.File
+
 import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.Tuple2Default
+import com.alpine.plugin.core.spark.AlpineSparkEnvironment
+import com.alpine.plugin.core.utils.HdfsParameterUtils
 import com.alpine.plugin.model.RegressionModelWrapper
-import com.alpine.plugin.test.mock.{SimpleOperatorListener, OperatorParametersMock}
-import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, TestSparkContexts, SimpleAbstractSparkJobSuite}
+import com.alpine.plugin.test.mock.{OperatorParametersMock, SimpleOperatorListener}
+import com.alpine.plugin.test.utils.{OperatorParameterMockUtil, SimpleAbstractSparkJobSuite, TestSparkContexts}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
+
+import scala.collection.mutable
 
 /**
   * A test class for our linear regression algorithm and regression evaluator.
@@ -57,11 +63,9 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
       StructField(dependantVar, DoubleType))
     )
 
-    val df = sqlContext.createDataFrame(sc.parallelize(rows), schema)
+    val df = sparkSession.createDataFrame(sc.parallelize(rows), schema)
 
-    val localHDFSFile = createHdfsTabularDatasetLocal(dataFrame = df,
-      opInfo = Some(OperatorInfo("123", "RegressionTest")),
-    outputDirectory)
+    val localHDFSFile = createHdfsTabularDatasetLocal(df, outputDirectory)
 
     //set the data to one of the class variables so we can use it in the next test
     manufacturedData = localHDFSFile
@@ -77,9 +81,10 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
     val regressionOperator = new LinearRegressionTrainingJob
 
     val resultModel =
-      regressionOperator.onExecution(sc,
-      scala.collection.mutable.Map[String, String](),
-        localHDFSFile, params, listener)
+      regressionOperator.onExecution(
+        new AlpineSparkEnvironment(sparkSession, mutable.Map[String, String]()),
+        localHDFSFile, params, listener
+      )
 
     regressionModel = resultModel
 
@@ -100,8 +105,10 @@ class LinearRegressionTrainingJobTest extends SimpleAbstractSparkJobSuite {
     val inputTuple = Tuple2Default(manufacturedData, regressionModel)
 
     //run the input data through the on-execution method
-    val result = regEvalOperator.onExecution(sc, null,
-          inputTuple, params, listener)
+    val result = regEvalOperator.onExecution(
+      new AlpineSparkEnvironment(sparkSession, mutable.Map[String, String]()),
+      inputTuple, params, listener
+    )
 
     val resultDataFrame = sparkUtils.getDataFrame(result)
     assert(resultDataFrame.collect().length == 1)

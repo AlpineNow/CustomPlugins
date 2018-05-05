@@ -145,7 +145,7 @@ class AggregationPluginSparkJob extends SparkDataFrameJob {
     val selectedData = inputDataFrame.select(groupByCol, colsToAggregate: _*)
 
     //map the data frame to key value pairs with the group as the key
-    val keyValueData = selectedData.map(row => {
+    val keyValueData = selectedData.rdd.map(row => {
       val key = row.getString(0)
       val rest = Range(1, row.length).map(i => row.get(i).toString.toDouble).toList
       (key, rest)

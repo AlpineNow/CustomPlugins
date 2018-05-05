@@ -11,7 +11,7 @@ import com.alpine.plugin.core.io._
 import com.alpine.plugin.core.io.defaults.DBTableDefault
 import com.alpine.plugin.core.utils.DBParameterUtils
 import com.alpine.plugin.model.ClassificationModelWrapper
-import com.alpine.sql.{AliasGenerator, SQLGenerator}
+import com.alpine.sql.{AliasGenerator, DatabaseType, SQLExecutor, SQLGenerator}
 import com.alpine.transformer.sql.ColumnName
 import com.alpine.util.SQLUtility
 
@@ -38,15 +38,15 @@ class DBConfusionMatrixSignature extends OperatorSignature[
   DBConfusionMatrixRuntime] {
 
   override def getMetadata: OperatorMetadata = new OperatorMetadata(
-    name = "Sample - DB Confusion Matrix",
-    category = "Plugin Sample - DB",
-    author = Some("Alpine Data"),
-    version = 1,
-    helpURL = None,
-    icon = None,
-    toolTipText = Some("Enter text to show as a tooltip for your operator here. This will appear when a user hovers " +
-      "over the operator’s name in the workflow editor. The best tooltips concisely describe the function" +
-      " of the operator and are no more than fifty words.")
+    name        = "Sample - DB Confusion Matrix",
+    category    = "Plugin Sample - DB",
+    author      = Some("Alpine Data"),
+    version     = 1,
+    helpURL     = None,
+    icon        = None,
+    toolTipText = Some("Enter text to show as a tooltip for your operator here. " +
+      "This will appear when a user hovers over the operator’s name in the workflow editor. " +
+      "The best tooltips concisely describe the function of the operator and are no more than fifty words.")
   )
 }
 
@@ -65,15 +65,15 @@ class DBConfusionMatrixGUINode extends OperatorGUINode[
 
 object ConfusionMatrixUtils {
 
-  val observedColumnName: String = "Observed"
+  val observedColumnName:  String = "Observed"
   val predictedColumnName: String = "Predicted"
-  val countColumnName: String = "N" // Don't use "count" as it is a SQL keyword.
+  val countColumnName:     String = "N" // Don't use "count" as it is a SQL keyword.
 
   val outputTabularSchema = TabularSchema(
     Seq(
-      ColumnDef(observedColumnName, ColumnType.String),
+      ColumnDef(observedColumnName,  ColumnType.String),
       ColumnDef(predictedColumnName, ColumnType.String),
-      ColumnDef(countColumnName, ColumnType.String)
+      ColumnDef(countColumnName,     ColumnType.String)
     )
   )
 
@@ -81,70 +81,55 @@ object ConfusionMatrixUtils {
 
 class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapper, DBTable], DBTable] {
 
-  override def onExecution(context: DBExecutionContext,
-                           input: Tuple2[ClassificationModelWrapper, DBTable],
-                           params: OperatorParameters,
-                           listener: OperatorListener): DBTable = {
+  override def onExecution(
+      context: DBExecutionContext,
+      input: Tuple2[ClassificationModelWrapper, DBTable],
+      params: OperatorParameters,
+      listener: OperatorListener
+  ): DBTable = {
     //get the output parameters
-    val outputSchema = DBParameterUtils.getDBOutputSchemaParam(params)
-    val isView = DBParameterUtils.getIsViewParam(params)
-    val outputName = DBParameterUtils.getResultTableName(params)
-    val connectionInfo = context.getDBConnectionInfo
+    val outputSchema   = DBParameterUtils.getDBOutputSchemaParam(params)
+    val isView         = DBParameterUtils.getIsViewParam(params)
+    val outputName     = DBParameterUtils.getResultTableName(params)
+    val sqlExecutor    = context.getSQLExecutor
 
-    //check if there is a table  or with the same name as the output table and drop according to the
-    // "overwrite"
-    val overwrite = DBParameterUtils.getOverwriteParameterValue(params)
+    //check if there is a table or view with the same name as the output table and drop according to the
+    // "dropIfExist" field
+    val dropIfExists = DBParameterUtils.getDropIfExistsParameterValue(params)
     val fullOutputName = getQuotedSchemaTableName(outputSchema, outputName)
-    if (overwrite) {
-      val stmtTable = connectionInfo.connection.createStatement()
-      //First see if a table of that name exists.
-      // This will throw an exception if there is a view with the output name,
-      // we will catch the exception and delete the view in the next block of code.
+    if (dropIfExists) {
       try {
-        listener.notifyMessage("Dropping table if it exists")
-        val dropTableStatementBuilder = new StringBuilder()
-        dropTableStatementBuilder ++= "DROP TABLE IF EXISTS " + fullOutputName + " CASCADE;"
-        stmtTable.execute(dropTableStatementBuilder.toString())
+        // This will throw an exception if there is a view with the output name,
+        // we will catch the exception and delete the view in the next block of code.
+        listener.notifyMessage("Dropping table or view " + fullOutputName + " if it exists")
+        sqlExecutor.ddlDropTableOrViewIfExists(fullOutputName, cascadeFlag = true)
       }
       catch {
-        case (e: Exception) => listener.notifyMessage("A view of the name " + fullOutputName + " exists");
+        case (e: Exception) => listener.notifyMessage("Could not drop table " + fullOutputName);
       }
-      finally {
-        stmtTable.close()
-      }
-      //Now see if there is a view with the output name
-      listener.notifyMessage("Dropping view if it exists")
-      val dropViewStatementBuilder = new StringBuilder()
-      dropViewStatementBuilder ++= "DROP VIEW IF EXISTS " + fullOutputName + " CASCADE;"
-      val stmtView = connectionInfo.connection.createStatement()
-      stmtView.execute(dropViewStatementBuilder.toString())
-      stmtView.close()
     }
 
-    val createTableSQL: String = getCreateTableSQL(context.getSQLGenerator, input, isView, fullOutputName)
+    val outputSQL = getCreateTableSQL(sqlExecutor.getSQLGenerator, input, isView, fullOutputName)
 
-    val stmt = connectionInfo.connection.createStatement()
-    stmt.execute(createTableSQL)
-    stmt.close()
+    sqlExecutor.executeUpdate(outputSQL)
 
     DBTableDefault(
       outputSchema,
       outputName,
-      ConfusionMatrixUtils.outputTabularSchema,
-      isView,
-      connectionInfo.name,
-      connectionInfo.url
+      ConfusionMatrixUtils.outputTabularSchema
     )
   }
 
-  def getCreateTableSQL(sqlGenerator: SQLGenerator,
-                        input: Tuple2[_ <: ClassificationModelWrapper, _ <: DBTable],
-                        isView: Boolean,
-                        fullOutputName: String): String = {
-    val inputDataset: DBTable = input._2
-    val inputModel: ClassificationRowModel = input._1.model
+  def getCreateTableSQL(
+      sqlGenerator: SQLGenerator,
+      input: Tuple2[_ <: ClassificationModelWrapper, _ <: DBTable],
+      isView: Boolean,
+      fullOutputName: String
+  ): String = {
+    val inputDataset: DBTable                = input._2
+    val inputModel:   ClassificationRowModel = input._1.model
 
-    val sqlTransformerOption = inputModel.sqlTransformer(sqlGenerator)
+    val sqlTransformerOption                 = inputModel.sqlTransformer(sqlGenerator)
 
     if (sqlTransformerOption.isEmpty) {
       throw new RuntimeException(
@@ -154,9 +139,9 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
 
     verifyColumns(inputModel, inputDataset)
 
-    val dependentColumn = inputModel.dependentFeature
-    val unitModel = UnitModel(Seq(dependentColumn))
-    val combinedModel = CombinerModel.make(Seq(unitModel, inputModel))
+    val dependentColumn   = inputModel.dependentFeature
+    val unitModel         = UnitModel(Seq(dependentColumn))
+    val combinedModel     = CombinerModel.make(Seq(unitModel, inputModel))
     val classificationSQL = combinedModel.sqlTransformer(sqlGenerator).get.getSQL
 
     val quotedFullTableName: String = getQuotedSchemaTableName(inputDataset.schemaName, inputDataset.tableName)
@@ -164,31 +149,41 @@ class DBConfusionMatrixRuntime extends DBRuntime[Tuple2[ClassificationModelWrapp
     val aliasGenerator: AliasGenerator = new AliasGenerator
 
     val innerSelectStatement = SQLUtility.getSelectStatement(
-      sql = classificationSQL,
+      sql            = classificationSQL,
       inputTableName = quotedFullTableName,
       aliasGenerator = aliasGenerator,
-      sqlGenerator = sqlGenerator
+      sqlGenerator   = sqlGenerator
     )
     val predictedColumnName: ColumnName = classificationSQL.layers.last.last._2
 
-    val observedColumnNameEscaped: String = sqlGenerator.quoteIdentifier(dependentColumn.columnName)
-    val predictedColumnNameEscaped: String = predictedColumnName.escape(sqlGenerator)
-    val selectSqlStatement =
-      s"""SELECT
+    val observedColumnNameEscaped  = sqlGenerator.quoteIdentifier(dependentColumn.columnName)
+    val predictedColumnNameEscaped = predictedColumnName.escape(sqlGenerator)
+    val selectClause = s"""
           | $observedColumnNameEscaped AS ${sqlGenerator.quoteIdentifier(ConfusionMatrixUtils.observedColumnName)},
           | $predictedColumnNameEscaped AS ${sqlGenerator.quoteIdentifier(ConfusionMatrixUtils.predictedColumnName)},
-          | COUNT(*) AS "N"
-          | FROM ($innerSelectStatement) AS ${aliasGenerator.getNextAlias}
-          | GROUP BY $observedColumnNameEscaped, $predictedColumnNameEscaped""".stripMargin
-
-    val sqlStatementBuilder = new StringBuilder()
-    if (isView) {
-      sqlStatementBuilder ++= "CREATE VIEW " + fullOutputName + " AS ("
-    } else {
-      sqlStatementBuilder ++= "CREATE TABLE " + fullOutputName + " AS ("
+          | COUNT(*) AS ${sqlGenerator.quoteIdentifier(ConfusionMatrixUtils.countColumnName)}
+          | """.stripMargin
+    val aliasSubqueries = sqlGenerator.useAliasForSelectSubQueries
+    val sourceTable = {
+      if (aliasSubqueries) {
+        s"""
+           | ($innerSelectStatement) AS ${aliasGenerator.getNextAlias}
+           | """.stripMargin
+      } else {
+        s"""
+           | ($innerSelectStatement)
+           | """.stripMargin
+      }
     }
-    sqlStatementBuilder ++= selectSqlStatement + ");"
-    sqlStatementBuilder.toString
+    val groupByClause = s"""GROUP BY $observedColumnNameEscaped, $predictedColumnNameEscaped"""
+    sqlGenerator
+        .getCreateTableOrViewAsSelectSQL(
+          columns = selectClause,
+          sourceTable = sourceTable,
+          destinationTable = fullOutputName,
+          whereClause = groupByClause,
+          isView = isView
+        )
   }
 
   /**
