@@ -118,7 +118,8 @@ class DateTypeTranslatorJob extends SparkDataFrameJob {
     val finalRows = finalData.rdd
     val inputSchema = sparkUtils.convertSparkSQLSchemaToTabularSchema(dataFrame.schema)
 
-    val newSchema = sparkUtils.convertTabularSchemaToSparkSQLSchema(DateTypeTranslatorUtils.outputSchema(parameters, inputSchema))
+    val newSchema =
+      sparkUtils.convertTabularSchemaToSparkSQLSchema(DateTypeTranslatorUtils.outputSchema(parameters, inputSchema))
     //we don't have to change the data frame to change the type of the date.
     // All we need to do is assign it a different schema which specifies the date as a different type.
     //then the framework will handel the conversion for us.

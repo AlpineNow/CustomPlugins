@@ -66,4 +66,10 @@
   <plugin>
     <signature-class>com.alpine.plugin.samples.advanced.JavascriptVisualizationSignature</signature-class>
   </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.DialogElementExplorerSignature</signature-class>
+  </plugin>
+  <plugin>
+    <signature-class>com.alpine.plugin.samples.advanced.LocalHDFSFileReaderSignature</signature-class>
+  </plugin>
 </alpine-plugins>

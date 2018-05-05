@@ -21,15 +21,12 @@ import com.alpine.plugin.core._
 import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.{ColumnFilter, OperatorDialog}
 import com.alpine.plugin.core.io.{ColumnDef, ColumnType, HdfsTabularDataset, OperatorSchemaManager}
-import com.alpine.plugin.core.spark.utils.{MLlibUtils, SparkRuntimeUtils}
-import com.alpine.plugin.core.spark.{SparkExecutionContext, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
+import com.alpine.plugin.core.spark.utils.MLlibUtils
+import com.alpine.plugin.core.spark.{AlpineSparkEnvironment, SparkExecutionContext, SparkIOTypedPluginJob, SparkRuntimeWithIOTypedJob}
 import com.alpine.plugin.core.utils.SparkParameterUtils
 import com.alpine.plugin.core.visualization.{TextVisualModel, VisualModel}
 import com.alpine.plugin.model.RegressionModelWrapper
-import org.apache.spark.SparkContext
 import org.apache.spark.mllib.regression.LassoWithSGD
-
-import scala.collection.mutable
 
 /**
   * This is an example plugin showing how to use MLlib to train a basic Linear Regression Model.
@@ -108,12 +105,10 @@ class LinearRegressionPluginRuntime extends SparkRuntimeWithIOTypedJob[
 class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
   HdfsTabularDataset,
   RegressionModelWrapper] {
-  override def onExecution(sparkContext: SparkContext,
-                           appConf: mutable.Map[String, String],
+  override def onExecution(alpineSparkEnvironment: AlpineSparkEnvironment,
                            input: HdfsTabularDataset,
                            operatorParameters: OperatorParameters,
                            listener: OperatorListener): RegressionModelWrapper = {
-    val sparkUtils = new SparkRuntimeUtils(sparkContext)
 
     val dependentColumn = operatorParameters.getTabularDatasetSelectedColumnName("dependentColumn")
     val independentColumnNames = operatorParameters.getTabularDatasetSelectedColumnNames("independentColumns")
@@ -131,8 +126,8 @@ class LinearRegressionTrainingJob extends SparkIOTypedPluginJob[
     val dependentColumnIndex = schemaFixedColumns
       .indexWhere(columnDef => columnDef.columnName == dependentColumn)
 
-    val inputDataFrame = sparkUtils.getDataFrame(input)
-    val labeledPoints = inputDataFrame.map(MLlibUtils.toLabeledPoint(dependentColumnIndex, independentColumnIndices))
+    val inputDataFrame = alpineSparkEnvironment.getSparkUtils.getDataFrame(input)
+    val labeledPoints = inputDataFrame.rdd.map(MLlibUtils.toLabeledPoint(dependentColumnIndex, independentColumnIndices))
     //.persist(StorageLevel.MEMORY_AND_DISK) // Could perform caching here.
 
     // This is different to the internal Alpine implementation of Linear Regression, which uses OWLQN,

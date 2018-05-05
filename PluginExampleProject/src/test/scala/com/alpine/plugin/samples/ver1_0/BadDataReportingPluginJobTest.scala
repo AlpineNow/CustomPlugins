@@ -14,16 +14,15 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
   test("Test that null data is removed") {
 
     val operator = new BadDataReportingPluginJob
-    val dataFrameInput = GolfData.createGolfDFWithNullRows(sc)
+    val dataFrameInput = GolfData.createGolfDFWithNullRows(sparkSession)
     val parameters =new OperatorParametersMock("TestBadData", "golf")
-    parameters.setValue(HdfsParameterUtils.badDataReportParameterID,
-      HdfsParameterUtils.badDataReportNO)
+    parameters.setValue(HdfsParameterUtils.badDataReportParameterID, "No")
     parameters.setValue(BadDataConstants.badDataTypeParamId, BadDataConstants.ALL_NULL)
     parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
 
     OperatorParameterMockUtil.addHdfsParamsDefault(parameters, "BadDataReportingTest")
     val (r, _) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
-    val justGoodData = GolfData.createGolfDF(sc)
+    val justGoodData = GolfData.createGolfDF(sparkSession)
 
     //using Subtraction in this way is a solution to test rdd equality
     val resultMinusGood = r.rdd.subtract(justGoodData.rdd).collect()
@@ -35,16 +34,15 @@ class BadDataReportingPluginJobTest extends SimpleAbstractSparkJobSuite {
   test("Test that null and zero data is removed") {
 
     val operator = new BadDataReportingPluginJob
-    val dataFrameInput = GolfData.createGolfDFWithNullAndZeroRows(sc)
+    val dataFrameInput = GolfData.createGolfDFWithNullAndZeroRows(sparkSession)
     val parameters =new OperatorParametersMock("TestBadData", "golf")
-    parameters.setValue(HdfsParameterUtils.badDataReportParameterID,
-      HdfsParameterUtils.badDataReportNO)
+    parameters.setValue(HdfsParameterUtils.badDataReportParameterID, "No")
     parameters.setValue(BadDataConstants.badDataTypeParamId, BadDataConstants.NULL_AND_ZERO)
-    parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG )
+    parameters.setValue(BadDataConstants.styleTagParamId, BadDataConstants.DEFAULT_STYLE_TAG)
 
     OperatorParameterMockUtil.addHdfsParamsDefault(parameters, "BadDataReportingTest")
     val (r, _) =  runDataFrameThroughDFTemplate(dataFrameInput, operator, parameters)
-    val justGoodData = GolfData.createGolfDF(sc)
+    val justGoodData = GolfData.createGolfDF(sparkSession)
 
     //using Subtraction in this way is a solution to test rdd equality
     val resultMinusGood = r.rdd.subtract(justGoodData.rdd).collect()

@@ -4,15 +4,14 @@ import com.alpine.plugin.core.datasource.OperatorDataSourceManager
 import com.alpine.plugin.core.dialog.OperatorDialog
 import com.alpine.plugin.core.io.{HdfsTabularDataset, OperatorSchemaManager}
 import com.alpine.plugin.core.spark.SparkExecutionContext
+import com.alpine.plugin.core.spark.reporting.NullDataReportingUtils
 import com.alpine.plugin.core.spark.templates.{SparkDataFrameGUINode, SparkDataFrameJob, SparkDataFrameRuntime}
-import com.alpine.plugin.core.spark.utils.{BadDataReportingUtils, SparkRuntimeUtils}
+import com.alpine.plugin.core.spark.utils.SparkRuntimeUtils
 import com.alpine.plugin.core.utils.{HdfsParameterUtils, HtmlTabulator, SparkParameterUtils, Timer}
 import com.alpine.plugin.core.visualization._
 import com.alpine.plugin.core.{OperatorListener, OperatorMetadata, OperatorParameters, OperatorSignature}
-import org.apache.spark.sql.{DataFrame, Row}
+import org.apache.spark.sql.{Column, DataFrame}
 import org.apache.spark.storage.StorageLevel
-
-import scala.util.Try
 
 /**
   * A Custom Operator which demonstrates how to use our built in features for filtering and reporting
@@ -133,20 +132,22 @@ class BadDataReportingPluginJob extends SparkDataFrameJob {
     //use the BadDataReportingUtils to filter out the rows with null/zero data
     //This function takes a custom routine called that maps from a row to a boolean.
     //In this case we pass in a function (defined bellow) called 'containsZero' that labels as removable if they contain any zeros.
+    val nullDataStrategy = HdfsParameterUtils.getNullDataStrategy(operatorParameters, None)
     val (goodData, badDataReport) =
       if (typeOfBadDataToRemove.equals(BadDataConstants.NULL_AND_ZERO)) {
-        BadDataReportingUtils.filterNullDataAndReportGeneral(
-          removeRow = row => RowProcessingUtil.containsZeros(row),
-          inputDataFrame = dataFrame,
-          operatorParameters = operatorParameters,
-          sparkRuntimeUtils = sparkUtils,
+        val head: Column = RowProcessingUtil.isNullNanZero(dataFrame.col(dataFrame.columns.head))
+        val containsZeros: Column =
+          if(dataFrame.columns.length > 1) {
+            dataFrame.columns.tail.foldLeft(head)(
+              (acc, colName) => acc.or(RowProcessingUtil.isNullNanZero(dataFrame.col(colName))))
+          } else
+            head
+        NullDataReportingUtils.filterNullDataAndReportGeneral(
+          dataFrame, sparkUtils, nullDataStrategy, containsZeros,
           dataRemovedDueTo = "due to nulls and zeros") //the report will say "rows removed 'due to nulls and zeros'
       }
       //the default bad data function is .anyNull in sql.Row
-      else BadDataReportingUtils.filterNullDataAndReport(
-        inputDataFrame = dataFrame,
-        operatorParameters = operatorParameters,
-        sparkRuntimeUtils = sparkUtils)
+      else NullDataReportingUtils.filterNullDataAndReport(dataFrame, sparkUtils, nullDataStrategy)
 
     timer = timer.stop
 
@@ -182,15 +183,6 @@ object RowProcessingUtil extends Serializable {
     * 'removeNullData' routine.
     * It is true if any value is not numeric or is a zero.
     */
-  def containsZeros(r: Row): Boolean = {
-    if (r.anyNull) true
-    else {
-      //if the column is non numeric, we will not be able to parse as a double
-      val m = r.toSeq.map(v => Try(v.toString.toDouble))
-      m.exists(
-        //lazily evaluate, so we will only call .get on numeric values
-        wrappedValue => wrappedValue.isSuccess &&
-          (wrappedValue.get == 0.0))
-    }
-  }
+  def isNullNanZero(col : Column) : Column = col.isNull.or(col.isNaN).or(col.eqNullSafe(0))
+
 }
