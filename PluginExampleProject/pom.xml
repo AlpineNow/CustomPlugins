@@ -82,6 +82,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <artifactId>junit</artifactId>
+            <groupId>junit</groupId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+
+
     </dependencies>
 
     <build>
