@@ -14,7 +14,7 @@ As a result, an entire team can share pre-existing libraries of analytics and ha
 
 ## What Version Should I Use?
 
-There are different versions of the Custom Operator Framework that map to different versions of the Alpine software. For more information, see the page here: [How to Update Custom Operators With New SDK Changes](https://alpine.atlassian.net/wiki/display/KB/How+to+Update+Custom+Operators+With+New+SDK+Changes)
+There are different versions of the Custom Operator Framework that map to different versions of the Spotfire Data Science software. For more information, see the page here: [How to Update Custom Operators With New SDK Changes](https://alpine.atlassian.net/wiki/display/KB/How+to+Update+Custom+Operators+With+New+SDK+Changes)
 
 Spotfire Data Science Version | Custom Operator SDK | Spark Version 
 -------------- | --------------------------- | -------------
