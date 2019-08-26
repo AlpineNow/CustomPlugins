@@ -27,14 +27,15 @@ Team Studio Version | Custom Operator SDK | Spark Version
 6.2.x            | Version 1.8, [Scaladoc](http://alpinenow.github.io/PluginSDK/1.8/api/), [Source](https://github.com/AlpineNow/PluginSDK/tree/v1.8)  | 1.6.1
 6.3.x            | Version 1.9, [Scaladoc](http://alpinenow.github.io/PluginSDK/1.9/api/), [Source](https://github.com/AlpineNow/PluginSDK/tree/v1.9)  | 1.6.1
 6.4            | Version 1.10, [Scaladoc](http://alpinenow.github.io/PluginSDK/1.10/api/), [Source](https://github.com/AlpineNow/PluginSDK/tree/v1.10)  | 2.1.2
+6.5            | Version 1.11, [Scaladoc](http://alpinenow.github.io/PluginSDK/latest/api/), [Source](https://github.com/AlpineNow/PluginSDK/tree/v1.11)  | 2.1.2
 
 ## Resources
 
-[How to Compile and Run the Sample Operators](https://docs.tibco.com/go/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-92B7A7C7-B47F-4CBD-9F0F-04D5A7B31AAC.html)
+[How to Compile and Run the Sample Operators](https://docs.tibco.com/pub/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-92B7A7C7-B47F-4CBD-9F0F-04D5A7B31AAC.html)
 
-[Building Your First Custom Operator in Scala](https://docs.tibco.com/go/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-86FD358F-70E8-4E84-A268-BD55B4B3D9D2.html)
+[Building Your First Custom Operator in Scala](https://docs.tibco.com/pub/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-86FD358F-70E8-4E84-A268-BD55B4B3D9D2.html)
 
-[Building a Source Operator](https://docs.tibco.com/go/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-D68023C2-D9A1-4F69-A2A1-AFE72168B5DF.html)
+[Building a Source Operator](https://docs.tibco.com/pub/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-D68023C2-D9A1-4F69-A2A1-AFE72168B5DF.html)
 
 ## Building on Windows
 
