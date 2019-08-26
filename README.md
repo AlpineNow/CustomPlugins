@@ -30,11 +30,11 @@ Team Studio Version | Custom Operator SDK | Spark Version
 
 ## Resources
 
-[How to Compile and Run the Sample Operators](https://alpine.atlassian.net/wiki/display/V6/How+To+Compile+and+Run+the+Sample+Operators)
+[How to Compile and Run the Sample Operators](https://docs.tibco.com/go/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-92B7A7C7-B47F-4CBD-9F0F-04D5A7B31AAC.html)
 
-[Building Your First Custom Operator in Scala](https://alpine.atlassian.net/wiki/display/V6/Building+Your+First+Custom+Operator+in+Scala)
+[Building Your First Custom Operator in Scala](https://docs.tibco.com/go/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-86FD358F-70E8-4E84-A268-BD55B4B3D9D2.html)
 
-[Building a Source Operator](https://alpine.atlassian.net/wiki/display/V6/Building+a+Source+Operator)
+[Building a Source Operator](https://docs.tibco.com/go/sfire-dsc/6.5.0/doc/html/TIB_sfire-dsc_6.5_dev-kit/GUID-D68023C2-D9A1-4F69-A2A1-AFE72168B5DF.html)
 
 ## Building on Windows
 
